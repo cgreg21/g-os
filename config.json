@@ -1,0 +1,782 @@
+{
+  "extension": {
+    "uuid": "g-os@greg.local",
+    "name": "G-Os",
+    "description": "Barre supérieure, notifications et Dock pour GNOME Shell.",
+    "settings-schema": "org.gnome.shell.extensions.g-os",
+    "shell-version": [
+      "50",
+      "51"
+    ],
+    "version": 1
+  },
+  "settings": {
+    "id": "org.gnome.shell.extensions.g-os",
+    "path": "/org/gnome/shell/extensions/g-os/",
+    "keys": {
+      "window-buttons-left": {
+        "type": "b",
+        "default": false,
+        "summary": "Placer les boutons de fenêtre à gauche"
+      },
+      "window-button-layout-backup": {
+        "type": "as",
+        "default": [],
+        "summary": "Sauvegarde de la disposition précédente des boutons"
+      },
+      "enable-spotlight": {
+        "type": "b",
+        "default": false,
+        "summary": "Activer le raccourci de recherche"
+      },
+      "spotlight-search": {
+        "type": "as",
+        "default": [
+          "<Super>space"
+        ],
+        "summary": "Raccourci de recherche"
+      },
+      "show-dock": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le Dock"
+      },
+      "reserve-dock-space": {
+        "type": "b",
+        "default": false,
+        "summary": "Réserver l’espace du Dock aux fenêtres"
+      },
+      "dock-position": {
+        "type": "i",
+        "default": 0,
+        "summary": "Position du Dock : bas, gauche ou droite",
+        "range": {
+          "min": 0,
+          "max": 2
+        }
+      },
+      "show-dock-shortcuts": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher les raccourcis fichiers, téléchargements, corbeille et fenêtres"
+      },
+      "shortcut-overview": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le raccourci des fenêtres et espaces de travail"
+      },
+      "shortcut-desktop": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le raccourci du bureau"
+      },
+      "shortcut-files": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le raccourci des fichiers"
+      },
+      "shortcut-downloads": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le raccourci des téléchargements"
+      },
+      "shortcut-trash": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le raccourci de la corbeille"
+      },
+      "dock-autohide": {
+        "type": "b",
+        "default": false,
+        "summary": "Masquer automatiquement le Dock"
+      },
+      "dock-hide-when-covered": {
+        "type": "b",
+        "default": false,
+        "summary": "Masquer le Dock lorsqu’une fenêtre visible le recouvre"
+      },
+      "dock-maximize-slide": {
+        "type": "b",
+        "default": true,
+        "summary": "Coller le Dock au bord lorsqu’une fenêtre est maximisée"
+      },
+      "dock-maximize-slide-duration": {
+        "type": "i",
+        "default": 240,
+        "summary": "Durée du glissement du Dock en millisecondes",
+        "range": {
+          "min": 100,
+          "max": 800
+        }
+      },
+      "dock-hide-delay": {
+        "type": "i",
+        "default": 300,
+        "summary": "Délai avant masquage du Dock en millisecondes",
+        "range": {
+          "min": 100,
+          "max": 2000
+        }
+      },
+      "dock-window-previews": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher les aperçus des fenêtres au survol du Dock"
+      },
+      "dock-window-preview-delay": {
+        "type": "i",
+        "default": 500,
+        "summary": "Délai des aperçus de fenêtres en millisecondes",
+        "range": {
+          "min": 100,
+          "max": 3000
+        }
+      },
+      "dock-magnify": {
+        "type": "b",
+        "default": false,
+        "summary": "Agrandir les icônes au survol ou au focus clavier"
+      },
+      "dock-hover-animation": {
+        "type": "i",
+        "default": 0,
+        "summary": "Type d’animation des icônes au survol",
+        "range": {
+          "min": 0,
+          "max": 4
+        }
+      },
+      "dock-magnify-icons": {
+        "type": "i",
+        "default": 3,
+        "summary": "Nombre d’icônes agrandies de chaque côté",
+        "range": {
+          "min": 1,
+          "max": 8
+        }
+      },
+      "dock-magnify-max": {
+        "type": "i",
+        "default": 180,
+        "summary": "Agrandissement maximal des icônes en pourcentage",
+        "range": {
+          "min": 100,
+          "max": 400
+        }
+      },
+      "dock-slide-duration": {
+        "type": "i",
+        "default": 240,
+        "summary": "Durée du masquage et de l’apparition du Dock en millisecondes",
+        "range": {
+          "min": 0,
+          "max": 1000
+        }
+      },
+      "dock-slide-curve": {
+        "type": "i",
+        "default": 0,
+        "summary": "Courbe des slides du Dock : actuelle, linéaire, progressive ou vive",
+        "range": {
+          "min": 0,
+          "max": 3
+        }
+      },
+      "dock-hover-duration": {
+        "type": "i",
+        "default": 180,
+        "summary": "Durée de référence du survol en millisecondes",
+        "range": {
+          "min": 50,
+          "max": 1000
+        }
+      },
+      "dock-hover-strength": {
+        "type": "i",
+        "default": 100,
+        "summary": "Intensité du survol en pourcentage",
+        "range": {
+          "min": 25,
+          "max": 100
+        }
+      },
+      "dock-launch-animation": {
+        "type": "b",
+        "default": true,
+        "summary": "Activer les animations au lancement des applications"
+      },
+      "dock-launch-mode": {
+        "type": "i",
+        "default": 0,
+        "summary": "Animation de lancement : comportement actuel, rebond ou animation GNOME",
+        "range": {
+          "min": 0,
+          "max": 2
+        }
+      },
+      "dock-launch-strength": {
+        "type": "i",
+        "default": 100,
+        "summary": "Intensité du rebond au lancement en pourcentage",
+        "range": {
+          "min": 25,
+          "max": 100
+        }
+      },
+      "dock-launch-duration": {
+        "type": "i",
+        "default": 520,
+        "summary": "Durée du rebond au lancement en millisecondes",
+        "range": {
+          "min": 100,
+          "max": 2000
+        }
+      },
+      "dock-cycle-windows": {
+        "type": "b",
+        "default": false,
+        "summary": "Parcourir les fenêtres de l'application active au clic"
+      },
+      "show-running-apps": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher les applications ouvertes"
+      },
+      "dock-local-apps": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les applications ouvertes uniquement sur leurs écrans"
+      },
+      "dock-current-workspace": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les applications ouvertes dans l'espace de travail courant"
+      },
+      "icon-size": {
+        "type": "i",
+        "default": 40,
+        "summary": "Taille des icônes du Dock",
+        "range": {
+          "min": 24,
+          "max": 64
+        }
+      },
+      "dock-icon-padding": {
+        "type": "i",
+        "default": 4,
+        "summary": "Marge intérieure des icônes du Dock",
+        "range": {
+          "min": 0,
+          "max": 12
+        }
+      },
+      "dock-border-radius": {
+        "type": "i",
+        "default": 28,
+        "summary": "Rayon des coins du Dock en pixels",
+        "range": {
+          "min": 0,
+          "max": 48
+        }
+      },
+      "dock-edge-margin": {
+        "type": "i",
+        "default": 12,
+        "summary": "Distance du Dock au bord de l’écran en pixels",
+        "range": {
+          "min": 0,
+          "max": 48
+        }
+      },
+      "dock-window-margin": {
+        "type": "i",
+        "default": 0,
+        "summary": "Distance réservée entre le Dock et les fenêtres en pixels",
+        "range": {
+          "min": 0,
+          "max": 48
+        }
+      },
+      "dock-item-spacing": {
+        "type": "i",
+        "default": 5,
+        "summary": "Espacement entre les éléments du Dock en pixels",
+        "range": {
+          "min": 0,
+          "max": 20
+        }
+      },
+      "dock-show-border": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher la bordure du Dock"
+      },
+      "dock-show-shadow": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher l’ombre du Dock"
+      },
+      "dock-background-style": {
+        "type": "i",
+        "default": 0,
+        "summary": "Fond du Dock : thème actuel, discret, opaque ou transparent",
+        "range": {
+          "min": 0,
+          "max": 3
+        }
+      },
+      "dock-padding-horizontal": {
+        "type": "i",
+        "default": 9,
+        "summary": "Marge intérieure gauche et droite du Dock en pixels",
+        "range": {
+          "min": 0,
+          "max": 48
+        }
+      },
+      "dock-padding-top": {
+        "type": "i",
+        "default": 6,
+        "summary": "Marge intérieure haute du Dock en pixels",
+        "range": {
+          "min": 0,
+          "max": 48
+        }
+      },
+      "dock-padding-bottom": {
+        "type": "i",
+        "default": 6,
+        "summary": "Marge intérieure basse du Dock en pixels",
+        "range": {
+          "min": 0,
+          "max": 48
+        }
+      },
+      "dock-item-order": {
+        "type": "as",
+        "default": [],
+        "summary": "Ordre commun des applications, dossiers et raccourcis du Dock"
+      },
+      "dock-folders": {
+        "type": "as",
+        "default": [],
+        "summary": "Dossiers personnalisés du Dock"
+      },
+      "dock-icons-show-home": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le dossier personnel dans le Dock"
+      },
+      "dock-icons-show-removable": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les périphériques amovibles dans le Dock"
+      },
+      "dock-icons-show-network": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les partages réseau dans le Dock"
+      },
+      "dock-folder-view": {
+        "type": "i",
+        "default": 1,
+        "summary": "Mode d’ouverture des dossiers du Dock : pile ou grille",
+        "range": {
+          "min": 0,
+          "max": 1
+        }
+      },
+      "dock-app-folders": {
+        "type": "s",
+        "default": "[]",
+        "summary": "Dossiers d'applications du Dock avec icône et mode d'ouverture"
+      },
+      "dock-view-options": {
+        "type": "a{sa{si}}",
+        "default": {},
+        "summary": "Options des vues Pile et Grille, par défaut et par dossier"
+      },
+      "dock-folder-views": {
+        "type": "a{si}",
+        "default": {},
+        "summary": "Mode d'ouverture par dossier du Dock : pile ou grille"
+      },
+      "widgets-managed": {
+        "type": "b",
+        "default": false,
+        "summary": "Utiliser les instances du gestionnaire de widgets"
+      },
+      "widget-instances": {
+        "type": "s",
+        "default": "[]",
+        "summary": "Instances de widgets, positions, ecrans, verrouillage et configuration JSON"
+      },
+      "widget-state": {
+        "type": "s",
+        "default": "{}",
+        "summary": "Etat persistant independant de chaque widget"
+      },
+      "widget-grid-size": {
+        "type": "i",
+        "default": 32,
+        "summary": "Pas de la grille des widgets du bureau en pixels",
+        "range": {
+          "min": 8,
+          "max": 128
+        }
+      },
+      "widget-show-grid": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les guides de la grille du bureau"
+      },
+      "widget-monitors": {
+        "type": "s",
+        "default": "[]",
+        "summary": "Ecrans disponibles publies par l'extension"
+      },
+      "widget-errors": {
+        "type": "s",
+        "default": "{}",
+        "summary": "Erreurs du catalogue ou des instances de widgets"
+      },
+      "widget-catalog-revision": {
+        "type": "i",
+        "default": 0,
+        "summary": "Revision du catalogue apres un import"
+      },
+      "widget-manager-request": {
+        "type": "s",
+        "default": "",
+        "summary": "Surface demandee lors de l'ouverture du gestionnaire"
+      },
+      "dock-widget-clock": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher l'horloge dans le Dock"
+      },
+      "dock-widget-calendar": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher la date dans le Dock"
+      },
+      "dock-widget-media": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le lecteur média dans le Dock"
+      },
+      "dock-widget-sizes": {
+        "type": "a{si}",
+        "default": {},
+        "summary": "Taille par widget du Dock : 0 pour large, 1 pour 1x1"
+      },
+      "desktop-widget-clock": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le widget horloge sur le bureau"
+      },
+      "desktop-widget-calendar": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le widget calendrier sur le bureau"
+      },
+      "desktop-widget-media": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le lecteur média sur le bureau"
+      },
+      "desktop-widget-media-x": {
+        "type": "i",
+        "default": 24,
+        "summary": "Position horizontale du lecteur média sur le bureau",
+        "range": {
+          "min": 0,
+          "max": 16384
+        }
+      },
+      "desktop-widget-media-y": {
+        "type": "i",
+        "default": 408,
+        "summary": "Position verticale du lecteur média sur le bureau",
+        "range": {
+          "min": 0,
+          "max": 16384
+        }
+      },
+      "desktop-widget-width": {
+        "type": "i",
+        "default": 220,
+        "summary": "Largeur des widgets du bureau",
+        "range": {
+          "min": 120,
+          "max": 360
+        }
+      },
+      "desktop-icons-show-folder": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le contenu du dossier Bureau du système"
+      },
+      "desktop-icons-show-home": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le dossier personnel sur le bureau"
+      },
+      "desktop-icons-show-removable": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les périphériques amovibles sur le bureau"
+      },
+      "desktop-icons-show-network": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher les partages réseau sur le bureau"
+      },
+      "desktop-icons-grid-size": {
+        "type": "i",
+        "default": 96,
+        "summary": "Taille des cellules de la grille des icônes du bureau",
+        "range": {
+          "min": 64,
+          "max": 256
+        }
+      },
+      "desktop-icons-size": {
+        "type": "i",
+        "default": 48,
+        "summary": "Taille des icônes du bureau",
+        "range": {
+          "min": 24,
+          "max": 96
+        }
+      },
+      "desktop-icons-alignment": {
+        "type": "i",
+        "default": 0,
+        "summary": "Disposition des icônes : automatique à gauche, à droite ou libre",
+        "range": {
+          "min": 0,
+          "max": 2
+        }
+      },
+      "desktop-icons-label-position": {
+        "type": "i",
+        "default": 2,
+        "summary": "Position des libellés des icônes : gauche, droite ou bas",
+        "range": {
+          "min": 0,
+          "max": 2
+        }
+      },
+      "desktop-icons-layout": {
+        "type": "s",
+        "default": "{}",
+        "summary": "Positions des icônes du bureau alignées sur la grille"
+      },
+      "desktop-widget-clock-x": {
+        "type": "i",
+        "default": 24,
+        "summary": "Position horizontale du widget horloge",
+        "range": {
+          "min": 0,
+          "max": 16384
+        }
+      },
+      "desktop-widget-clock-y": {
+        "type": "i",
+        "default": 72,
+        "summary": "Position verticale du widget horloge",
+        "range": {
+          "min": 0,
+          "max": 16384
+        }
+      },
+      "desktop-widget-calendar-x": {
+        "type": "i",
+        "default": 24,
+        "summary": "Position horizontale du widget calendrier",
+        "range": {
+          "min": 0,
+          "max": 16384
+        }
+      },
+      "desktop-widget-calendar-y": {
+        "type": "i",
+        "default": 240,
+        "summary": "Position verticale du widget calendrier",
+        "range": {
+          "min": 0,
+          "max": 16384
+        }
+      },
+      "panel-style": {
+        "type": "b",
+        "default": true,
+        "summary": "Appliquer le style de la barre supérieure"
+      },
+      "panel-height": {
+        "type": "i",
+        "default": 26,
+        "summary": "Hauteur de la barre supérieure en pixels",
+        "range": {
+          "min": 24,
+          "max": 48
+        }
+      },
+      "panel-layout": {
+        "type": "as",
+        "default": [],
+        "summary": "Disposition des éléments de la barre supérieure"
+      },
+      "panel-padding-horizontal": {
+        "type": "i",
+        "default": 10,
+        "summary": "Padding horizontal de la barre supérieure en pixels",
+        "range": {
+          "min": 0,
+          "max": 32
+        }
+      },
+      "panel-padding-vertical": {
+        "type": "i",
+        "default": 0,
+        "summary": "Padding vertical de la barre supérieure en pixels",
+        "range": {
+          "min": 0,
+          "max": 12
+        }
+      },
+      "panel-icon-padding": {
+        "type": "i",
+        "default": 8,
+        "summary": "Padding horizontal des icônes de la barre supérieure en pixels",
+        "range": {
+          "min": 0,
+          "max": 24
+        }
+      },
+      "panel-text-padding": {
+        "type": "i",
+        "default": 4,
+        "summary": "Padding horizontal des textes de la barre supérieure en pixels",
+        "range": {
+          "min": 0,
+          "max": 24
+        }
+      },
+      "show-active-app": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le nom de l'application active"
+      },
+      "panel-show-clock": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher l’horloge dans la barre supérieure"
+      },
+      "panel-show-search": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton de recherche dans la barre supérieure"
+      },
+      "panel-show-preferences": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton de préférences dans la barre supérieure"
+      },
+      "panel-show-wifi": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton Wi-Fi dans la barre supérieure"
+      },
+      "panel-show-bluetooth": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton Bluetooth dans la barre supérieure"
+      },
+      "panel-show-sound": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton Son dans la barre supérieure"
+      },
+      "panel-show-brightness": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton de luminosité dans la barre supérieure"
+      },
+      "panel-show-battery": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher le bouton Batterie dans la barre supérieure"
+      },
+      "panel-show-battery-level": {
+        "type": "b",
+        "default": false,
+        "summary": "Afficher le pourcentage de batterie dans la barre supérieure"
+      },
+      "panel-show-notifications": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher les notifications dans la barre supérieure"
+      },
+      "notification-position": {
+        "type": "i",
+        "default": 0,
+        "summary": "Position des bannières de notification GNOME",
+        "range": {
+          "min": 0,
+          "max": 8
+        }
+      },
+      "panel-launcher-icon-name": {
+        "type": "s",
+        "default": "gnome-logo-symbolic",
+        "summary": "Icône du thème pour le lanceur de la barre supérieure"
+      },
+      "panel-launcher-icon-file": {
+        "type": "s",
+        "default": "",
+        "summary": "Image personnalisée du lanceur de la barre supérieure"
+      },
+      "dock-launcher-icon-name": {
+        "type": "s",
+        "default": "gnome-logo-symbolic",
+        "summary": "Icône du thème pour le lanceur d'applications du Dock"
+      },
+      "dock-launcher-icon-file": {
+        "type": "s",
+        "default": "",
+        "summary": "Image personnalisée du lanceur d'applications du Dock"
+      },
+      "global-menu-enabled": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher dans la barre les menus exportés par la fenêtre active"
+      },
+      "coverflow-enabled": {
+        "type": "b",
+        "default": true,
+        "summary": "Afficher un Cover Flow des fenêtres avec Alt+Tab"
+      },
+      "coverflow-current-workspace-only": {
+        "type": "b",
+        "default": false,
+        "summary": "Limiter le Cover Flow aux fenêtres de l'espace de travail courant"
+      },
+      "coverflow-animation-duration": {
+        "type": "i",
+        "default": 180,
+        "summary": "Durée de transition du Cover Flow en millisecondes",
+        "range": {
+          "min": 0,
+          "max": 500
+        }
+      },
+      "global-menu-dbus-enabled": {
+        "type": "b",
+        "default": true,
+        "summary": "Activer DBusMenu et le registrar pour les applications X11 ou XWayland"
+      }
+    }
+  }
+}

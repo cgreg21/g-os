@@ -1,0 +1,22 @@
+{
+  "apiVersion": 1,
+  "id": "simple-counter",
+  "name": "Compteur simple",
+  "description": "Un compteur cree sans JavaScript.",
+  "language": "simple",
+  "icon": "view-statistics-symbolic",
+  "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 4},
+  "minimum": {"width": 120, "height": 96},
+  "configuration": [
+    {"key": "title", "title": "Titre", "type": "text", "default": "Compteur"}
+  ],
+  "state": {"count": 0},
+  "elements": [
+    {"type": "text", "text": "{{config.title}} : {{state.count}}"},
+    {"type": "button", "text": "Ajouter", "icon": "list-add-symbolic", "action": {"type": "increment", "key": "count", "amount": 1}},
+    {"type": "button", "text": "Remettre a zero", "icon": "edit-clear-symbolic", "action": {"type": "set", "key": "count", "value": 0}}
+  ],
+  "dock": [{"type": "text", "text": "{{state.count}}"}],
+  "square": [{"type": "text", "text": "{{state.count}}"}]
+}

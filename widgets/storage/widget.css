@@ -1,0 +1,6 @@
+.storage-widget .macos-utility-header { border-left: 3px solid #9a8244; padding-left: 6px; }
+.storage-widget .storage-widget-summary { spacing: 10px; }
+.storage-widget .storage-widget-details { spacing: 8px; }
+.storage-widget .macos-utility-value { font-size: 20px; font-weight: bold; }
+.storage-widget .storage-widget-ring-label { font-size: 19px; font-weight: bold; }
+.storage-widget .storage-widget-path { color: rgba(127, 139, 154, 0.9); font-size: 11px; }

@@ -1,0 +1,5 @@
+{
+  "apiVersion": 1, "id": "stopwatch", "name": "Chronometre", "description": "Chronometre avec pause et tours sauvegardes.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 7}, "minimum": {"width": 208, "height": 208}, "configuration": []
+}

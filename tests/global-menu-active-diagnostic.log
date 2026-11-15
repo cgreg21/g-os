@@ -1,0 +1,154 @@
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.Daemon' requested by ':1.0' (uid=1000 pid=157541 comm="/usr/bin/gnome-extensions install --print-uuid /ho" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.Metadata' requested by ':1.0' (uid=1000 pid=157541 comm="/usr/bin/gnome-extensions install --print-uuid /ho" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.Metadata'
+libmutter-Message: 19:21:02.909: Running GNOME Shell (using mutter 50.6) as a Wayland display server
+libmutter-Message: 19:21:02.969: Added device '/dev/dri/renderD128' (i915) using no mode setting.
+libmutter-Message: 19:21:02.972: Created gbm renderer for '/dev/dri/renderD128'
+libmutter-Message: 19:21:02.972: Boot VGA GPU /dev/dri/renderD128 selected as primary
+** Message: 19:21:02.974: Obtained a high priority EGL context
+libmutter-Message: 19:21:02.997: Added virtual monitor Meta-0
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.5' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(gnome-shell:157568): dbind-WARNING **: 19:21:03.004: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied
+libmutter-Message: 19:21:03.006: Using public X11 display :2, (using unix:/tmp/.X11-unix/X3 for managed services)
+libmutter-Message: 19:21:03.006: Using Wayland display name 'gnome-shell-test-display'
+GNOME Shell-Message: 19:21:03.452: Unset XDG_SESSION_ID, getCurrentSessionProxy() called outside a user session. Asking logind directly.
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.Shell.Screencast' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.Shell.CalendarServer' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.evolution.dataserver.Sources5' requested by ':1.8' (uid=1000 pid=157609 comm="/usr/libexec/gnome-shell-calendar-server" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.6' (uid=1000 pid=157592 comm="/usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.S" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.portal.Documents' requested by ':1.10' (uid=1000 pid=157627 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.freedesktop.portal.Documents'
+GNOME Shell-Message: 19:21:03.648: Registering session with GDM
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gnome' requested by ':1.10' (uid=1000 pid=157627 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.OnlineAccounts' requested by ':1.9' (uid=1000 pid=157619 comm="/usr/libexec/evolution-source-registry" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.evolution.dataserver.Sources5'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.Shell.CalendarServer'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.evolution.dataserver.Calendar8' requested by ':1.8' (uid=1000 pid=157609 comm="/usr/libexec/gnome-shell-calendar-server" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+goa-daemon-Message: 19:21:03.776: goa-daemon version 3.58.1 starting
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.Identity' requested by ':1.14' (uid=1000 pid=157656 comm="/usr/libexec/goa-daemon" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.portal.IBus' requested by ':1.13' (uid=1000 pid=157651 comm="ibus-daemon --panel disable" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+Not connected to the ibus bus
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activated service 'org.freedesktop.portal.IBus' failed: Process org.freedesktop.portal.IBus exited with status 1
+portal is not running: GDBus.Error:org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.portal.IBus exited with status 1
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.OnlineAccounts'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.Identity'
+
+(process:157681): libgoaidentity-WARNING **: 19:21:03.838: GoaKerberosIdentityManager: Using polling for change notification for credential cache type 'KCM'
+GNOME Shell-Message: 19:21:03.844: Will monitor session 8
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.UDisks2VolumeMonitor' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.evolution.dataserver.Calendar8'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.UDisks2VolumeMonitor'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.evolution.dataserver.AddressBook10' requested by ':1.16' (uid=1000 pid=157671 comm="/usr/libexec/evolution-calendar-factory" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.AfcVolumeMonitor' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.AfcVolumeMonitor'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.GPhoto2VolumeMonitor' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.GPhoto2VolumeMonitor'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.MTPVolumeMonitor' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.MTPVolumeMonitor'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gtk.vfs.GoaVolumeMonitor' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.evolution.dataserver.AddressBook10'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gtk.vfs.GoaVolumeMonitor'
+GNOME Shell-Message: 19:21:04.024: Error looking up permission: GDBus.Error:org.freedesktop.portal.Error.NotFound: No entry for geolocation
+GNOME Shell-Message: 19:21:04.149: Failed to register AuthenticationAgent
+
+(gnome-shell:157568): libmutter-WARNING **: 19:21:04.167: Failed to load background 'file:///usr/share/backgrounds/gnome/adwaita-morning.jpg': Erreur lors de l’ouverture du fichier /usr/share/backgrounds/gnome/adwaita-morning.jpg : Aucun fichier ou dossier de ce nom
+
+(gnome-shell:157568): libmutter-WARNING **: 19:21:04.168: Failed to load background 'file:///usr/share/backgrounds/gnome/adwaita-day.jpg': Erreur lors de l’ouverture du fichier /usr/share/backgrounds/gnome/adwaita-day.jpg : Aucun fichier ou dossier de ce nom
+
+(gnome-shell:157568): Gjs-WARNING **: 19:21:04.571: Type GITypeInfo of property NM.Object::client does not match return type GITypeInfo of getter get_client. Falling back to slow path
+** Message: 19:21:04.602: Failed to start camera monitor
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.28' (uid=1000 pid=157678 comm="/usr/libexec/ibus-extension-gtk3" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.Shell.Notifications' requested by ':1.4' (uid=1000 pid=157568 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.Shell.Notifications'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.gnome.Settings.GlobalShortcutsProvider' requested by ':1.12' (uid=1000 pid=157648 comm="/usr/libexec/xdg-desktop-portal-gnome" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c8b6320/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c8b6320/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c138ca0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c138ca0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3bf71950/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3bf71950/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c07bf20/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c07bf20/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c80a2b0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c80a2b0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d396c8ba0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d396c8ba0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c5032e0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c5032e0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c552390/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:157568): Clutter-WARNING **: 19:21:05.573: Spurious clutter_actor_allocate called for actor 0x563d3c552390/unnamed [StScrollView] which isn't a descendent of the stage!
+
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.Settings.GlobalShortcutsProvider'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gnome'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.10' (uid=1000 pid=157627 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.34' (uid=1000 pid=158328 comm="/usr/libexec/xdg-desktop-portal-gtk" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(xdg-desktop-portal-gtk:158328): dbind-WARNING **: 19:21:05.892: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+
+(/usr/libexec/xdg-desktop-portal:157627): xdg-desktop-portal-WARNING **: 19:21:05.968: Failed to connect to PipeWire: Couldn't connect to PipeWire
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Activating service name='org.freedesktop.secrets' requested by ':1.10' (uid=1000 pid=157627 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+** Message: 19:21:05.980: couldn't access control socket: /tmp/g-os-active-global-menu-ICTsX2/keyring/control: Aucun fichier ou dossier de ce nom
+discover_other_daemon: 0dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.freedesktop.secrets'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.freedesktop.portal.Desktop'
+dbus-daemon[157539]: [session uid=1000 pid=157539 pidfd=5] Successfully activated service 'org.gnome.Shell.Screencast'
+** Message: 19:21:47.722: Shutting down GNOME Shell
+
+(gnome-shell:157568): Gjs-CRITICAL **: 19:21:47.834: Object Gjs_status_backgroundApps_BackgroundAppsToggle (0x563d3b7f3ae0), has been already disposed — impossible to set any property on it. This might be caused by the object having been destroyed from C code using something such as destroy(), dispose(), or remove() vfuncs.
+== Stack trace for context 0x563d36ae2020 ==
+#0   563d36bdabf8 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:196 (3fcb9dbe740 @ 163)
+#1   563d36bdab48 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:200 (3fcb9dbe790 @ 34)
+#2   563d36bdaac8 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:163 (3fcb9dbe600 @ 12)
+#3   563d36bdaa28 i   resource:///org/gnome/shell/ui/main.js:277 (1d23c4af7790 @ 119)
+
+(gnome-shell:157568): Gjs-CRITICAL **: 19:21:47.834: Object St.BoxLayout (0x563d3b820de0), has been already disposed — impossible to access it. This might be caused by the object having been destroyed from C code using something such as destroy(), dispose(), or remove() vfuncs.
+== Stack trace for context 0x563d36ae2020 ==
+#0   7ffd3efd4020 b   resource:///org/gnome/shell/ui/popupMenu.js:946 (2ec39c455240 @ 22)
+#1   7ffd3efd40e0 b   resource:///org/gnome/shell/ui/popupMenu.js:964 (2ec39c4553d0 @ 23)
+#2   563d36bdab48 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:207 (3fcb9dbe790 @ 107)
+#3   563d36bdaac8 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:163 (3fcb9dbe600 @ 12)
+#4   563d36bdaa28 i   resource:///org/gnome/shell/ui/main.js:277 (1d23c4af7790 @ 119)
+
+(gnome-shell:157568): Gjs-CRITICAL **: 19:21:47.834: Object Gjs_ui_popupMenu_PopupMenuItem (0x563d3b8192b0), has been already disposed — impossible to set any property on it. This might be caused by the object having been destroyed from C code using something such as destroy(), dispose(), or remove() vfuncs.
+== Stack trace for context 0x563d36ae2020 ==
+#0   563d36bdab48 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:243 (3fcb9dbe790 @ 341)
+#1   563d36bdaac8 i   resource:///org/gnome/shell/ui/status/backgroundApps.js:163 (3fcb9dbe600 @ 12)
+#2   563d36bdaa28 i   resource:///org/gnome/shell/ui/main.js:277 (1d23c4af7790 @ 119)

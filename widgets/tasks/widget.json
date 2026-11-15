@@ -1,0 +1,6 @@
+{
+  "apiVersion": 1, "id": "tasks", "name": "Taches", "description": "Liste de taches avec progression et cases a cocher.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 8, "rows": 10}, "minimum": {"width": 240, "height": 304},
+  "configuration": [{"key": "show-done", "title": "Afficher les taches terminees", "type": "switch", "default": true}]
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "useUnknownInCatchVariables": false
+  },
+  "include": [
+    "src/ambient.d.ts",
+    "src/soup.d.ts",
+    "src/**/*.ts"
+  ]
+}

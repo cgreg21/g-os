@@ -1,0 +1,11 @@
+{
+  "uuid": "g-os@greg.local",
+  "name": "G-Os",
+  "description": "Barre supérieure, notifications et Dock pour GNOME Shell.",
+  "settings-schema": "org.gnome.shell.extensions.g-os",
+  "shell-version": [
+    "50",
+    "51"
+  ],
+  "version": 1
+}

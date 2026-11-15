@@ -1,0 +1,6 @@
+{
+  "apiVersion": 1, "id": "system-monitor", "name": "Moniteur systeme", "description": "Utilisation CPU, memoire, charge et temps de fonctionnement.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 8, "rows": 6}, "minimum": {"width": 240, "height": 160},
+  "configuration": [{"key": "interval", "title": "Rafraichissement (secondes)", "type": "number", "min": 1, "max": 60, "step": 1, "default": 2}]
+}

@@ -1,0 +1,5 @@
+{
+  "apiVersion": 1, "id": "calculator", "name": "Calculatrice", "description": "Expressions calculees par le moteur GNOME Calculatrice.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 8, "rows": 6}, "minimum": {"width": 240, "height": 176}, "configuration": []
+}

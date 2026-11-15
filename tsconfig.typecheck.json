@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
+  },
+  "include": ["src/ambient.d.ts", "src/shared/appFolders.ts", "src/widgets/widgetUtilities.ts", "src/widgets/simpleWidget.ts", "src/widgets/fluxLanguage.ts", "src/widgets/fluxPython.ts", "src/widgets/fluxHttp.ts", "src/widgets/fluxWidget.ts"]
+}

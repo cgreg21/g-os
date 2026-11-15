@@ -1,0 +1,15 @@
+{
+  "apiVersion": 1,
+  "id": "calendar",
+  "name": "Calendrier",
+  "description": "Date et calendrier du bureau ou du Dock.",
+  "entry": "widget.js",
+  "preview": "preview.svg",
+  "css": "widget.css",
+  "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 5},
+  "minimum": {"width": 120, "height": 136},
+  "configuration": [
+    {"key": "show-weekday", "title": "Afficher le jour de la semaine", "type": "switch", "default": true}
+  ]
+}

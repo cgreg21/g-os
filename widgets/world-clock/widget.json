@@ -1,0 +1,10 @@
+{
+  "apiVersion": 1, "id": "world-clock", "name": "Horloge mondiale", "description": "Heure et date d'un fuseau horaire au choix.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 5}, "minimum": {"width": 192, "height": 144},
+  "configuration": [
+    {"key": "city", "title": "Titre", "type": "text", "default": "Paris"},
+    {"key": "timezone", "title": "Fuseau horaire IANA", "type": "text", "default": "Europe/Paris"},
+    {"key": "twelve-hour", "title": "Format 12 heures", "type": "switch", "default": false}
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "apiVersion": 1, "id": "notes", "name": "Notes", "description": "Bloc-notes personnel persistant.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 8, "rows": 8}, "minimum": {"width": 224, "height": 240},
+  "configuration": [{"key": "title", "title": "Titre de la note", "type": "text", "default": "Notes"}]
+}

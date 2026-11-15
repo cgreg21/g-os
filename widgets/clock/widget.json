@@ -1,0 +1,16 @@
+{
+  "apiVersion": 1,
+  "id": "clock",
+  "name": "Horloge",
+  "description": "Heure et date synchronisees avec GNOME.",
+  "entry": "widget.js",
+  "preview": "preview.svg",
+  "css": "widget.css",
+  "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 4},
+  "minimum": {"width": 120, "height": 96},
+  "configuration": [
+    {"key": "format", "title": "Format de l'heure", "type": "select", "choices": ["Systeme", "24 h", "12 h"], "default": "Systeme"},
+    {"key": "show-date", "title": "Afficher la date", "type": "switch", "default": true}
+  ]
+}

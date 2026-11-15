@@ -1,0 +1,13 @@
+{
+  "apiVersion": 1,
+  "id": "media",
+  "name": "Lecteur media",
+  "description": "Commandes MPRIS, titre, artiste et pochette du lecteur actif.",
+  "entry": "widget.js",
+  "preview": "preview.svg",
+  "css": "widget.css",
+  "targets": ["desktop", "dock"],
+  "size": {"columns": 8, "rows": 5},
+  "minimum": {"width": 120, "height": 120},
+  "configuration": []
+}

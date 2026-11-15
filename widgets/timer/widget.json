@@ -1,0 +1,9 @@
+{
+  "apiVersion": 1, "id": "timer", "name": "Minuteur", "description": "Compte a rebours persistant avec pause et notification.",
+  "entry": "widget.js", "preview": "preview.svg", "css": "widget.css", "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 6}, "minimum": {"width": 192, "height": 160},
+  "configuration": [
+    {"key": "minutes", "title": "Duree (minutes)", "type": "number", "min": 1, "max": 240, "step": 1, "default": 5},
+    {"key": "notify", "title": "Notification de fin", "type": "switch", "default": true}
+  ]
+}

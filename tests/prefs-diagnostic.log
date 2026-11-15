@@ -1,0 +1,141 @@
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.124: GtkImage 0x556e31d1ebb0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.124: GtkImage 0x556e31d1f380 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.125: GtkImage 0x556e31d29d90 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.125: GtkImage 0x556e31d2a620 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.125: GtkImage 0x556e31d34f00 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.125: GtkImage 0x556e31d356d0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d40000 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d407d0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d4b1b0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d4b980 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d562a0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d56a70 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d7dd70 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.126: GtkImage 0x556e31d7e540 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.127: GtkImage 0x556e31d67a90 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.127: GtkImage 0x556e31d68260 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.127: GtkImage 0x556e31d72c40 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.127: GtkImage 0x556e31d73410 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.128: GtkImage 0x556e31d892e0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.128: GtkImage 0x556e31d89bb0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.128: GtkImage 0x556e31d94720 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.128: GtkImage 0x556e31d94ef0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31d9f850 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31da0020 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31daa9c0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dab190 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31db5b20 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31db62f0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dc0be0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dc13b0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dcbca0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dcc470 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dd6d90 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.130: GtkImage 0x556e31dd7560 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31de1e60 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31de2630 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31decf60 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31ded730 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31df8060 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31df8830 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e035c0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e03d90 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e0e6b0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e0ee80 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e197c0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e19f90 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e248d0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e250a0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e2f9c0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.131: GtkImage 0x556e31e30190 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.132: GtkImage 0x556e31e3aec0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.132: GtkImage 0x556e31e3b990 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.132: GtkImage 0x556e31e461a0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.132: GtkImage 0x556e31e46970 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31d022c0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31d02a90 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31d13a30 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31d14140 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31e51280 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31e51a50 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31e5c340 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31e5cb10 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31e67420 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.133: GtkImage 0x556e31e67bf0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.134: GtkImage 0x556e31e724e0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.134: GtkImage 0x556e31e72cb0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.134: GtkImage 0x556e31e7d5a0 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.134: GtkImage 0x556e31e7dd70 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.134: GtkImage 0x556e31e90790 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+
+(gjs:140543): Gtk-WARNING **: 18:41:00.134: GtkImage 0x556e31e90e80 reported baselines of minimum -2147483648 and natural -2147483648, but sizes of minimum 16 and natural 16. Baselines must be inside the widget size.
+timeout: la commande surveillée a renvoyé un core dump

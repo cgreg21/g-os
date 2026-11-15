@@ -1,0 +1,4 @@
+.system-monitor-widget .macos-utility-header { border-left: 3px solid #57896a; padding-left: 6px; }
+.system-monitor-widget .macos-utility-body { spacing: 7px; }
+.system-monitor-widget .macos-utility-value { font-size: 25px; font-weight: bold; }
+.system-monitor-widget .macos-widget-sparkline { height: 40px; }

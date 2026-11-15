@@ -1,0 +1,19 @@
+{
+  "apiVersion": 1,
+  "id": "example-status",
+  "name": "Widget exemple",
+  "description": "Exemple JavaScript natif avec configuration generee.",
+  "entry": "widget.js",
+  "preview": "preview.svg",
+  "css": "widget.css",
+  "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 4},
+  "minimum": {"width": 120, "height": 128},
+  "configuration": [
+    {"key": "caption", "title": "Titre", "type": "text", "default": "Mon widget"},
+    {"key": "show-time", "title": "Afficher l'heure", "type": "switch", "default": true},
+    {"key": "font-size", "title": "Taille du texte", "type": "number", "min": 8, "max": 24, "step": 1, "default": 12},
+    {"key": "mode", "title": "Contenu", "type": "select", "choices": ["Heure", "Date"], "default": "Heure"},
+    {"key": "color", "title": "Couleur du texte", "type": "color", "default": "#f5f6f8"}
+  ]
+}

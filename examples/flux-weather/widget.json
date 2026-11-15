@@ -1,0 +1,13 @@
+{
+  "apiVersion": 1,
+  "id": "flux-weather",
+  "name": "Meteo Flux",
+  "description": "Temperature actuelle avec Open-Meteo.",
+  "language": "flux",
+  "entry": "widget.flux",
+  "template": "template.flux",
+  "icon": "weather-clear-symbolic",
+  "targets": ["desktop", "dock"],
+  "size": {"columns": 7, "rows": 4},
+  "minimum": {"width": 120, "height": 96}
+}

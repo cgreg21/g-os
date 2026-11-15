@@ -1,0 +1,190 @@
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.Daemon' requested by ':1.0' (uid=1000 pid=183118 comm="/usr/bin/gnome-extensions install --print-uuid /ho" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.Metadata' requested by ':1.0' (uid=1000 pid=183118 comm="/usr/bin/gnome-extensions install --print-uuid /ho" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.Metadata'
+libmutter-Message: 20:11:20.744: Running GNOME Shell (using mutter 50.6) as a Wayland display server
+libmutter-Message: 20:11:20.801: Added device '/dev/dri/renderD128' (i915) using no mode setting.
+libmutter-Message: 20:11:20.804: Created gbm renderer for '/dev/dri/renderD128'
+libmutter-Message: 20:11:20.804: Boot VGA GPU /dev/dri/renderD128 selected as primary
+** Message: 20:11:20.806: Obtained a high priority EGL context
+libmutter-Message: 20:11:20.827: Added virtual monitor Meta-0
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.5' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(gnome-shell:183145): dbind-WARNING **: 20:11:20.835: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied
+libmutter-Message: 20:11:20.837: Using public X11 display :2, (using unix:/tmp/.X11-unix/X3 for managed services)
+libmutter-Message: 20:11:20.837: Using Wayland display name 'gnome-shell-test-display'
+GNOME Shell-Message: 20:11:21.260: Unset XDG_SESSION_ID, getCurrentSessionProxy() called outside a user session. Asking logind directly.
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.Shell.Screencast' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.Shell.CalendarServer' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.evolution.dataserver.Sources5' requested by ':1.8' (uid=1000 pid=183186 comm="/usr/libexec/gnome-shell-calendar-server" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+GNOME Shell-Message: 20:11:21.453: Registering session with GDM
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.OnlineAccounts' requested by ':1.9' (uid=1000 pid=183196 comm="/usr/libexec/evolution-source-registry" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.evolution.dataserver.Sources5'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.Shell.CalendarServer'
+goa-daemon-Message: 20:11:21.533: goa-daemon version 3.58.1 starting
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.evolution.dataserver.Calendar8' requested by ':1.8' (uid=1000 pid=183186 comm="/usr/libexec/gnome-shell-calendar-server" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.Identity' requested by ':1.10' (uid=1000 pid=183212 comm="/usr/libexec/goa-daemon" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.Identity'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.OnlineAccounts'
+
+(process:183235): libgoaidentity-WARNING **: 20:11:21.573: GoaKerberosIdentityManager: Using polling for change notification for credential cache type 'KCM'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.portal.IBus' requested by ':1.13' (uid=1000 pid=183224 comm="ibus-daemon --panel disable" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+Not connected to the ibus bus
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.freedesktop.portal.IBus' failed: Process org.freedesktop.portal.IBus exited with status 1
+portal is not running: GDBus.Error:org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.portal.IBus exited with status 1
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.evolution.dataserver.Calendar8'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.evolution.dataserver.AddressBook10' requested by ':1.12' (uid=1000 pid=183229 comm="/usr/libexec/evolution-calendar-factory" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+GNOME Shell-Message: 20:11:21.642: Will monitor session 8
+GNOME Shell-Message: 20:11:21.690: Error looking up permission: GDBus.Error:org.freedesktop.portal.Error.NotFound: No entry for geolocation
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.evolution.dataserver.AddressBook10'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.UDisks2VolumeMonitor' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.UDisks2VolumeMonitor'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.AfcVolumeMonitor' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.AfcVolumeMonitor'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.GPhoto2VolumeMonitor' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.GPhoto2VolumeMonitor'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.MTPVolumeMonitor' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.MTPVolumeMonitor'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gtk.vfs.GoaVolumeMonitor' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gtk.vfs.GoaVolumeMonitor'
+GNOME Shell-Message: 20:11:21.949: Failed to register AuthenticationAgent
+
+(gnome-shell:183145): libmutter-WARNING **: 20:11:21.959: Failed to load background 'file:///usr/share/backgrounds/gnome/adwaita-morning.jpg': Erreur lors de l’ouverture du fichier /usr/share/backgrounds/gnome/adwaita-morning.jpg : Aucun fichier ou dossier de ce nom
+
+(gnome-shell:183145): libmutter-WARNING **: 20:11:21.959: Failed to load background 'file:///usr/share/backgrounds/gnome/adwaita-day.jpg': Erreur lors de l’ouverture du fichier /usr/share/backgrounds/gnome/adwaita-day.jpg : Aucun fichier ou dossier de ce nom
+** Message: 20:11:22.350: Failed to start camera monitor
+
+(gnome-shell:183145): Gjs-WARNING **: 20:11:22.467: Type GITypeInfo of property NM.Object::client does not match return type GITypeInfo of getter get_client. Falling back to slow path
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.gnome.Shell.Notifications' requested by ':1.4' (uid=1000 pid=183145 comm="/usr/bin/gnome-shell --automation-script /home/gre" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.Shell.Notifications'
+Current global menu: waiting for g-os@greg.local
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Multiple symbols for level 1/group 1 on key <FK23>
+>                   Using F23, ignoring XF86TouchpadOff
+> Warning:          Symbol map for key <FK23> redefined
+>                   Using last definition for conflicting fields
+> Warning:          Symbol map for key <FK24> redefined
+>                   Using last definition for conflicting fields
+Errors from xkbcomp are not fatal to the X server
+Current global menu: extension ready
+Current global menu: registrar ready
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f847560/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f847560/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f83e260/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f83e260/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f694ae0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f694ae0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f650ab0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f650ab0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f647c90/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f647c90/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x5629799ce1b0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x5629799ce1b0/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f3d0b90/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f3d0b90/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f3cbd90/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297f3cbd90/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297ef2e250/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297ef2e250/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297ef2bc50/unnamed [StScrollView] which isn't a descendent of the stage!
+
+
+(gnome-shell:183145): Clutter-WARNING **: 20:11:23.500: Spurious clutter_actor_allocate called for actor 0x56297ef2bc50/unnamed [StScrollView] which isn't a descendent of the stage!
+
+Current global menu: starting gtk
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.portal.IBus' requested by ':1.30' (uid=1000 pid=183881 comm="ibus-daemon --panel disable -r --xim" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+Not connected to the ibus bus
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.freedesktop.portal.IBus' failed: Process org.freedesktop.portal.IBus exited with status 1
+portal is not running: GDBus.Error:org.freedesktop.DBus.Error.Spawn.ChildExited: Process org.freedesktop.portal.IBus exited with status 1
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.32' (uid=1000 pid=183875 comm="/usr/libexec/mutter-x11-frames" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.gnome.Shell.Screencast'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.34' (uid=1000 pid=183869 comm="gjs -c ?            imports.gi.versions.Gtk = '3.0" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.portal.Documents' requested by ':1.33' (uid=1000 pid=183921 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(gjs:183869): dbind-WARNING **: 20:11:23.803: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.35' (uid=1000 pid=183898 comm="/usr/libexec/ibus-extension-gtk3" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.freedesktop.portal.Documents'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gnome' requested by ':1.33' (uid=1000 pid=183921 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+
+** (xdg-desktop-portal-gnome:183959): WARNING **: 20:11:23.901: GDK backend forced via env var, portal dialogs will not work properly.
+Non-compatible display server, exposing settings only.
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gnome'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.33' (uid=1000 pid=183921 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.41' (uid=1000 pid=183975 comm="/usr/libexec/xdg-desktop-portal-gtk" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(xdg-desktop-portal-gtk:183975): dbind-WARNING **: 20:11:23.961: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+
+(/usr/libexec/xdg-desktop-portal:183921): xdg-desktop-portal-WARNING **: 20:11:23.984: Failed to connect to PipeWire: Couldn't connect to PipeWire
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.freedesktop.secrets' requested by ':1.33' (uid=1000 pid=183921 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+** Message: 20:11:23.997: couldn't access control socket: /tmp/g-os-current-menu-iXpk3n/keyring/control: Aucun fichier ou dossier de ce nom
+discover_other_daemon: 0dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.freedesktop.secrets'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Successfully activated service 'org.freedesktop.portal.Desktop'
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.32' (uid=1000 pid=183875 comm="/usr/libexec/mutter-x11-frames" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(mutter-x11-frames:183875): Gtk-WARNING **: 20:11:24.073: Unable to acquire the address of the accessibility bus: GDBus.Error:org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied. If you are attempting to run GTK without a11y support, GTK_A11Y should be set to 'none'.
+
+(gnome-shell:183145): libmutter-WARNING **: 20:11:24.561: Tried to ping window 0x600003 (Global menu executed) with a bad serial! Not allowed.
+Current global menu gtk: focus, action, checked state and cleanup verified
+Current global menu: starting dbusmenu
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.46' (uid=1000 pid=184047 comm="gjs -c ?            imports.gi.versions.Gtk = '3.0" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[183116]: [session uid=1000 pid=183116 pidfd=5] Activated service 'org.a11y.Bus' failed: Failed to execute program org.a11y.Bus: Permission denied
+
+(gjs:184047): dbind-WARNING **: 20:11:24.714: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.Spawn.ExecFailed: Failed to execute program org.a11y.Bus: Permission denied
+
+(gnome-shell:183145): libmutter-WARNING **: 20:11:25.103: Tried to ping window 0x600003 (Global menu executed) with a bad serial! Not allowed.
+Current global menu dbusmenu: focus, action, checked state and cleanup verified
+** Message: 20:11:25.154: Shutting down GNOME Shell
+libmutter-Message: 20:11:25.377: Removed virtual monitor Meta-0
+args: ['/usr/bin/gnome-shell', '--automation-script', '/home/greg/Documents/macos/tests/gnome-visual.js', '--headless', '--virtual-monitor', '1280x720', '--wayland-display', 'gnome-shell-test-display']
+------------------------------------------------------------
+------------------------------------------------------------
+A connection to the bus can't be made
+gnome-shell-calendar-server[183186]: Lost (or failed to acquire) the name org.gnome.Shell.CalendarServer - exiting
+
+(evolution-addressbook-factory:183271): libedbus-private-WARNING **: 20:11:25.427: Error setting property 'ConnectionStatus' on interface org.gnome.evolution.dataserver.Source: La connexion est fermée (g-io-error-quark, 18)
+A connection to the bus can't be made

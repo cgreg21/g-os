@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.g-os" path="/org/gnome/shell/extensions/g-os/">
+    <key name="window-buttons-left" type="b">
+      <default>false</default>
+      <summary>Placer les boutons de fenêtre à gauche</summary>
+    </key>
+    <key name="window-button-layout-backup" type="as">
+      <default>[]</default>
+      <summary>Sauvegarde de la disposition précédente des boutons</summary>
+    </key>
+    <key name="enable-spotlight" type="b">
+      <default>false</default>
+      <summary>Activer le raccourci de recherche</summary>
+    </key>
+    <key name="spotlight-search" type="as">
+      <default>[&quot;&lt;Super&gt;space&quot;]</default>
+      <summary>Raccourci de recherche</summary>
+    </key>
+    <key name="show-dock" type="b">
+      <default>true</default>
+      <summary>Afficher le Dock</summary>
+    </key>
+    <key name="reserve-dock-space" type="b">
+      <default>false</default>
+      <summary>Réserver l’espace du Dock aux fenêtres</summary>
+    </key>
+    <key name="dock-position" type="i">
+      <range min="0" max="2"/>
+      <default>0</default>
+      <summary>Position du Dock : bas, gauche ou droite</summary>
+    </key>
+    <key name="show-dock-shortcuts" type="b">
+      <default>true</default>
+      <summary>Afficher les raccourcis fichiers, téléchargements, corbeille et fenêtres</summary>
+    </key>
+    <key name="shortcut-overview" type="b">
+      <default>true</default>
+      <summary>Afficher le raccourci des fenêtres et espaces de travail</summary>
+    </key>
+    <key name="shortcut-desktop" type="b">
+      <default>true</default>
+      <summary>Afficher le raccourci du bureau</summary>
+    </key>
+    <key name="shortcut-files" type="b">
+      <default>true</default>
+      <summary>Afficher le raccourci des fichiers</summary>
+    </key>
+    <key name="shortcut-downloads" type="b">
+      <default>true</default>
+      <summary>Afficher le raccourci des téléchargements</summary>
+    </key>
+    <key name="shortcut-trash" type="b">
+      <default>true</default>
+      <summary>Afficher le raccourci de la corbeille</summary>
+    </key>
+    <key name="dock-autohide" type="b">
+      <default>false</default>
+      <summary>Masquer automatiquement le Dock</summary>
+    </key>
+    <key name="dock-hide-when-covered" type="b">
+      <default>false</default>
+      <summary>Masquer le Dock lorsqu’une fenêtre visible le recouvre</summary>
+    </key>
+    <key name="dock-maximize-slide" type="b">
+      <default>true</default>
+      <summary>Coller le Dock au bord lorsqu’une fenêtre est maximisée</summary>
+    </key>
+    <key name="dock-maximize-slide-duration" type="i">
+      <range min="100" max="800"/>
+      <default>240</default>
+      <summary>Durée du glissement du Dock en millisecondes</summary>
+    </key>
+    <key name="dock-hide-delay" type="i">
+      <range min="100" max="2000"/>
+      <default>300</default>
+      <summary>Délai avant masquage du Dock en millisecondes</summary>
+    </key>
+    <key name="dock-window-previews" type="b">
+      <default>true</default>
+      <summary>Afficher les aperçus des fenêtres au survol du Dock</summary>
+    </key>
+    <key name="dock-window-preview-delay" type="i">
+      <range min="100" max="3000"/>
+      <default>500</default>
+      <summary>Délai des aperçus de fenêtres en millisecondes</summary>
+    </key>
+    <key name="dock-magnify" type="b">
+      <default>false</default>
+      <summary>Agrandir les icônes au survol ou au focus clavier</summary>
+    </key>
+    <key name="dock-hover-animation" type="i">
+      <range min="0" max="4"/>
+      <default>0</default>
+      <summary>Type d’animation des icônes au survol</summary>
+    </key>
+    <key name="dock-magnify-icons" type="i">
+      <range min="1" max="8"/>
+      <default>3</default>
+      <summary>Nombre d’icônes agrandies de chaque côté</summary>
+    </key>
+    <key name="dock-magnify-max" type="i">
+      <range min="100" max="400"/>
+      <default>180</default>
+      <summary>Agrandissement maximal des icônes en pourcentage</summary>
+    </key>
+    <key name="dock-slide-duration" type="i">
+      <range min="0" max="1000"/>
+      <default>240</default>
+      <summary>Durée du masquage et de l’apparition du Dock en millisecondes</summary>
+    </key>
+    <key name="dock-slide-curve" type="i">
+      <range min="0" max="3"/>
+      <default>0</default>
+      <summary>Courbe des slides du Dock : actuelle, linéaire, progressive ou vive</summary>
+    </key>
+    <key name="dock-hover-duration" type="i">
+      <range min="50" max="1000"/>
+      <default>180</default>
+      <summary>Durée de référence du survol en millisecondes</summary>
+    </key>
+    <key name="dock-hover-strength" type="i">
+      <range min="25" max="100"/>
+      <default>100</default>
+      <summary>Intensité du survol en pourcentage</summary>
+    </key>
+    <key name="dock-launch-animation" type="b">
+      <default>true</default>
+      <summary>Activer les animations au lancement des applications</summary>
+    </key>
+    <key name="dock-launch-mode" type="i">
+      <range min="0" max="2"/>
+      <default>0</default>
+      <summary>Animation de lancement : comportement actuel, rebond ou animation GNOME</summary>
+    </key>
+    <key name="dock-launch-strength" type="i">
+      <range min="25" max="100"/>
+      <default>100</default>
+      <summary>Intensité du rebond au lancement en pourcentage</summary>
+    </key>
+    <key name="dock-launch-duration" type="i">
+      <range min="100" max="2000"/>
+      <default>520</default>
+      <summary>Durée du rebond au lancement en millisecondes</summary>
+    </key>
+    <key name="dock-cycle-windows" type="b">
+      <default>false</default>
+      <summary>Parcourir les fenêtres de l&apos;application active au clic</summary>
+    </key>
+    <key name="show-running-apps" type="b">
+      <default>true</default>
+      <summary>Afficher les applications ouvertes</summary>
+    </key>
+    <key name="dock-local-apps" type="b">
+      <default>false</default>
+      <summary>Afficher les applications ouvertes uniquement sur leurs écrans</summary>
+    </key>
+    <key name="dock-current-workspace" type="b">
+      <default>false</default>
+      <summary>Afficher les applications ouvertes dans l&apos;espace de travail courant</summary>
+    </key>
+    <key name="icon-size" type="i">
+      <range min="24" max="64"/>
+      <default>40</default>
+      <summary>Taille des icônes du Dock</summary>
+    </key>
+    <key name="dock-icon-padding" type="i">
+      <range min="0" max="12"/>
+      <default>4</default>
+      <summary>Marge intérieure des icônes du Dock</summary>
+    </key>
+    <key name="dock-border-radius" type="i">
+      <range min="0" max="48"/>
+      <default>28</default>
+      <summary>Rayon des coins du Dock en pixels</summary>
+    </key>
+    <key name="dock-edge-margin" type="i">
+      <range min="0" max="48"/>
+      <default>12</default>
+      <summary>Distance du Dock au bord de l’écran en pixels</summary>
+    </key>
+    <key name="dock-window-margin" type="i">
+      <range min="0" max="48"/>
+      <default>0</default>
+      <summary>Distance réservée entre le Dock et les fenêtres en pixels</summary>
+    </key>
+    <key name="dock-item-spacing" type="i">
+      <range min="0" max="20"/>
+      <default>5</default>
+      <summary>Espacement entre les éléments du Dock en pixels</summary>
+    </key>
+    <key name="dock-show-border" type="b">
+      <default>true</default>
+      <summary>Afficher la bordure du Dock</summary>
+    </key>
+    <key name="dock-show-shadow" type="b">
+      <default>true</default>
+      <summary>Afficher l’ombre du Dock</summary>
+    </key>
+    <key name="dock-background-style" type="i">
+      <range min="0" max="3"/>
+      <default>0</default>
+      <summary>Fond du Dock : thème actuel, discret, opaque ou transparent</summary>
+    </key>
+    <key name="dock-padding-horizontal" type="i">
+      <range min="0" max="48"/>
+      <default>9</default>
+      <summary>Marge intérieure gauche et droite du Dock en pixels</summary>
+    </key>
+    <key name="dock-padding-top" type="i">
+      <range min="0" max="48"/>
+      <default>6</default>
+      <summary>Marge intérieure haute du Dock en pixels</summary>
+    </key>
+    <key name="dock-padding-bottom" type="i">
+      <range min="0" max="48"/>
+      <default>6</default>
+      <summary>Marge intérieure basse du Dock en pixels</summary>
+    </key>
+    <key name="dock-item-order" type="as">
+      <default>[]</default>
+      <summary>Ordre commun des applications, dossiers et raccourcis du Dock</summary>
+    </key>
+    <key name="dock-folders" type="as">
+      <default>[]</default>
+      <summary>Dossiers personnalisés du Dock</summary>
+    </key>
+    <key name="dock-icons-show-home" type="b">
+      <default>false</default>
+      <summary>Afficher le dossier personnel dans le Dock</summary>
+    </key>
+    <key name="dock-icons-show-removable" type="b">
+      <default>false</default>
+      <summary>Afficher les périphériques amovibles dans le Dock</summary>
+    </key>
+    <key name="dock-icons-show-network" type="b">
+      <default>false</default>
+      <summary>Afficher les partages réseau dans le Dock</summary>
+    </key>
+    <key name="dock-folder-view" type="i">
+      <range min="0" max="1"/>
+      <default>1</default>
+      <summary>Mode d’ouverture des dossiers du Dock : pile ou grille</summary>
+    </key>
+    <key name="dock-app-folders" type="s">
+      <default>&quot;[]&quot;</default>
+      <summary>Dossiers d&apos;applications du Dock avec icône et mode d&apos;ouverture</summary>
+    </key>
+    <key name="dock-view-options" type="a{sa{si}}">
+      <default>{}</default>
+      <summary>Options des vues Pile et Grille, par défaut et par dossier</summary>
+    </key>
+    <key name="dock-folder-views" type="a{si}">
+      <default>{}</default>
+      <summary>Mode d&apos;ouverture par dossier du Dock : pile ou grille</summary>
+    </key>
+    <key name="widgets-managed" type="b">
+      <default>false</default>
+      <summary>Utiliser les instances du gestionnaire de widgets</summary>
+    </key>
+    <key name="widget-instances" type="s">
+      <default>&quot;[]&quot;</default>
+      <summary>Instances de widgets, positions, ecrans, verrouillage et configuration JSON</summary>
+    </key>
+    <key name="widget-state" type="s">
+      <default>&quot;{}&quot;</default>
+      <summary>Etat persistant independant de chaque widget</summary>
+    </key>
+    <key name="widget-grid-size" type="i">
+      <range min="8" max="128"/>
+      <default>32</default>
+      <summary>Pas de la grille des widgets du bureau en pixels</summary>
+    </key>
+    <key name="widget-show-grid" type="b">
+      <default>false</default>
+      <summary>Afficher les guides de la grille du bureau</summary>
+    </key>
+    <key name="widget-monitors" type="s">
+      <default>&quot;[]&quot;</default>
+      <summary>Ecrans disponibles publies par l&apos;extension</summary>
+    </key>
+    <key name="widget-errors" type="s">
+      <default>&quot;{}&quot;</default>
+      <summary>Erreurs du catalogue ou des instances de widgets</summary>
+    </key>
+    <key name="widget-catalog-revision" type="i">
+      <default>0</default>
+      <summary>Revision du catalogue apres un import</summary>
+    </key>
+    <key name="widget-manager-request" type="s">
+      <default>&quot;&quot;</default>
+      <summary>Surface demandee lors de l&apos;ouverture du gestionnaire</summary>
+    </key>
+    <key name="dock-widget-clock" type="b">
+      <default>false</default>
+      <summary>Afficher l&apos;horloge dans le Dock</summary>
+    </key>
+    <key name="dock-widget-calendar" type="b">
+      <default>false</default>
+      <summary>Afficher la date dans le Dock</summary>
+    </key>
+    <key name="dock-widget-media" type="b">
+      <default>false</default>
+      <summary>Afficher le lecteur média dans le Dock</summary>
+    </key>
+    <key name="dock-widget-sizes" type="a{si}">
+      <default>{}</default>
+      <summary>Taille par widget du Dock : 0 pour large, 1 pour 1x1</summary>
+    </key>
+    <key name="desktop-widget-clock" type="b">
+      <default>false</default>
+      <summary>Afficher le widget horloge sur le bureau</summary>
+    </key>
+    <key name="desktop-widget-calendar" type="b">
+      <default>false</default>
+      <summary>Afficher le widget calendrier sur le bureau</summary>
+    </key>
+    <key name="desktop-widget-media" type="b">
+      <default>false</default>
+      <summary>Afficher le lecteur média sur le bureau</summary>
+    </key>
+    <key name="desktop-widget-media-x" type="i">
+      <range min="0" max="16384"/>
+      <default>24</default>
+      <summary>Position horizontale du lecteur média sur le bureau</summary>
+    </key>
+    <key name="desktop-widget-media-y" type="i">
+      <range min="0" max="16384"/>
+      <default>408</default>
+      <summary>Position verticale du lecteur média sur le bureau</summary>
+    </key>
+    <key name="desktop-widget-width" type="i">
+      <range min="120" max="360"/>
+      <default>220</default>
+      <summary>Largeur des widgets du bureau</summary>
+    </key>
+    <key name="desktop-icons-show-folder" type="b">
+      <default>true</default>
+      <summary>Afficher le contenu du dossier Bureau du système</summary>
+    </key>
+    <key name="desktop-icons-show-home" type="b">
+      <default>false</default>
+      <summary>Afficher le dossier personnel sur le bureau</summary>
+    </key>
+    <key name="desktop-icons-show-removable" type="b">
+      <default>false</default>
+      <summary>Afficher les périphériques amovibles sur le bureau</summary>
+    </key>
+    <key name="desktop-icons-show-network" type="b">
+      <default>false</default>
+      <summary>Afficher les partages réseau sur le bureau</summary>
+    </key>
+    <key name="desktop-icons-grid-size" type="i">
+      <range min="64" max="256"/>
+      <default>96</default>
+      <summary>Taille des cellules de la grille des icônes du bureau</summary>
+    </key>
+    <key name="desktop-icons-size" type="i">
+      <range min="24" max="96"/>
+      <default>48</default>
+      <summary>Taille des icônes du bureau</summary>
+    </key>
+    <key name="desktop-icons-alignment" type="i">
+      <range min="0" max="2"/>
+      <default>0</default>
+      <summary>Disposition des icônes : automatique à gauche, à droite ou libre</summary>
+    </key>
+    <key name="desktop-icons-label-position" type="i">
+      <range min="0" max="2"/>
+      <default>2</default>
+      <summary>Position des libellés des icônes : gauche, droite ou bas</summary>
+    </key>
+    <key name="desktop-icons-layout" type="s">
+      <default>&quot;{}&quot;</default>
+      <summary>Positions des icônes du bureau alignées sur la grille</summary>
+    </key>
+    <key name="desktop-widget-clock-x" type="i">
+      <range min="0" max="16384"/>
+      <default>24</default>
+      <summary>Position horizontale du widget horloge</summary>
+    </key>
+    <key name="desktop-widget-clock-y" type="i">
+      <range min="0" max="16384"/>
+      <default>72</default>
+      <summary>Position verticale du widget horloge</summary>
+    </key>
+    <key name="desktop-widget-calendar-x" type="i">
+      <range min="0" max="16384"/>
+      <default>24</default>
+      <summary>Position horizontale du widget calendrier</summary>
+    </key>
+    <key name="desktop-widget-calendar-y" type="i">
+      <range min="0" max="16384"/>
+      <default>240</default>
+      <summary>Position verticale du widget calendrier</summary>
+    </key>
+    <key name="panel-style" type="b">
+      <default>true</default>
+      <summary>Appliquer le style de la barre supérieure</summary>
+    </key>
+    <key name="panel-height" type="i">
+      <range min="24" max="48"/>
+      <default>26</default>
+      <summary>Hauteur de la barre supérieure en pixels</summary>
+    </key>
+    <key name="panel-layout" type="as">
+      <default>[]</default>
+      <summary>Disposition des éléments de la barre supérieure</summary>
+    </key>
+    <key name="panel-padding-horizontal" type="i">
+      <range min="0" max="32"/>
+      <default>10</default>
+      <summary>Padding horizontal de la barre supérieure en pixels</summary>
+    </key>
+    <key name="panel-padding-vertical" type="i">
+      <range min="0" max="12"/>
+      <default>0</default>
+      <summary>Padding vertical de la barre supérieure en pixels</summary>
+    </key>
+    <key name="panel-icon-padding" type="i">
+      <range min="0" max="24"/>
+      <default>8</default>
+      <summary>Padding horizontal des icônes de la barre supérieure en pixels</summary>
+    </key>
+    <key name="panel-text-padding" type="i">
+      <range min="0" max="24"/>
+      <default>4</default>
+      <summary>Padding horizontal des textes de la barre supérieure en pixels</summary>
+    </key>
+    <key name="show-active-app" type="b">
+      <default>true</default>
+      <summary>Afficher le nom de l&apos;application active</summary>
+    </key>
+    <key name="panel-show-clock" type="b">
+      <default>true</default>
+      <summary>Afficher l’horloge dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-search" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton de recherche dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-preferences" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton de préférences dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-wifi" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton Wi-Fi dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-bluetooth" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton Bluetooth dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-sound" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton Son dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-brightness" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton de luminosité dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-battery" type="b">
+      <default>true</default>
+      <summary>Afficher le bouton Batterie dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-battery-level" type="b">
+      <default>false</default>
+      <summary>Afficher le pourcentage de batterie dans la barre supérieure</summary>
+    </key>
+    <key name="panel-show-notifications" type="b">
+      <default>true</default>
+      <summary>Afficher les notifications dans la barre supérieure</summary>
+    </key>
+    <key name="notification-position" type="i">
+      <range min="0" max="8"/>
+      <default>0</default>
+      <summary>Position des bannières de notification GNOME</summary>
+    </key>
+    <key name="panel-launcher-icon-name" type="s">
+      <default>&quot;gnome-logo-symbolic&quot;</default>
+      <summary>Icône du thème pour le lanceur de la barre supérieure</summary>
+    </key>
+    <key name="panel-launcher-icon-file" type="s">
+      <default>&quot;&quot;</default>
+      <summary>Image personnalisée du lanceur de la barre supérieure</summary>
+    </key>
+    <key name="dock-launcher-icon-name" type="s">
+      <default>&quot;gnome-logo-symbolic&quot;</default>
+      <summary>Icône du thème pour le lanceur d&apos;applications du Dock</summary>
+    </key>
+    <key name="dock-launcher-icon-file" type="s">
+      <default>&quot;&quot;</default>
+      <summary>Image personnalisée du lanceur d&apos;applications du Dock</summary>
+    </key>
+    <key name="global-menu-enabled" type="b">
+      <default>true</default>
+      <summary>Afficher dans la barre les menus exportés par la fenêtre active</summary>
+    </key>
+    <key name="coverflow-enabled" type="b">
+      <default>true</default>
+      <summary>Afficher un Cover Flow des fenêtres avec Alt+Tab</summary>
+    </key>
+    <key name="coverflow-current-workspace-only" type="b">
+      <default>false</default>
+      <summary>Limiter le Cover Flow aux fenêtres de l&apos;espace de travail courant</summary>
+    </key>
+    <key name="coverflow-animation-duration" type="i">
+      <range min="0" max="500"/>
+      <default>180</default>
+      <summary>Durée de transition du Cover Flow en millisecondes</summary>
+    </key>
+    <key name="global-menu-dbus-enabled" type="b">
+      <default>true</default>
+      <summary>Activer DBusMenu et le registrar pour les applications X11 ou XWayland</summary>
+    </key>
+  </schema>
+</schemalist>

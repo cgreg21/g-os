@@ -1,0 +1,14 @@
+.example-status-desktop {
+    background-color: rgba(39, 65, 72, 0.95);
+}
+
+.example-status-dock {
+    padding: 2px;
+    border-radius: 4px;
+    background-color: rgba(39, 65, 72, 0.95);
+    color: #f5f6f8;
+}
+
+.example-status-square {
+    padding: 0;
+}

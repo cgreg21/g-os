@@ -1,0 +1,151 @@
+.g-os-secondary-panel {
+	min-height: 24px;
+	spacing: 6px;
+	padding: 0 8px;
+}
+
+.g-os-panel-drop-zone.drop {
+	background-color: rgba(255, 255, 255, 0.12);
+	border-radius: 6px;
+}
+
+.g-os-panel-zone-content {
+	spacing: 6px;
+}
+
+.g-os-panel-menu-box {
+	spacing: 7px;
+}
+
+.g-os-global-menu {
+	spacing: 0px;
+}
+
+.g-os-global-menu-button {
+	padding: 0 6px;
+}
+
+.macos-global-menu {
+	spacing: 0px;
+}
+
+.macos-global-menu-button {
+	padding: 0 6px;
+}
+
+.g-os-active-app {
+	max-width: 180px;
+}
+
+.g-os-status-button {
+	min-width: 24px;
+	min-height: 0px;
+	padding: 0;
+}
+
+.g-os-battery-status {
+	spacing: 3px;
+}
+
+.g-os-battery-level {
+	font-size: 0.9em;
+}
+
+.g-os-status-notifier-items {
+	spacing: 2px;
+}
+
+.g-os-status-notifier-button {
+	min-width: 24px;
+	min-height: 0px;
+	padding: 0;
+}
+
+.g-os-notification-dot {
+	width: 6px;
+	height: 6px;
+}
+
+.g-os-notification-list {
+	spacing: 12px;
+}
+
+.g-os-notification-header {
+	spacing: 8px;
+}
+
+.g-os-notification-clear {
+	padding: 4px;
+}
+
+.g-os-notification-empty {
+	padding: 18px 0;
+}
+
+.g-os-calendar-content {
+	width: 320px;
+	spacing: 8px;
+	padding: 8px;
+}
+
+.g-os-calendar-events-heading {
+	padding: 4px 8px;
+}
+
+.g-os-calendar-scroll {
+	max-height: 200px;
+}
+
+.g-os-calendar-events {
+	spacing: 4px;
+	padding: 0 6px 6px;
+}
+
+.g-os-calendar-event {
+	spacing: 2px;
+	padding: 6px 8px;
+}
+
+.g-os-dock {
+	spacing: 2px;
+	padding: 6px;
+}
+
+.g-os-dock-tooltip {
+	max-width: 240px;
+}
+
+.g-os-window-preview-list {
+	spacing: 12px;
+}
+
+.g-os-window-preview {
+	spacing: 8px;
+}
+
+.g-os-window-preview-header {
+	spacing: 6px;
+}
+
+.g-os-window-preview-close {
+	padding: 2px;
+}
+
+.g-os-notification-badge {
+	min-width: 12px;
+	min-height: 12px;
+	padding: 1px 2px;
+}
+
+.g-os-transfer-progress {
+	height: 4px;
+}
+
+.g-os-download-label {
+	width: 260px;
+}
+
+.g-os-desktop-icon-content {
+	spacing: 4px;
+	padding: 4px;
+}
