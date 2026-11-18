@@ -19,6 +19,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders} from './shared/appFolders.js';
 import {errorMessage} from './shared/errorMessage.js';
 import {LifecycleScope} from './core/lifecycleScope.js';
+import {CleanupManager} from './core/cleanupManager.js';
 import {ChromeActorManager} from './core/chromeActorManager.js';
 import {WidgetRuntime} from './widgets/widgetRuntime.js';
 import {withDockVisibility} from './dock/dockVisibility.js';
@@ -54,6 +55,7 @@ type ExtensionScreen = {
     popupSide: St.Side;
     hoverAnimationUpdates: Set<(soft?: boolean) => void>;
     lifecycle: LifecycleScope<St.Widget>;
+    dockAdjustmentCleanup: CleanupManager;
     [key: string]: any;
 };
 
@@ -471,8 +473,8 @@ export default class GOsExtension extends ExtensionComponents {
                     this._applyDockMetrics(screen);
                 if (screen.dock && keys.has('dock-hover-animation') && Boolean(screen.dockViewport) !==
                     (this._settings.get_int('dock-hover-animation') === 4)) {
-                    for (const [adjustment, id] of screen.dockAdjustmentSignals ?? [])
-                        adjustment.disconnect(id);
+                    screen.dockAdjustmentCleanup.clear();
+                    screen.dockAdjustmentCleanup = new CleanupManager();
                     screen.dockContainer.set_child(null);
                     if (screen.dockViewport) {
                         screen.dockViewport.remove_child(screen.dock);
@@ -484,11 +486,10 @@ export default class GOsExtension extends ExtensionComponents {
                         screen.dockViewport.add_child(screen.dock);
                     }
                     screen.dockContainer.set_child(screen.dockViewport ?? screen.dock);
-                    screen.dockAdjustmentSignals = [];
                     for (const adjustment of [screen.dockContainer.hadjustment, screen.dockContainer.vadjustment]) {
                         if (adjustment)
-                            screen.dockAdjustmentSignals.push([adjustment,
-                                adjustment.connect('notify::value', () => this._updateDockIconGeometries(screen))]);
+                            screen.dockAdjustmentCleanup.addSignal(adjustment,
+                                adjustment.connect('notify::value', () => this._updateDockIconGeometries(screen)));
                     }
                 }
                 if (keys.has('panel-height')) {
@@ -578,7 +579,9 @@ export default class GOsExtension extends ExtensionComponents {
                     dockViewport: null as St.Viewport | null,
                     popupSide: [St.Side.TOP, St.Side.LEFT, St.Side.RIGHT][position],
                     hoverAnimationUpdates: new Set(),
-                    lifecycle: new LifecycleScope(undefined, chrome)};
+                    lifecycle: new LifecycleScope(undefined, chrome),
+                    dockAdjustmentCleanup: new CleanupManager()};
+                screen.lifecycle.add(() => screen.dockAdjustmentCleanup.clear());
                 this._screens.push(screen);
                 this._createPanel(screen);
                 if (this._settings.get_boolean('show-dock')) {
@@ -620,17 +623,17 @@ export default class GOsExtension extends ExtensionComponents {
                         vscrollbar_policy: position === 0 ? St.PolicyType.NEVER : St.PolicyType.EXTERNAL,
                     });
                     screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
-                    screen.dockContainer.connect('notify::hover', () => {
-                        for (const update of screen.hoverAnimationUpdates)
-                            update();
-                    });
+                    screen.lifecycle.addSignal(screen.dockContainer,
+                        screen.dockContainer.connect('notify::hover', () => {
+                            for (const update of screen.hoverAnimationUpdates)
+                                update();
+                        }));
                     this._configureDockBackground(screen);
-                    screen.dockAdjustmentSignals = [];
                     for (const adjustment of [screen.dockContainer.hadjustment, screen.dockContainer.vadjustment]) {
                         if (!adjustment)
                             continue;
                         const id = adjustment.connect('notify::value', () => this._updateDockIconGeometries(screen));
-                        screen.dockAdjustmentSignals.push([adjustment, id]);
+                        screen.dockAdjustmentCleanup.addSignal(adjustment, id);
                     }
                     if (this._settings.get_boolean('reserve-dock-space')) {
                         screen.dockReservation = new St.Widget({
@@ -643,21 +646,23 @@ export default class GOsExtension extends ExtensionComponents {
                         this._settings.get_boolean('dock-hide-when-covered')) {
                         screen.edge = new St.Widget({reactive: true, track_hover: true, width: 10, height: 10});
                         screen.lifecycle.chrome?.add(screen.edge, {trackFullscreen: true});
-                        screen.edge.connect('notify::hover', () => {
-                            if (screen.edge.hover) {
-                                if (screen.dockCovered)
-                                    screen.dockPeek = true;
-                                this._revealDock(screen);
-                            } else {
-                                this._queueDockHide(screen);
-                            }
-                        });
-                        screen.dockContainer.connect('notify::hover', () => {
-                            if (screen.dockContainer.hover)
-                                this._revealDock(screen);
-                            else
-                                this._queueDockHide(screen);
-                        });
+                        screen.lifecycle.addSignal(screen.edge,
+                            screen.edge.connect('notify::hover', () => {
+                                if (screen.edge.hover) {
+                                    if (screen.dockCovered)
+                                        screen.dockPeek = true;
+                                    this._revealDock(screen);
+                                } else {
+                                    this._queueDockHide(screen);
+                                }
+                            }));
+                        screen.lifecycle.addSignal(screen.dockContainer,
+                            screen.dockContainer.connect('notify::hover', () => {
+                                if (screen.dockContainer.hover)
+                                    this._revealDock(screen);
+                                else
+                                    this._queueDockHide(screen);
+                            }));
                         if (this._settings.get_boolean('dock-autohide'))
                             this._hideDock(screen);
                     }
@@ -814,8 +819,6 @@ export default class GOsExtension extends ExtensionComponents {
                     GLib.source_remove(id);
                 screen.dropSources?.clear();
                 this._clearDockIconGeometry(screen);
-                for (const [adjustment, id] of screen.dockAdjustmentSignals ?? [])
-                    adjustment.disconnect(id);
                 if (screen.menuButton) {
                     Main.panel.menuManager.removeMenu(screen.menuButton.menu);
                     if (screen.menuButton === this._menu)
