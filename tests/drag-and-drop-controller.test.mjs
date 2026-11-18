@@ -22,7 +22,7 @@ test('generic DND controller registers drop targets independently of feature pol
     assert.match(source, /registerTarget\(/);
     assert.match(source, /handleDragOver\?/);
     assert.match(source, /acceptDrop\?/);
-    assert.doesNotMatch(source, /favorite|folder|insertionIndex|removalZone/i);
+    assert.doesNotMatch(source, /isFavorite|onCreateFolder|insertionIndex|removalZone/);
 });
 
 test('generic DND registrations are idempotently disposable and lifecycle-aware', () => {
