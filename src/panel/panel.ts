@@ -682,6 +682,9 @@ export function withPanel(Base) {
                     x_align: alignment[group],
                 });
                 zone.add_child(content);
+                // Re-apply the horizontal alignment once the BinLayout owns the child.
+                content.x_align = alignment[group];
+                content.x_expand = false;
                 zone._delegate = {
                     handleDragOver: source => {
                         const accepted = Boolean(this._getPanelLayoutItem(screen, source));
