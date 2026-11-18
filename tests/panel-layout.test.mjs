@@ -30,3 +30,11 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', () =
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
     assert.match(panelSource, /g-os-panel-dnd-placeholder/);
 });
+
+
+test('topbar lifecycle scope owns DND signals and chrome registration', () => {
+    assert.match(panelSource, /screen\.lifecycle\.chrome\?\.add\(screen\.panel, \{affectsStruts: true, trackFullscreen: true\}\)/);
+    assert.match(panelSource, /screen\.lifecycle\.addSignal\(actor\._panelLayoutDraggable/);
+    assert.match(panelSource, /screen\.lifecycle\.addSignal\(actor, actor\.connect\('destroy'/);
+    assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => this\._finishPanelShadowDrag\(screen, false\)\)/);
+});
