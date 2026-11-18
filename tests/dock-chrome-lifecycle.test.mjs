@@ -44,3 +44,21 @@ test('dock adjustment signals are replaceable and released by the screen lifecyc
     assert.match(extensionSource, /screen\.dockAdjustmentCleanup\.addSignal\(adjustment/);
     assert.doesNotMatch(extensionSource, /dockAdjustmentSignals/);
 });
+
+const dockAppearanceSource = await readFile(new URL('../src/dock/dockAppearance.ts', import.meta.url), 'utf8');
+
+test('dock keyboard controller signal is owned by the screen lifecycle', () => {
+    assert.match(extensionSource, /screen\.lifecycle\.addSignal\(screen\.dockKeyController,[\s\S]*?key-press/);
+});
+
+test('dock appearance screen signals are owned by the screen lifecycle', () => {
+    assert.match(dockAppearanceSource, /screen\.lifecycle\.addSignal\(screen\.dockContainer,[\s\S]*?notify::allocation/);
+    assert.match(dockAppearanceSource, /screen\.lifecycle\.addSignal\(screen\.dock,[\s\S]*?notify::allocation/);
+    assert.match(dockAppearanceSource, /screen\.lifecycle\.addSignal\(screen\.tooltip, screen\.tooltipMeasureSignal\)/);
+});
+
+test('dock magnification releases settings signals and pending work through the screen lifecycle', () => {
+    assert.match(dockAppearanceSource, /screen\.lifecycle\.addSignal\(motion, signal\)/);
+    assert.match(dockAppearanceSource, /screen\.lifecycle\.add\(\(\) => \{[\s\S]*?laters\.remove\(screen\.magnificationUpdateSource\)/);
+    assert.doesNotMatch(dockAppearanceSource, /screen\.dockContainer\.connect\('destroy'/);
+});
