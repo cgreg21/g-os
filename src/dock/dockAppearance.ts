@@ -6,6 +6,7 @@ import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {DockWindowPreview} from './windowPreviews.js';
+import {calculateDockMagnificationGeometry} from '../shared/geometry/magnification.js';
 
 const laters = global.compositor.get_laters();
 
@@ -464,90 +465,28 @@ export function withDockAppearance(Base) {
             const size = this._settings.get_int('icon-size');
             const maximumScale = Math.max(1, this._settings.get_int('dock-magnify-max') / 100);
             const radius = Math.max(1, this._settings.get_int('dock-magnify-icons'));
-            let pointerIndex = 0;
-            if (coordinate !== null && Number.isFinite(coordinate)) {
-                const next = centers.findIndex(center => center >= coordinate);
-                if (next === -1)
-                    pointerIndex = centers.length - 1;
-                else if (next > 0 && centers[next] !== centers[next - 1])
-                    pointerIndex = next - 1 + (coordinate - centers[next - 1]) / (centers[next] - centers[next - 1]);
-            }
-            const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-            let scales = centers.map((center, index) => {
-                const distance = Math.abs(index - pointerIndex);
-                const progress = Math.min(1, distance / (radius + 1));
-                const falloff = 1 - progress * progress * (3 - 2 * progress);
-                if (!engaged || buttons[index].dockWidgetType)
-                    return 1;
-                const value = 1 + (maximumScale - 1) * falloff;
-                return Number.isFinite(value) ? clamp(value, 1, maximumScale) : 1;
-            });
             const [viewX, viewY] = screen.dockContainer.get_transformed_position();
             const [viewWidth, viewHeight] = screen.dockContainer.get_transformed_size();
             const viewStart = axis === 0 ? viewX : viewY;
             const viewEnd = viewStart + (axis === 0 ? viewWidth : viewHeight);
-            const visibleIndices = centers.map((center, index) =>
-                center >= viewStart && center <= viewEnd ? index : -1).filter(index => index >= 0);
-            if (visibleIndices.length > 0) {
-                const first = visibleIndices[0];
-                const last = visibleIndices.at(-1);
-                const firstSize = axis === 0 ? buttons[first].width : buttons[first].height;
-                const lastSize = axis === 0 ? buttons[last].width : buttons[last].height;
-                const occupied = centers[last] - centers[first] + (firstSize + lastSize) / 2;
-                const availableGrowth = Math.max(0, viewEnd - viewStart - occupied);
-                const requestedGrowth = visibleIndices.reduce((total, index) => {
-                    const buttonSize = axis === 0 ? buttons[index].width : buttons[index].height;
-                    return total + buttonSize * (scales[index] - 1) * 2;
-                }, 0);
-                const fit = requestedGrowth > availableGrowth && requestedGrowth > 0
-                    ? availableGrowth / requestedGrowth : 1;
-                if (fit < 1)
-                    scales = scales.map(scale => 1 + (scale - 1) * fit);
-            }
-            let extra = 0;
-            const offsets = scales.map((scale, index) => {
-                const growth = size * (scale - 1);
-                const offset = extra + growth / 2;
-                extra += growth;
-                return Number.isFinite(offset) ? offset : 0;
+            const geometry = calculateDockMagnificationGeometry({
+                centers: centers as number[],
+                buttonSizes: buttons.map(button => axis === 0 ? button.width : button.height),
+                excluded: buttons.map(button => Boolean(button.dockWidgetType)),
+                coordinate,
+                maximumScale,
+                radius,
+                engaged,
+                viewStart,
+                viewEnd,
+                iconSize: size,
             });
-            let left = -1;
-            let right = -1;
-            if (coordinate !== null && Number.isFinite(coordinate)) {
-                centers.forEach((center, index) => {
-                    if (center <= coordinate && (left === -1 || center > centers[left]))
-                        left = index;
-                    if (center >= coordinate && (right === -1 || center < centers[right]))
-                        right = index;
-                });
-            }
-            let anchorOffset = 0;
-            if (left === -1) {
-                if (right !== -1)
-                    anchorOffset = offsets[right];
-            } else if (right === -1) {
-                anchorOffset = offsets[left];
-            } else if (left === right || centers[left] === centers[right]) {
-                anchorOffset = offsets[left];
-            } else {
-                const progress = (coordinate - centers[left]) / (centers[right] - centers[left]);
-                anchorOffset = offsets[left] + (offsets[right] - offsets[left]) * progress;
-            }
-            const shifts = offsets.map((offset, index) => {
-                const button = buttons[index];
-                let shift = offset - anchorOffset;
-                const buttonSize = axis === 0 ? button.width : button.height;
-                if (coordinate !== null && centers[index] >= viewStart && centers[index] <= viewEnd) {
-                    const halfSize = buttonSize * scales[index] / 2;
-                    shift = Math.max(viewStart + halfSize - centers[index],
-                        Math.min(viewEnd - halfSize - centers[index], shift));
-                }
-                return Number.isFinite(shift) ? shift : 0;
-            });
-            screen.magnificationGrowth = Number.isFinite(extra) ? extra : 0;
-            screen.magnificationStart = Number.isFinite(shifts[0]) && Number.isFinite(size)
-                ? shifts[0] - size * (scales[0] - 1) / 2
-                : 0;
+            if (!geometry)
+                return;
+            const {scales, shifts} = geometry;
+            screen.magnificationGrowth = geometry.growth;
+            screen.magnificationStart = geometry.start;
+            const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
             const duration = animated && (!following || engagementChanged)
                 ? Math.round(this._settings.get_int('dock-hover-duration') * 160 / 180) : 0;
             this._updateMagnificationBackground(screen, duration);
