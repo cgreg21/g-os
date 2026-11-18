@@ -6,8 +6,7 @@ const extensionSource = await readFile(new URL('../src/extension.ts', import.met
 const dockOrderSource = await readFile(new URL('../src/dock/dockOrder.ts', import.meta.url), 'utf8');
 const dockFoldersSource = await readFile(new URL('../src/dock/dockFolders.ts', import.meta.url), 'utf8');
 
-test('each screen owns and destroys a shared dock DND controller', () => {
-    assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
+test('each screen owns and destroys one shared interaction controller', () => {
     assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
     assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
 });
