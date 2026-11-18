@@ -21,8 +21,8 @@ test('panel drop zones retain drag-and-drop handlers', () => {
 });
 
 test('topbar shadow drag uses a clone and a movable insertion placeholder', () => {
-    const dragStart = panelSource.indexOf('_attachPanelItemDraggable(screen, id, actor)');
-    const dragEnd = panelSource.indexOf('_getPanelLayoutItem(screen, source)', dragStart);
+    const dragStart = panelSource.indexOf('        _attachPanelItemDraggable(screen, id, actor) {');
+    const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
     const dragSource = panelSource.slice(dragStart, dragEnd);
     assert.match(dragSource, /getDragActor = \(\) => new Clutter\.Clone\(\{source: actor\}\)/);
     assert.match(dragSource, /_beginPanelShadowDrag\(screen, id, actor\)/);
