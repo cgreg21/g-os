@@ -27,3 +27,15 @@ test('folder application drags use shared source registration when a screen exis
     assert.match(dockFoldersSource, /onBegin: \(\) => menu\.close\(\)/);
     assert.match(dockFoldersSource, /\}, \{\}, screen\.lifecycle\)/);
 });
+
+const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
+
+test('dock reorder uses shared source registration and generic pointer motion', () => {
+    assert.match(dockOrderSource, /screen\.dockDnd\.registerSource\(button, \{\}, \{/);
+    assert.match(dockOrderSource, /onMotion: event => \{/);
+    assert.match(dockOrderSource, /onCancelled: \(\) => \{ cancelled = true; \}/);
+    assert.match(dockOrderSource, /onEnd: \(\) => finish\(cancelled\)/);
+    assert.match(dockOrderSource, /screen\.lifecycle\.add\(\(\) => \{\s*if \(screen\.reorder\?\.button === button\)\s*finish\(true\)/);
+    assert.doesNotMatch(dockOrderSource, /this\._makeDraggable\(button/);
+    assert.match(dragAndDropSource, /DND\.addDragMonitor\(dragMonitor\)/);
+});
