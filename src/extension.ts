@@ -836,7 +836,6 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.edge.destroy();
                 }
                 if (screen.dockReservation) {
-                    Main.layoutManager.removeChrome?.(screen.dockReservation);
                     if (screen.dockReservation.get_parent())
                         screen.dockReservation.get_parent().remove_child(screen.dockReservation);
                     screen.dockReservation.destroy();
