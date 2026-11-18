@@ -18,6 +18,8 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders} from './shared/appFolders.js';
 import {errorMessage} from './shared/errorMessage.js';
+import {LifecycleScope} from './core/lifecycleScope.js';
+import {ChromeActorManager} from './core/chromeActorManager.js';
 import {WidgetRuntime} from './widgets/widgetRuntime.js';
 import {withDockVisibility} from './dock/dockVisibility.js';
 import {withDockOrder} from './dock/dockOrder.js';
@@ -51,6 +53,7 @@ type ExtensionScreen = {
     dockViewport: St.Viewport | null;
     popupSide: St.Side;
     hoverAnimationUpdates: Set<(soft?: boolean) => void>;
+    lifecycle: LifecycleScope<St.Widget>;
     [key: string]: any;
 };
 
@@ -565,10 +568,14 @@ export default class GOsExtension extends ExtensionComponents {
             }
             for (const monitor of Main.layoutManager.monitors) {
                 const position = this._settings.get_int('dock-position');
+                const chrome = new ChromeActorManager<St.Widget>(
+                    (actor, options) => Main.layoutManager.addChrome(actor, options),
+                    actor => Main.layoutManager.removeChrome(actor));
                 const screen: ExtensionScreen = {monitor, position, dockDocked: false,
                     dockViewport: null as St.Viewport | null,
                     popupSide: [St.Side.TOP, St.Side.LEFT, St.Side.RIGHT][position],
-                    hoverAnimationUpdates: new Set()};
+                    hoverAnimationUpdates: new Set(),
+                    lifecycle: new LifecycleScope(undefined, chrome)};
                 this._screens.push(screen);
                 this._createPanel(screen);
                 if (this._settings.get_boolean('show-dock')) {
@@ -796,6 +803,7 @@ export default class GOsExtension extends ExtensionComponents {
         _destroyScreens() {
             this._restorePanelCalendar();
             for (const screen of this._screens) {
+                screen.lifecycle.destroy();
                 screen.disposed = true;
                 this._destroyStatusNotifierMenus(screen);
                 for (const id of screen.dropSources ?? [])
