@@ -640,7 +640,7 @@ export function withPanel(Base) {
             this._applyPanelMetrics(screen);
             screen.panel.set_position(monitor.x, monitor.y);
             screen.panel.set_width(monitor.width);
-            Main.layoutManager.addChrome(screen.panel, {affectsStruts: true, trackFullscreen: true});
+            screen.lifecycle.chrome?.add(screen.panel, {affectsStruts: true, trackFullscreen: true});
         }
 
         _initializePanelLayout(screen) {
@@ -708,6 +708,8 @@ export function withPanel(Base) {
                 screen.panel.add_child(screen.panelLayoutGroups.get(group).zone);
             for (const [id, actor] of screen.panelLayoutItems)
                 this._attachPanelItemDraggable(screen, id, actor);
+            // Registered last so cancellation runs before DND signals are disconnected.
+            screen.lifecycle.add(() => this._finishPanelShadowDrag(screen, false));
             this._applyPanelLayout(screen);
         }
 
@@ -741,23 +743,26 @@ export function withPanel(Base) {
             actor._delegate = delegate;
             actor._panelLayoutItemId = id;
             actor._panelLayoutDraggable = DND.makeDraggable(actor, {});
-            actor._panelLayoutDraggable.connect('drag-begin', () => {
-                this._beginPanelShadowDrag(screen, id, actor);
-            });
-            actor._panelLayoutDraggable.connect('drag-end', (_draggable, _time, success) => {
-                this._finishPanelShadowDrag(screen, Boolean(success));
-            });
-            actor._panelLayoutDraggable.connect('drag-cancelled', () => {
-                this._finishPanelShadowDrag(screen, false);
-            });
+            screen.lifecycle.addSignal(actor._panelLayoutDraggable,
+                actor._panelLayoutDraggable.connect('drag-begin', () => {
+                    this._beginPanelShadowDrag(screen, id, actor);
+                }));
+            screen.lifecycle.addSignal(actor._panelLayoutDraggable,
+                actor._panelLayoutDraggable.connect('drag-end', (_draggable, _time, success) => {
+                    this._finishPanelShadowDrag(screen, Boolean(success));
+                }));
+            screen.lifecycle.addSignal(actor._panelLayoutDraggable,
+                actor._panelLayoutDraggable.connect('drag-cancelled', () => {
+                    this._finishPanelShadowDrag(screen, false);
+                }));
             screen.panelLayoutDraggables?.push(actor._panelLayoutDraggable);
-            actor.connect('destroy', () => {
+            screen.lifecycle.addSignal(actor, actor.connect('destroy', () => {
                 if (screen.panelDragState?.actor === actor)
                     this._finishPanelShadowDrag(screen, false);
                 const index = screen.panelLayoutDraggables?.indexOf(actor._panelLayoutDraggable) ?? -1;
                 if (index >= 0)
                     screen.panelLayoutDraggables.splice(index, 1);
-            });
+            }));
         }
 
         _beginPanelShadowDrag(screen, id, actor) {
