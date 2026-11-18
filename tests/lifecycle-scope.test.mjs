@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { LifecycleScope } from '../dist/core/lifecycleScope.js';
+import { TaskScheduler } from '../dist/core/taskScheduler.js';
 
 function createEmitter() {
     const disconnected = [];
@@ -67,4 +68,25 @@ test('does not reconnect or retain signal cleanup after destruction', () => {
 
     assert.deepEqual(emitter.disconnected, [42]);
     assert.equal(scope.cleanup.size, 0);
+});
+
+
+test('destroys scheduled tasks before releasing other resources', () => {
+    const removed = [];
+    const backend = {
+        timeout(_delay, _callback) { return 7; },
+        idle(_callback) { return 8; },
+        remove(id) { removed.push(id); },
+    };
+    const tasks = new TaskScheduler(backend);
+    const scope = new LifecycleScope(tasks);
+    const calls = [];
+    tasks.timeout('refresh', 100, () => calls.push('task'));
+    scope.add(() => calls.push('cleanup'));
+
+    scope.destroy();
+
+    assert.deepEqual(removed, [7]);
+    assert.deepEqual(calls, ['cleanup']);
+    assert.equal(tasks.size, 0);
 });
