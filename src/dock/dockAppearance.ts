@@ -607,9 +607,8 @@ export function withDockAppearance(Base) {
                 ([key, value]) => screen.magnificationBackgroundGeometry[key] === value))
                 return;
             screen.magnificationBackgroundGeometry = geometry;
-            background.ease({
-                ...geometry,
-                duration,
+            screen.lifecycle.animations.animate('dock-magnification-background', background, geometry, {
+                durationMs: duration,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
         }
