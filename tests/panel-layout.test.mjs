@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 
 const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
-const layoutStart = panelSource.indexOf('_initializePanelLayout(screen)');
+const layoutStart = panelSource.indexOf('        _initializePanelLayout(screen) {');
 const layoutEnd = panelSource.indexOf('_normalizePanelLayout(saved)', layoutStart);
 const layoutSource = panelSource.slice(layoutStart, layoutEnd);
 
