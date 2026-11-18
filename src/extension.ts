@@ -582,9 +582,9 @@ export default class GOsExtension extends ExtensionComponents {
                     hoverAnimationUpdates: new Set(),
                     lifecycle: new LifecycleScope(undefined, chrome),
                     dockAdjustmentCleanup: new CleanupManager(),
-                    dockDnd: new DragAndDropController()};
+                    interactionDnd: new DragAndDropController()};
                 screen.lifecycle.add(() => screen.dockAdjustmentCleanup.clear());
-                screen.lifecycle.add(() => screen.dockDnd.destroy());
+                screen.lifecycle.add(() => screen.interactionDnd.destroy());
                 this._screens.push(screen);
                 this._createPanel(screen);
                 if (this._settings.get_boolean('show-dock')) {
