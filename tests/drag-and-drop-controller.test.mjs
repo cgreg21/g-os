@@ -40,17 +40,17 @@ test('generic DND registrations are idempotently disposable and lifecycle-aware'
 const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
 
 test('topbar registers its existing drop zones with the shared controller', () => {
-    assert.match(panelSource, /panelLayoutDnd\.registerTarget\(zone/);
+    assert.match(panelSource, /interactionDnd\.registerTarget\(zone/);
     assert.doesNotMatch(panelSource, /zone\._delegate = \{/);
 });
 
 test('topbar uses the shared controller while preserving shadow drag callbacks', () => {
-    assert.match(panelSource, /panelLayoutDnd\.registerSource\(actor/);
+    assert.match(panelSource, /interactionDnd\.registerSource\(actor/);
     assert.match(panelSource, /getDragActorSource: \(\) => screen\.panelDragState\?\.actor === actor/);
     assert.match(panelSource, /onBegin: \(\) => this\._beginPanelShadowDrag/);
     assert.match(panelSource, /onEnd: success => this\._finishPanelShadowDrag/);
     assert.match(panelSource, /onCancelled: \(\) => this\._finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /onDestroy: \(\) => \{/);
-    assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => screen\.panelLayoutDnd\.destroy\(\)\)/);
+    assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
     assert.doesNotMatch(panelSource, /DND\.makeDraggable\(actor/);
 });
