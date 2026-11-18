@@ -8,6 +8,7 @@ type DelegateActor = Clutter.Actor & {
 
 export interface DragSourceCallbacks {
     onBegin?: () => void;
+    onMotion?: (event: any) => void;
     onEnd?: (success: boolean) => void;
     onCancelled?: () => void;
     onDestroy?: () => void;
@@ -62,11 +63,36 @@ export class DragAndDropController {
             dragActorOpacity: options.dragActorOpacity,
         });
         let disposed = false;
+        let cancelled = false;
+        let dragMonitor: {dragMotion: (event: any) => number} | null = null;
+        const removeDragMonitor = () => {
+            if (!dragMonitor)
+                return;
+            DND.removeDragMonitor(dragMonitor);
+            dragMonitor = null;
+        };
         const signalIds = [
-            draggable.connect('drag-begin', () => callbacks.onBegin?.()),
-            draggable.connect('drag-end', (_draggable, _time, success) =>
-                callbacks.onEnd?.(Boolean(success))),
-            draggable.connect('drag-cancelled', () => callbacks.onCancelled?.()),
+            draggable.connect('drag-begin', () => {
+                cancelled = false;
+                callbacks.onBegin?.();
+                if (callbacks.onMotion) {
+                    dragMonitor = {
+                        dragMotion: event => {
+                            callbacks.onMotion?.(event);
+                            return DND.DragMotionResult.CONTINUE;
+                        },
+                    };
+                    DND.addDragMonitor(dragMonitor);
+                }
+            }),
+            draggable.connect('drag-end', (_draggable, _time, success) => {
+                removeDragMonitor();
+                callbacks.onEnd?.(Boolean(success));
+            }),
+            draggable.connect('drag-cancelled', () => {
+                cancelled = true;
+                callbacks.onCancelled?.();
+            }),
         ];
         let actorDestroySignal = 0;
 
@@ -74,6 +100,7 @@ export class DragAndDropController {
             if (disposed)
                 return;
             disposed = true;
+            removeDragMonitor();
             for (const signalId of signalIds)
                 draggable.disconnect(signalId);
             if (actorDestroySignal)
