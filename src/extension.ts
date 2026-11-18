@@ -568,8 +568,11 @@ export default class GOsExtension extends ExtensionComponents {
             }
             for (const monitor of Main.layoutManager.monitors) {
                 const position = this._settings.get_int('dock-position');
+                let topChromeActor: St.Widget | null = null;
                 const chrome = new ChromeActorManager<St.Widget>(
-                    (actor, options) => Main.layoutManager.addChrome(actor, options),
+                    (actor, options) => actor === topChromeActor
+                        ? Main.layoutManager.addTopChrome(actor, options)
+                        : Main.layoutManager.addChrome(actor, options),
                     actor => Main.layoutManager.removeChrome(actor));
                 const screen: ExtensionScreen = {monitor, position, dockDocked: false,
                     dockViewport: null as St.Viewport | null,
@@ -582,7 +585,8 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.tooltip = new St.Label({style_class: 'dash-label g-os-dock-tooltip', visible: false});
                     screen.tooltip.clutter_text.line_wrap = true;
                     screen.tooltip.clutter_text.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
-                    Main.layoutManager.addTopChrome(screen.tooltip);
+                    topChromeActor = screen.tooltip;
+                    screen.lifecycle.chrome?.add(screen.tooltip);
                     screen.dock = new St.BoxLayout({
                         style_class: 'dash-background g-os-dock',
                         clip_to_view: false,
@@ -615,7 +619,7 @@ export default class GOsExtension extends ExtensionComponents {
                         hscrollbar_policy: position === 0 ? St.PolicyType.EXTERNAL : St.PolicyType.NEVER,
                         vscrollbar_policy: position === 0 ? St.PolicyType.NEVER : St.PolicyType.EXTERNAL,
                     });
-                    Main.layoutManager.addChrome(screen.dockContainer, {trackFullscreen: true});
+                    screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
                     screen.dockContainer.connect('notify::hover', () => {
                         for (const update of screen.hoverAnimationUpdates)
                             update();
@@ -638,7 +642,7 @@ export default class GOsExtension extends ExtensionComponents {
                     if (this._settings.get_boolean('dock-autohide') ||
                         this._settings.get_boolean('dock-hide-when-covered')) {
                         screen.edge = new St.Widget({reactive: true, track_hover: true, width: 10, height: 10});
-                        Main.layoutManager.addChrome(screen.edge, {trackFullscreen: true});
+                        screen.lifecycle.chrome?.add(screen.edge, {trackFullscreen: true});
                         screen.edge.connect('notify::hover', () => {
                             if (screen.edge.hover) {
                                 if (screen.dockCovered)
@@ -827,7 +831,6 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.transferLabel.get_parent()?.remove_child(screen.transferLabel);
                 this._cancelDockHide(screen);
                 if (screen.edge) {
-                    Main.layoutManager.removeChrome?.(screen.edge);
                     if (screen.edge.get_parent())
                         screen.edge.get_parent().remove_child(screen.edge);
                     screen.edge.destroy();
@@ -873,7 +876,6 @@ export default class GOsExtension extends ExtensionComponents {
                 }
                 if (screen.dockContainer) {
                     Main.ctrlAltTabManager.removeGroup?.(screen.dockContainer);
-                    Main.layoutManager.removeChrome?.(screen.dockContainer);
                     const dockContainerParent = screen.dockContainer.get_parent();
                     if (dockContainerParent)
                         dockContainerParent.remove_child(screen.dockContainer);
@@ -883,7 +885,6 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.dockContainer = null;
                 }
                 if (screen.tooltip) {
-                    Main.layoutManager.removeChrome?.(screen.tooltip);
                     screen.tooltip.destroy();
                 }
                 if (screen.panel)
