@@ -214,6 +214,14 @@ export function withDesktopWidgets(Base) {
                     widget.set_position(...origin);
                     reset();
                 };
+                const finish = () => {
+                    if (!origin)
+                        return;
+                    const [x, y] = destination;
+                    reset();
+                    this._settings.set_int(xKey, Math.max(0, Math.round(x - monitor.x)));
+                    this._settings.set_int(yKey, Math.max(0, Math.round(y - monitor.y)));
+                };
                 screen.interactionDnd.registerSource(widget.dragHandle ?? widget, {}, {
                     onBegin: () => {
                         origin = widget.get_position();
@@ -235,15 +243,8 @@ export function withDesktopWidgets(Base) {
                         widget.set_position(Math.round(x), Math.round(y));
                         destination = [Math.round(x), Math.round(y)];
                     },
-                    onEnd: () => {
-                        if (!origin)
-                            return;
-                        const [x, y] = destination;
-                        reset();
-                        this._settings.set_int(xKey, Math.max(0, Math.round(x - monitor.x)));
-                        this._settings.set_int(yKey, Math.max(0, Math.round(y - monitor.y)));
-                    },
-                    onDestroy: restore,
+                    onEnd: finish,
+                    onDestroy: finish,
                 }, {}, screen.lifecycle);
                 screen.lifecycle.add(restore);
             }
