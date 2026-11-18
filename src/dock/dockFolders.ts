@@ -268,10 +268,20 @@ export function withDockFolders(Base) {
                 if (!fan)
                     item.set_size(cellWidth, cellHeight);
                 if (file.app) {
-                    item._delegate = {app: file.app, folderId: folder.get_uri().slice(11),
+                    const delegate = {
+                        app: file.app,
+                        folderId: folder.get_uri().slice(11),
                         getDragActor: () => file.app.create_icon_texture(this._settings.get_int('icon-size')),
-                        getDragActorSource: () => icon};
-                    this._makeDraggable(item, () => menu.close(), () => {}, () => {});
+                        getDragActorSource: () => icon,
+                    };
+                    if (screen?.dockDnd) {
+                        screen.dockDnd.registerSource(item, delegate, {
+                            onBegin: () => menu.close(),
+                        }, {}, screen.lifecycle);
+                    } else {
+                        item._delegate = delegate;
+                        this._makeDraggable(item, () => menu.close(), () => {}, () => {});
+                    }
                 }
                 return item;
             };
