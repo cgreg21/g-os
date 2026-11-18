@@ -88,8 +88,11 @@ export class DragAndDropController {
         };
 
         actorDestroySignal = actor.connect('destroy', () => {
-            callbacks.onDestroy?.();
-            dispose();
+            try {
+                callbacks.onDestroy?.();
+            } finally {
+                dispose();
+            }
         });
         this.sources.set(actor, {dispose});
         lifecycle?.add(dispose);
