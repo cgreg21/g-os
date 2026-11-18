@@ -118,3 +118,25 @@ test('destroys chrome actors after scheduled tasks and registered cleanup', () =
 
     assert.deepEqual(order, ['tasks', 'cleanup', 'chrome']);
 });
+
+test('destroys owned animations before releasing chrome actors', () => {
+    const removed = [];
+    const actor = {
+        ease() {},
+        remove_transition(property) { removed.push(property); },
+    };
+    const chromeActor = {};
+    const chrome = new ChromeActorManager(() => {}, () => {});
+    chrome.add(chromeActor);
+    const scope = new LifecycleScope(undefined, chrome);
+    scope.animations.animate('dock', actor, {translationX: 10, opacity: 0}, {
+        durationMs: 100,
+        mode: 1,
+    });
+
+    scope.destroy();
+
+    assert.deepEqual(removed, ['translationX', 'opacity']);
+    assert.equal(scope.animations.size, 0);
+    assert.equal(scope.animations.isDestroyed, true);
+});
