@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {
     resolveInsertionIndex,
     resolveInsertionIndexWithHysteresis,
+    resolveReorderInsertionIndex,
 } from '../dist/shared/geometry/insertion.js';
 import {
     intersectRectangles,
@@ -67,4 +68,18 @@ const visibilitySource = await readFile(new URL('../src/dock/dockVisibility.ts',
 test('topbar insertion and dock coverage reuse shared geometry', () => {
     assert.match(panelSource, /resolveInsertionIndex\(midpoints, dropX\)/);
     assert.match(visibilitySource, /rectanglesOverlap\(/);
+});
+
+test('resolves reorder indices with stable midpoint tie-breaking', () => {
+    assert.equal(resolveReorderInsertionIndex([20, 50, 80], 0, 1), 0);
+    assert.equal(resolveReorderInsertionIndex([20, 50, 80], 50, 2), 1);
+    assert.equal(resolveReorderInsertionIndex([20, 50, 80], 50, 0), 1);
+    assert.equal(resolveReorderInsertionIndex([20, 50, 80], 100, 1), 2);
+    assert.equal(resolveReorderInsertionIndex([20, null, 80], 100, 0), null);
+    assert.equal(resolveReorderInsertionIndex([20, 50], 30, 3), null);
+});
+
+const dockOrderSource = await readFile(new URL('../src/dock/dockOrder.ts', import.meta.url), 'utf8');
+test('dock reorder delegates midpoint decisions to shared geometry', () => {
+    assert.match(dockOrderSource, /resolveReorderInsertionIndex\(\s*midpoints, coordinate, state\.sourceIndex\)/);
 });
