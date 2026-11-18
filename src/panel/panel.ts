@@ -17,6 +17,7 @@ import {SoundStatusMenu, RadioStatusMenu, BatteryStatusMenu, DisplayStatusMenu,
 import {GtkGlobalMenu} from './globalMenu.js';
 import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
+import {DragAndDropController} from '../shared/interaction/dragAndDrop.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -659,7 +660,8 @@ export function withPanel(Base) {
             ].filter(([, actor]) => actor));
             screen.panelLayout = this._normalizePanelLayout(this._settings.get_strv('panel-layout'));
             screen.panelLayoutGroups = new Map();
-            screen.panelLayoutDraggables = [];
+            screen.panelLayoutDnd = new DragAndDropController();
+            screen.lifecycle.add(() => screen.panelLayoutDnd.destroy());
             for (const group of PANEL_LAYOUT_GROUPS) {
                 const zone = new St.BoxLayout({
                     name: `g-os-panel-drop-zone-${group}`,
@@ -681,7 +683,7 @@ export function withPanel(Base) {
                 zone.add_child(content);
                 if (group !== 'right')
                     zone.add_child(new St.Widget({x_expand: true, y_expand: true}));
-                zone._delegate = {
+                screen.panelLayoutDnd.registerTarget(zone, {
                     handleDragOver: (source, _dragActor, x) => {
                         const accepted = Boolean(this._getPanelLayoutItem(screen, source));
                         if (screen.panelDropZone && screen.panelDropZone !== zone)
@@ -699,7 +701,7 @@ export function withPanel(Base) {
                         const itemId = this._getPanelLayoutItem(screen, source);
                         return itemId ? this._movePanelItem(screen, itemId, group, x) : false;
                     },
-                };
+                });
                 screen.panelLayoutGroups.set(group, {zone, content});
             }
             for (const child of screen.panel.get_children())
@@ -733,36 +735,23 @@ export function withPanel(Base) {
         }
 
         _attachPanelItemDraggable(screen, id, actor) {
-            if (!actor || actor._panelLayoutDraggable)
+            if (!actor || screen.panelLayoutDnd.hasSource(actor))
                 return;
-            const delegate = Object.create(actor._delegate ?? null);
-            delegate.panelLayoutItem = {screen, id};
-            delegate.getDragActor = () => new Clutter.Clone({source: actor});
-            delegate.getDragActorSource = () => screen.panelDragState?.actor === actor
-                ? screen.panelDragState.placeholder : actor;
-            actor._delegate = delegate;
             actor._panelLayoutItemId = id;
-            actor._panelLayoutDraggable = DND.makeDraggable(actor, {});
-            screen.lifecycle.addSignal(actor._panelLayoutDraggable,
-                actor._panelLayoutDraggable.connect('drag-begin', () => {
-                    this._beginPanelShadowDrag(screen, id, actor);
-                }));
-            screen.lifecycle.addSignal(actor._panelLayoutDraggable,
-                actor._panelLayoutDraggable.connect('drag-end', (_draggable, _time, success) => {
-                    this._finishPanelShadowDrag(screen, Boolean(success));
-                }));
-            screen.lifecycle.addSignal(actor._panelLayoutDraggable,
-                actor._panelLayoutDraggable.connect('drag-cancelled', () => {
-                    this._finishPanelShadowDrag(screen, false);
-                }));
-            screen.panelLayoutDraggables?.push(actor._panelLayoutDraggable);
-            screen.lifecycle.addSignal(actor, actor.connect('destroy', () => {
-                if (screen.panelDragState?.actor === actor)
-                    this._finishPanelShadowDrag(screen, false);
-                const index = screen.panelLayoutDraggables?.indexOf(actor._panelLayoutDraggable) ?? -1;
-                if (index >= 0)
-                    screen.panelLayoutDraggables.splice(index, 1);
-            }));
+            screen.panelLayoutDnd.registerSource(actor, {
+                panelLayoutItem: {screen, id},
+                getDragActor: () => new Clutter.Clone({source: actor}),
+                getDragActorSource: () => screen.panelDragState?.actor === actor
+                    ? screen.panelDragState.placeholder : actor,
+            }, {
+                onBegin: () => this._beginPanelShadowDrag(screen, id, actor),
+                onEnd: success => this._finishPanelShadowDrag(screen, success),
+                onCancelled: () => this._finishPanelShadowDrag(screen, false),
+                onDestroy: () => {
+                    if (screen.panelDragState?.actor === actor)
+                        this._finishPanelShadowDrag(screen, false);
+                },
+            });
         }
 
         _beginPanelShadowDrag(screen, id, actor) {
