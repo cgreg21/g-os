@@ -886,10 +886,8 @@ export default class GOsExtension extends ExtensionComponents {
                     Main.layoutManager.removeChrome?.(screen.tooltip);
                     screen.tooltip.destroy();
                 }
-                if (screen.panel) {
-                    Main.layoutManager.removeChrome?.(screen.panel);
+                if (screen.panel)
                     screen.panel.destroy();
-                }
             }
             this._screens = [];
         }
