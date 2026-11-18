@@ -75,3 +75,10 @@ test('the shared controller is the only GNOME makeDraggable integration', () => 
     assert.doesNotMatch(desktopIconsSource, /DND\.makeDraggable/);
     assert.doesNotMatch(panelSource, /DND\.makeDraggable/);
 });
+
+test('dock reorder transitions are owned by the screen animation manager', () => {
+    assert.match(dockOrderSource, /screen\.lifecycle\.animations\.animate\(\`dock-reorder:/);
+    assert.match(dockOrderSource, /screen\.lifecycle\.animations\.cancel\(\`dock-reorder:/);
+    assert.match(dockOrderSource, /screen\.lifecycle\.addSignal\(button, button\.connect\('destroy'/);
+    assert.doesNotMatch(dockOrderSource, /candidate\.ease\(\{/);
+});
