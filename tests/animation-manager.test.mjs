@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {AnimationManager} from '../dist/core/animationManager.js';
+
+class FakeActor {
+    animations = [];
+    removed = [];
+    ease(params) { this.animations.push(params); }
+    remove_transition(property) { this.removed.push(property); }
+    complete(index = this.animations.length - 1) {
+        this.animations[index]?.onComplete?.();
+    }
+}
+
+const options = {durationMs: 240, mode: 1};
+
+test('animates actors independently and releases completed animations', () => {
+    const manager = new AnimationManager();
+    const first = new FakeActor();
+    const second = new FakeActor();
+    manager.animate('first', first, {translationX: 0, opacity: 255}, options);
+    manager.animate('second', second, {translationX: 0}, options);
+    assert.equal(manager.size, 2);
+    first.complete();
+    assert.equal(manager.size, 1);
+    second.complete();
+    assert.equal(manager.size, 0);
+});
+
+test('replacing an animation cancels only its previous properties', () => {
+    const manager = new AnimationManager();
+    const actor = new FakeActor();
+    let completed = 0;
+    manager.animate('slide', actor, {translationX: 10, translationY: 0}, {
+        ...options, onComplete: () => completed++,
+    });
+    const stale = actor.animations[0].onComplete;
+    manager.animate('slide', actor, {translationX: 0}, options);
+    assert.deepEqual(actor.removed, ['translationX', 'translationY']);
+    stale();
+    assert.equal(manager.size, 1);
+    assert.equal(completed, 0);
+    actor.complete();
+    assert.equal(manager.size, 0);
+});
+
+test('cancel and destroy are idempotent and reject stale callbacks', () => {
+    const manager = new AnimationManager();
+    const actor = new FakeActor();
+    let completed = 0;
+    manager.animate('fade', actor, {opacity: 0}, {
+        ...options, onComplete: () => completed++,
+    });
+    const finish = actor.animations[0].onComplete;
+    manager.cancel('fade');
+    manager.cancel('fade');
+    finish();
+    manager.animate('late', actor, {opacity: 255}, options);
+    const late = actor.animations[1].onComplete;
+    manager.destroy();
+    manager.destroy();
+    late();
+    manager.animate('ignored', actor, {opacity: 1}, options);
+    assert.deepEqual(actor.removed, ['opacity', 'opacity']);
+    assert.equal(completed, 0);
+    assert.equal(manager.size, 0);
+    assert.equal(manager.isDestroyed, true);
+});
