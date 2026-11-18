@@ -18,6 +18,7 @@ import {GtkGlobalMenu} from './globalMenu.js';
 import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {DragAndDropController} from '../shared/interaction/dragAndDrop.js';
+import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -794,12 +795,12 @@ export function withPanel(Base) {
             const dropX = target.zone.get_transformed_position()[0] + x;
             const siblings = target.content.get_children()
                 .filter(child => child !== state.placeholder);
-            const before = siblings.find(child => {
+            const midpoints = siblings.map(child => {
                 const [childX] = child.get_transformed_position();
                 const [childWidth] = child.get_transformed_size();
-                return dropX < childX + childWidth / 2;
+                return childX + childWidth / 2;
             });
-            const index = before ? siblings.indexOf(before) : siblings.length;
+            const index = resolveInsertionIndex(midpoints, dropX) ?? siblings.length;
             state.placeholder.get_parent()?.remove_child(state.placeholder);
             target.content.insert_child_at_index(state.placeholder, index);
         }
@@ -841,11 +842,13 @@ export function withPanel(Base) {
             const dropX = zoneX + x;
             const visibleSiblings = target.content.get_children().filter(child =>
                 child !== actor && child !== screen.panelDragState?.placeholder);
-            const before = visibleSiblings.find(child => {
+            const midpoints = visibleSiblings.map(child => {
                 const [childX] = child.get_transformed_position();
                 const [childWidth] = child.get_transformed_size();
-                return dropX < childX + childWidth / 2;
+                return childX + childWidth / 2;
             });
+            const insertionSlot = resolveInsertionIndex(midpoints, dropX);
+            const before = insertionSlot === null ? null : visibleSiblings[insertionSlot] ?? null;
             const entries = screen.panelLayout.filter(entry => !entry.endsWith(`:${id}`));
             let insertionIndex;
             if (before) {
