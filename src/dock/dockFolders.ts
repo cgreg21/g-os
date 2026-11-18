@@ -274,14 +274,9 @@ export function withDockFolders(Base) {
                         getDragActor: () => file.app.create_icon_texture(this._settings.get_int('icon-size')),
                         getDragActorSource: () => icon,
                     };
-                    if (screen?.interactionDnd) {
-                        screen.interactionDnd.registerSource(item, delegate, {
-                            onBegin: () => menu.close(),
-                        }, {}, screen.lifecycle);
-                    } else {
-                        item._delegate = delegate;
-                        this._makeDraggable(item, () => menu.close(), () => {}, () => {});
-                    }
+                    screen.interactionDnd.registerSource(item, delegate, {
+                        onBegin: () => menu.close(),
+                    }, {}, screen.lifecycle);
                 }
                 return item;
             };
