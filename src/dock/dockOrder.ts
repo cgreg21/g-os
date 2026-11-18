@@ -59,29 +59,31 @@ export function withDockOrder(Base) {
                     (!screen.reorder || (screen.reorder.groupTarget === button && screen.reorder.groupPreviewActive)) &&
                     x >= width * 0.25 && x <= width * 0.75 && y >= height * 0.2 && y <= height * 0.8;
             };
-            button._delegate.handleDragOver = (source, actor, x, y) => {
-                const accepted = accepts(source, x, y);
-                if (accepted) {
-                    button.add_style_pseudo_class('drop');
-                    this._revealDock(screen);
-                } else {
+            screen.dockDnd.registerTarget(button, {
+                handleDragOver: (source, actor, x, y) => {
+                    const accepted = accepts(source, x, y);
+                    if (accepted) {
+                        button.add_style_pseudo_class('drop');
+                        this._revealDock(screen);
+                    } else {
+                        button.remove_style_pseudo_class('drop');
+                    }
+                    return accepted ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.CONTINUE;
+                },
+                acceptDrop: (source, actor, x, y) => {
                     button.remove_style_pseudo_class('drop');
-                }
-                return accepted ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.CONTINUE;
-            };
-            button._delegate.acceptDrop = (source, actor, x, y) => {
-                button.remove_style_pseudo_class('drop');
-                if (!accepts(source, x, y))
-                    return false;
-                const sourceId = source.app.get_id();
-                const targetId = button.app?.get_id();
-                const folderId = button.appFolderId;
-                if (screen.reorder)
-                    screen.reorder.grouped = {sourceId, targetId, folderId};
-                else
-                    this._deferDockDrop(screen, () => this._groupDockApplications(sourceId, targetId, folderId, screen));
-                return true;
-            };
+                    if (!accepts(source, x, y))
+                        return false;
+                    const sourceId = source.app.get_id();
+                    const targetId = button.app?.get_id();
+                    const folderId = button.appFolderId;
+                    if (screen.reorder)
+                        screen.reorder.grouped = {sourceId, targetId, folderId};
+                    else
+                        this._deferDockDrop(screen, () => this._groupDockApplications(sourceId, targetId, folderId, screen));
+                    return true;
+                },
+            }, screen.lifecycle);
         }
 
         _deferDockDrop(screen, callback, surviveScreenDisposal = false) {
@@ -136,7 +138,7 @@ export function withDockOrder(Base) {
 
         _attachDockReorder(screen, button, getButtons, commit) {
             if (!screen.dock._delegate) {
-                screen.dock._delegate = {
+                screen.dockDnd.registerTarget(screen.dock, {
                     handleDragOver: source => screen.reorder ||
                         (source?.app && this._settings.is_writable('dock-app-folders'))
                         ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.CONTINUE,
@@ -169,7 +171,7 @@ export function withDockOrder(Base) {
                         }
                         return this._groupDockApplications(source.app.get_id(), null, null, screen);
                     },
-                };
+                }, screen.lifecycle);
             }
             button._dockDraggable = this._makeDraggable(button, () => {
                 this._updateDockMagnification(screen, null, true);
