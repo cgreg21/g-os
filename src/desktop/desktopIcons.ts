@@ -4,7 +4,6 @@ import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import {errorMessage} from '../shared/errorMessage.js';
@@ -728,37 +727,29 @@ export function withDesktopIcons(Base) {
         }
 
         _attachDesktopIconDrag(button, monitor, key, cell, buttonWidth) {
-            const draggable = DND.makeDraggable(button, {});
+            const screen = this._screens?.find(candidate =>
+                candidate.monitor.index === monitor.index);
+            if (!screen?.interactionDnd)
+                return;
+
             let origin = null;
             let pointerOrigin = null;
             let destination = null;
-            let dragMonitor = null;
-            const removeMonitor = () => {
-                if (dragMonitor) {
-                    DND.removeDragMonitor(dragMonitor);
-                    dragMonitor = null;
-                }
+            const reset = () => {
+                origin = null;
+                pointerOrigin = null;
+                destination = null;
             };
-            draggable.connect('drag-begin', () => {
-                origin = button.get_position();
-                pointerOrigin = global.get_pointer().slice(0, 2);
-                destination = origin;
-                dragMonitor = {dragMotion: event => {
-                    const parent = button.get_parent();
-                    const x = Math.max(24, Math.min(origin[0] + event.x - pointerOrigin[0], parent.width - buttonWidth));
-                    const y = Math.max(48, Math.min(origin[1] + event.y - pointerOrigin[1], parent.height - button.height));
-                    button.set_position(Math.round(x), Math.round(y));
-                    destination = [Math.round(x), Math.round(y)];
-                    return DND.DragMotionResult.CONTINUE;
-                }};
-                DND.addDragMonitor(dragMonitor);
-            });
             const finish = cancelled => {
-                removeMonitor();
                 if (!origin)
                     return;
                 if (!cancelled) {
                     const parent = button.get_parent();
+                    if (!parent) {
+                        button.set_position(...origin);
+                        reset();
+                        return;
+                    }
                     const {x, y} = desktopIconGridPosition(0, {width: parent.width, height: parent.height}, cell,
                         {x: destination[0], y: destination[1]}, buttonWidth / cell, 2, button.height);
                     const layout = this._readDesktopIconLayout();
@@ -771,13 +762,30 @@ export function withDesktopIcons(Base) {
                 } else {
                     button.set_position(...origin);
                 }
-                origin = null;
-                pointerOrigin = null;
-                destination = null;
+                reset();
             };
-            draggable.connect('drag-cancelled', () => finish(true));
-            draggable.connect('drag-end', () => finish(false));
-            button.connect('destroy', () => finish(true));
+            screen.interactionDnd.registerSource(button, {}, {
+                onBegin: () => {
+                    origin = button.get_position();
+                    pointerOrigin = global.get_pointer().slice(0, 2);
+                    destination = origin;
+                },
+                onMotion: event => {
+                    if (!origin || !pointerOrigin)
+                        return;
+                    const parent = button.get_parent();
+                    if (!parent)
+                        return;
+                    const x = Math.max(24, Math.min(origin[0] + event.x - pointerOrigin[0], parent.width - buttonWidth));
+                    const y = Math.max(48, Math.min(origin[1] + event.y - pointerOrigin[1], parent.height - button.height));
+                    button.set_position(Math.round(x), Math.round(y));
+                    destination = [Math.round(x), Math.round(y)];
+                },
+                onCancelled: () => finish(true),
+                onEnd: () => finish(false),
+                onDestroy: () => finish(true),
+            }, {}, screen.lifecycle);
+            screen.lifecycle.add(() => finish(true));
         }
 
         _destroyDesktopIconActors() {
