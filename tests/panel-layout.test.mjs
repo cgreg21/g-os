@@ -24,7 +24,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', () =
     const dragStart = panelSource.indexOf('        _attachPanelItemDraggable(screen, id, actor) {');
     const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
     const dragSource = panelSource.slice(dragStart, dragEnd);
-    assert.match(dragSource, /getDragActor = \(\) => new Clutter\.Clone\(\{source: actor\}\)/);
+    assert.match(dragSource, /getDragActor: \(\) => new Clutter\.Clone\(\{source: actor\}\)/);
     assert.match(dragSource, /_beginPanelShadowDrag\(screen, id, actor\)/);
     assert.match(dragSource, /_finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
@@ -34,7 +34,8 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', () =
 
 test('topbar lifecycle scope owns DND signals and chrome registration', () => {
     assert.match(panelSource, /screen\.lifecycle\.chrome\?\.add\(screen\.panel, \{affectsStruts: true, trackFullscreen: true\}\)/);
-    assert.match(panelSource, /screen\.lifecycle\.addSignal\(actor\._panelLayoutDraggable/);
-    assert.match(panelSource, /screen\.lifecycle\.addSignal\(actor, actor\.connect\('destroy'/);
+    assert.match(panelSource, /screen\.panelLayoutDnd\.registerSource\(actor/);
+    assert.match(panelSource, /onDestroy: \(\) => \{/);
+    assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => screen\.panelLayoutDnd\.destroy\(\)\)/);
     assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => this\._finishPanelShadowDrag\(screen, false\)\)/);
 });
