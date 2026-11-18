@@ -412,10 +412,10 @@ export function withDockVisibility(Base) {
             if (!reservation || screen.dockReservationRegistered === registered)
                 return;
             if (registered) {
-                Main.layoutManager.addChrome(reservation, {affectsStruts: true, trackFullscreen: true});
+                screen.lifecycle.chrome?.add(reservation, {affectsStruts: true, trackFullscreen: true});
                 Main.layoutManager.uiGroup.set_child_below_sibling(reservation, screen.dockContainer);
             } else {
-                Main.layoutManager.removeChrome(reservation);
+                screen.lifecycle.chrome?.remove(reservation);
             }
             screen.dockReservationRegistered = registered;
         }
