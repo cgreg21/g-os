@@ -10,6 +10,7 @@ export interface DragSourceCallbacks {
     onBegin?: () => void;
     onEnd?: (success: boolean) => void;
     onCancelled?: () => void;
+    onDestroy?: () => void;
 }
 
 export interface DragSourceOptions {
@@ -86,7 +87,10 @@ export class DragAndDropController {
             this.sources.delete(actor);
         };
 
-        actorDestroySignal = actor.connect('destroy', dispose);
+        actorDestroySignal = actor.connect('destroy', () => {
+            callbacks.onDestroy?.();
+            dispose();
+        });
         this.sources.set(actor, {dispose});
         lifecycle?.add(dispose);
         return dispose;
@@ -129,6 +133,10 @@ export class DragAndDropController {
         this.targets.set(actor, dispose);
         lifecycle?.add(dispose);
         return dispose;
+    }
+
+    hasSource(actor: DelegateActor): boolean {
+        return this.sources.has(actor);
     }
 
     unregisterSource(actor: DelegateActor): void {
