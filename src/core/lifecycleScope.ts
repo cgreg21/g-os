@@ -1,15 +1,14 @@
 import { CleanupManager } from './cleanupManager.js';
+import { TaskScheduler } from './taskScheduler.js';
 
 /**
  * Owns the lifetime of resources created by one feature or UI component.
- *
- * Scheduled tasks and GNOME Shell chrome actors can be composed here when
- * their shared managers are introduced. Until then, this scope centralizes
- * cleanup callbacks and signal subscriptions.
  */
 export class LifecycleScope {
     readonly cleanup = new CleanupManager();
     private destroyed = false;
+
+    constructor(readonly tasks?: TaskScheduler) {}
 
     add(cleanup: () => void): void {
         this.cleanup.add(cleanup);
@@ -31,6 +30,8 @@ export class LifecycleScope {
         if (this.destroyed)
             return;
         this.destroyed = true;
+        // Stop asynchronous callbacks before releasing their dependent resources.
+        this.tasks?.destroy();
         this.cleanup.clear();
     }
 
