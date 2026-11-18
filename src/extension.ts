@@ -677,7 +677,8 @@ export default class GOsExtension extends ExtensionComponents {
                             },
                         });
                     screen.dockKeyController = new Clutter.KeyController();
-                    screen.dockKeyController.connect('key-press', () => {
+                    screen.lifecycle.addSignal(screen.dockKeyController,
+                        screen.dockKeyController.connect('key-press', () => {
                         const [, key] = screen.dockKeyController.get_key();
                         if (key !== Clutter.KEY_Escape)
                             return Clutter.EVENT_PROPAGATE;
