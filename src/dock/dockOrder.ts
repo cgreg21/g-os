@@ -187,12 +187,12 @@ export function withDockOrder(Base) {
                 }
                 button.opacity = 255;
                 if (!screen.disposed) {
-                    if (screen.rebuildPending || (!cancelled && (state.grouped || state.targetIndex !== state.sourceIndex))) {
+                    if (screen.rebuildPending || (!wasCancelled && (state.grouped || state.targetIndex !== state.sourceIndex))) {
                         this._deferDockDrop(screen, () => {
-                            if (!cancelled && state.grouped) {
+                            if (!wasCancelled && state.grouped) {
                                 const {sourceId, targetId, folderId} = state.grouped;
                                 this._groupDockApplications(sourceId, targetId, folderId, screen);
-                            } else if (!cancelled && state.targetIndex !== state.sourceIndex) {
+                            } else if (!wasCancelled && state.targetIndex !== state.sourceIndex) {
                                 commit(state.targetIndex);
                             }
                             if (!screen.disposed && screen.rebuildPending)
@@ -292,6 +292,10 @@ export function withDockOrder(Base) {
                         finish(true);
                 },
             }, {}, screen.lifecycle);
+            screen.lifecycle.add(() => {
+                if (screen.reorder?.button === button)
+                    finish(true);
+            });
         }
 
         _isOverviewAppGridSource(source) {
