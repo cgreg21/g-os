@@ -660,31 +660,27 @@ export function withPanel(Base) {
             screen.panelLayout = this._normalizePanelLayout(this._settings.get_strv('panel-layout'));
             screen.panelLayoutGroups = new Map();
             screen.panelLayoutDraggables = [];
-            const alignment = {
-                left: Clutter.ActorAlign.START,
-                center: Clutter.ActorAlign.CENTER,
-                right: Clutter.ActorAlign.END,
-            };
             for (const group of PANEL_LAYOUT_GROUPS) {
-                const zone = new St.Widget({
+                const zone = new St.BoxLayout({
                     name: `g-os-panel-drop-zone-${group}`,
                     style_class: 'g-os-panel-drop-zone',
                     reactive: true,
                     track_hover: true,
                     x_expand: true,
                     y_expand: true,
-                    layout_manager: new Clutter.BinLayout(),
                 });
                 const content = new St.BoxLayout({
                     style_class: 'g-os-panel-zone-content',
-                    y_expand: group === 'center',
+                    y_expand: true,
                     y_align: Clutter.ActorAlign.CENTER,
-                    x_align: alignment[group],
                 });
+                // Explicit expanding spacers make the edge alignment independent of
+                // BinLayout's child allocation and keep the center group screen-centered.
+                if (group !== 'left')
+                    zone.add_child(new St.Widget({x_expand: true, y_expand: true}));
                 zone.add_child(content);
-                // Re-apply the horizontal alignment once the BinLayout owns the child.
-                content.x_align = alignment[group];
-                content.x_expand = false;
+                if (group !== 'right')
+                    zone.add_child(new St.Widget({x_expand: true, y_expand: true}));
                 zone._delegate = {
                     handleDragOver: source => {
                         const accepted = Boolean(this._getPanelLayoutItem(screen, source));
