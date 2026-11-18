@@ -203,7 +203,7 @@ export function withDockOrder(Base) {
                     this._queueDockHide(screen);
                 }
             };
-            button._interactionDndDispose = screen.interactionDnd.registerSource(button, {}, {
+            screen.interactionDnd.registerSource(button, {}, {
                 onBegin: () => {
                     cancelled = false;
                     this._updateDockMagnification(screen, null, true);
@@ -279,17 +279,11 @@ export function withDockOrder(Base) {
                         const original = state.slots[state.buttons.indexOf(candidate)].position;
                         const destination = destinations[order.indexOf(candidate)];
                         screen.lifecycle.animations.animate(`dock-reorder:${candidate.dockFocusKey}`, candidate, {
-
                             translation_x: axis === 0 ? destination - original[0] : 0,
-
                             translation_y: axis === 1 ? destination - original[1] : 0,
-
                         }, {
-
                             durationMs: motion.enable_animations && !reduced ? 120 : 0,
-
                             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-
                         });
                     }
 
