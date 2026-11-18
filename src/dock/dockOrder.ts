@@ -181,6 +181,7 @@ export function withDockOrder(Base) {
                 this._clearDockGroupPreview(screen);
                 screen.reorder = null;
                 for (const candidate of state.buttons) {
+                    screen.lifecycle.animations.cancel(`dock-reorder:${candidate.dockFocusKey}`);
                     candidate.remove_all_transitions();
                     candidate.translation_x = 0;
                     candidate.translation_y = 0;
@@ -245,6 +246,7 @@ export function withDockOrder(Base) {
                                 grouping.add_style_pseudo_class('drop');
                                 state.groupPreviewActive = true;
                                 for (const candidate of state.buttons) {
+                                    screen.lifecycle.animations.cancel(`dock-reorder:${candidate.dockFocusKey}`);
                                     candidate.remove_all_transitions();
                                     candidate.translation_x = 0;
                                     candidate.translation_y = 0;
@@ -276,11 +278,18 @@ export function withDockOrder(Base) {
                     for (const candidate of state.buttons) {
                         const original = state.slots[state.buttons.indexOf(candidate)].position;
                         const destination = destinations[order.indexOf(candidate)];
-                        candidate.ease({
+                        screen.lifecycle.animations.animate(`dock-reorder:${candidate.dockFocusKey}`, candidate, {
+
                             translation_x: axis === 0 ? destination - original[0] : 0,
+
                             translation_y: axis === 1 ? destination - original[1] : 0,
-                            duration: motion.enable_animations && !reduced ? 120 : 0,
+
+                        }, {
+
+                            durationMs: motion.enable_animations && !reduced ? 120 : 0,
+
                             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+
                         });
                     }
 
@@ -296,6 +305,9 @@ export function withDockOrder(Base) {
                 if (screen.reorder?.button === button)
                     finish(true);
             });
+            const animationKey = `dock-reorder:${button.dockFocusKey}`;
+            screen.lifecycle.addSignal(button, button.connect('destroy', () =>
+                screen.lifecycle.animations.cancel(animationKey)));
         }
 
         _isOverviewAppGridSource(source) {
