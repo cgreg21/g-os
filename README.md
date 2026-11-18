@@ -402,7 +402,6 @@ npm run test:ui
 
 `npm run test:ui` reste le tableau de bord de tests du projet ; il ne remplace
 pas la session DevKit interactive. La CI valide la syntaxe et ShellCheck des
-scripts de développement, puis exécute le build, les tests unitaires et la
-couverture. Le lancement du DevKit lui-même nécessite une session graphique
+scripts de développement, puis exécute le build et les tests unitaires. Le lancement du DevKit lui-même nécessite une session graphique
 GNOME 51 locale.
 
