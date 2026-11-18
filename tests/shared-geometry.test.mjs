@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
 import {
     resolveInsertionIndex,
     resolveInsertionIndexWithHysteresis,
@@ -58,4 +59,12 @@ test('computes rectangle intersections and unions', () => {
         {x: 0, y: 0, width: 10, height: 10},
         {x: 10, y: 0, width: 10, height: 10},
     ), null);
+});
+
+const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+const visibilitySource = await readFile(new URL('../src/dock/dockVisibility.ts', import.meta.url), 'utf8');
+
+test('topbar insertion and dock coverage reuse shared geometry', () => {
+    assert.match(panelSource, /resolveInsertionIndex\(midpoints, dropX\)/);
+    assert.match(visibilitySource, /rectanglesOverlap\(/);
 });
