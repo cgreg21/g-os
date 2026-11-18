@@ -34,6 +34,7 @@ export function withDockAppearance(Base) {
                     screen.tooltipMeasureSignal = screen.tooltip.connect('style-changed', () => {
                         screen.tooltipMeasureText = null;
                     });
+                    screen.lifecycle.addSignal(screen.tooltip, screen.tooltipMeasureSignal);
                 }
                 screen.tooltip.show();
                 const [buttonX, buttonY] = coordinates ?? button.get_transformed_position();
@@ -247,9 +248,11 @@ export function withDockAppearance(Base) {
                     return GLib.SOURCE_REMOVE;
                 });
             };
-            screen.dockContainer.connect('notify::allocation', update);
-            screen.dock.connect('notify::allocation', update);
-            screen.magnificationBackground.connect('destroy', () => {
+            screen.lifecycle.addSignal(screen.dockContainer,
+                screen.dockContainer.connect('notify::allocation', update));
+            screen.lifecycle.addSignal(screen.dock,
+                screen.dock.connect('notify::allocation', update));
+            screen.lifecycle.add(() => {
                 if (screen.magnificationBackgroundSource)
                     GLib.source_remove(screen.magnificationBackgroundSource);
                 screen.magnificationBackgroundSource = 0;
@@ -338,22 +341,24 @@ export function withDockAppearance(Base) {
                 return;
             if (!screen.magnificationConnected) {
                 screen.magnificationConnected = true;
-                screen.dockContainer.connect('motion-event', (actor, event) => {
+                screen.lifecycle.addSignal(screen.dockContainer,
+                    screen.dockContainer.connect('motion-event', (actor, event) => {
                     const following = screen.magnificationPoint !== null;
                     screen.magnificationPoint = event.get_coords();
                     this._queueDockMagnification(screen, screen.magnificationPoint, false, following);
                     return Clutter.EVENT_PROPAGATE;
-                });
-                screen.dockContainer.connect('notify::hover', () => {
+                }));
+                screen.lifecycle.addSignal(screen.dockContainer,
+                    screen.dockContainer.connect('notify::hover', () => {
                     if (!screen.dockContainer.hover) {
                         screen.magnificationPoint = null;
                         this._queueDockMagnification(screen);
                     }
-                });
+                }));
                 const motion = St.Settings.get();
                 const signal = motion.connect('notify', () => this._queueDockMagnification(screen));
-                screen.dockContainer.connect('destroy', () => {
-                    motion.disconnect(signal);
+                screen.lifecycle.addSignal(motion, signal);
+                screen.lifecycle.add(() => {
                     if (screen.magnificationUpdateSource)
                         laters.remove(screen.magnificationUpdateSource);
                     screen.magnificationUpdateSource = 0;
