@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { LifecycleScope } from '../dist/core/lifecycleScope.js';
 import { TaskScheduler } from '../dist/core/taskScheduler.js';
+import { ChromeActorManager } from '../dist/core/chromeActorManager.js';
 
 function createEmitter() {
     const disconnected = [];
@@ -89,4 +90,31 @@ test('destroys scheduled tasks before releasing other resources', () => {
     assert.deepEqual(removed, [7]);
     assert.deepEqual(calls, ['cleanup']);
     assert.equal(tasks.size, 0);
+});
+
+
+test('destroys chrome actors after scheduled tasks and registered cleanup', () => {
+    const order = [];
+    const tasks = new TaskScheduler({
+        timeout(_delay, _callback) { return 1; },
+        idle(_callback) { return 2; },
+        remove() { order.push('tasks'); },
+    });
+    const actor = {};
+    const actorManager = new ChromeActorManager(
+        () => {},
+        removed => {
+            assert.equal(removed, actor);
+            order.push('chrome');
+        },
+    );
+    actorManager.add(actor);
+    const scope = new LifecycleScope(tasks, actorManager);
+    scope.add(() => order.push('cleanup'));
+    tasks.timeout('scheduled', 10, () => order.push('task'));
+
+    scope.destroy();
+    scope.destroy();
+
+    assert.deepEqual(order, ['tasks', 'cleanup', 'chrome']);
 });
