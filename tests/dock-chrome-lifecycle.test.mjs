@@ -20,7 +20,7 @@ test('dock chrome actors are no longer removed manually during screen teardown',
     const teardownEnd = extensionSource.indexOf('        _updateWindowButtons()', teardownStart);
     const teardown = extensionSource.slice(teardownStart, teardownEnd);
 
-    assert.doesNotMatch(teardown, /Main\.layoutManager\.removeChrome\?\.\(screen\.(?:edge|dockContainer|tooltip)\)/);
+    assert.doesNotMatch(teardown, /Main\.layoutManager\.removeChrome\?\.\(screen\.(?:edge|dockContainer|tooltip|dockReservation)\)/);
     assert.match(teardown, /screen\.lifecycle\.destroy\(\)/);
 });
 
