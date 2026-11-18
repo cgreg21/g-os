@@ -31,3 +31,16 @@ test('dock reservation uses the lifecycle manager while preserving its stacking 
     assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.remove\(reservation\)/);
     assert.match(dockVisibilitySource, /Main\.layoutManager\.uiGroup\.set_child_below_sibling\(reservation, screen\.dockContainer\)/);
 });
+
+test('dock actor hover signals are owned by the screen lifecycle', () => {
+    assert.match(extensionSource, /screen\.lifecycle\.addSignal\(screen\.dockContainer,[\s\S]*?notify::hover/);
+    assert.match(extensionSource, /screen\.lifecycle\.addSignal\(screen\.edge,[\s\S]*?notify::hover/);
+});
+
+test('dock adjustment signals are replaceable and released by the screen lifecycle', () => {
+    assert.match(extensionSource, /dockAdjustmentCleanup: CleanupManager/);
+    assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.dockAdjustmentCleanup\.clear\(\)\)/);
+    assert.match(extensionSource, /screen\.dockAdjustmentCleanup\.clear\(\);[\s\S]*?screen\.dockAdjustmentCleanup = new CleanupManager\(\)/);
+    assert.match(extensionSource, /screen\.dockAdjustmentCleanup\.addSignal\(adjustment/);
+    assert.doesNotMatch(extensionSource, /dockAdjustmentSignals/);
+});
