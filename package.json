@@ -8,7 +8,12 @@
     "test": "npm run build && node --test --test-concurrency=1 tests/*.test.mjs",
     "test:coverage": "npm run build && node scripts/test-coverage.mjs",
     "test:ui": "node scripts/test-ui.mjs",
-    "build:deploy": "bash scripts/build-deploy.sh"
+    "build:deploy": "bash scripts/build-deploy.sh",
+    "dev:check": "bash scripts/dev-check.sh",
+    "dev": "bash scripts/dev-session.sh",
+    "dev:watch": "bash scripts/dev-watch.sh",
+    "dev:install:fedora": "bash scripts/install-dev-deps-fedora.sh",
+    "dev:install:cachyos": "bash scripts/install-dev-deps-cachyos.sh"
   },
   "devDependencies": {
     "@girs/gjs": "^5.6.0",

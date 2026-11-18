@@ -334,3 +334,74 @@ XDG_RUNTIME_DIR="$runtime" MACOS_THEME_DIR="$HOME/.themes/G-Os-Dark" MACOS_VISUA
 ```
 
 L'outil utilise un profil temporaire distinct, un répertoire runtime privé et une session D-Bus isolée pour éviter les conflits avec un autre compositeur de test. `MACOS_THEME_DIR` charge les overrides du thème dans le rendu headless. Les captures sont produites dans `tests/artifacts/g-os-desktop.png` et `tests/artifacts/g-os-menu.png`.
+
+## Environnement de développement GNOME isolé
+
+Le dépôt fournit un environnement de développement basé sur le même principe que
+[G-OS Dock](https://github.com/cgreg21/g-os-dock) : GNOME Shell 51 est lancé dans
+un Mutter Development Kit, sur Wayland et dans une session D-Bus indépendante.
+Les préférences, données, extensions, caches et états GNOME sont conservés dans
+`~/.local/share/g-os-dev`, sans modifier le profil de la session GNOME habituelle.
+
+### Prérequis
+
+- Fedora 45 ou CachyOS avec GNOME Shell 51.x.
+- Node.js 20 ou plus récent.
+- Mutter Development Kit (`mutter-devkit`).
+- Une session graphique Wayland ou X11 pour lancer le DevKit.
+- Les outils GNOME, GLib et `inotify-tools`.
+
+Installation automatique des dépendances :
+
+```sh
+# Fedora 45
+npm run dev:install:fedora
+
+# CachyOS
+npm run dev:install:cachyos
+```
+
+Puis, depuis la racine du dépôt :
+
+```sh
+npm ci
+npm run dev:check
+npm run dev
+```
+
+### Cycle de développement
+
+Au démarrage, G-Os est compilé et copié dans le profil isolé sous
+`$XDG_DATA_HOME/gnome-shell/extensions/g-os@greg.local`, puis activé dans le
+GNOME Shell DevKit. Le processus surveille les modifications de `src/`,
+`schemas/`, `config.json`, `metadata.json`, `stylesheet.css`, `icons/` et
+`widgets/`.
+
+Après chaque modification détectée, le projet est recompilé. Si la compilation
+échoue, la version déjà déployée reste en place. Si elle réussit, G-Os est
+redéployé et le Shell DevKit est redémarré afin de recharger proprement les
+modules JavaScript ES mis en cache par GJS. Ferme la fenêtre DevKit ou utilise
+`Ctrl+C` dans le terminal pour arrêter la session.
+
+Le chemin du profil peut être personnalisé avant le lancement :
+
+```sh
+G_OS_DEV_HOME="$HOME/.local/share/g-os-dev-alt" npm run dev
+```
+
+### Tests et validation
+
+Les commandes de validation du projet restent inchangées :
+
+```sh
+npm run build
+npm test
+npm run test:coverage
+npm run test:ui
+```
+
+`npm run test:ui` reste le tableau de bord de tests du projet ; il ne remplace
+pas la session DevKit interactive. La CI valide la syntaxe et ShellCheck des
+scripts de développement, puis exécute le build et les tests unitaires. Le lancement du DevKit lui-même nécessite une session graphique
+GNOME 51 locale.
+
