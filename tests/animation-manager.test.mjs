@@ -18,8 +18,8 @@ test('animates actors independently and releases completed animations', () => {
     const manager = new AnimationManager();
     const first = new FakeActor();
     const second = new FakeActor();
-    manager.animate('first', first, {translationX: 0, opacity: 255}, options);
-    manager.animate('second', second, {translationX: 0}, options);
+    manager.animate('first', first, {translation_x: 0, opacity: 255}, options);
+    manager.animate('second', second, {translation_x: 0}, options);
     assert.equal(manager.size, 2);
     first.complete();
     assert.equal(manager.size, 1);
@@ -31,12 +31,12 @@ test('replacing an animation cancels only its previous properties', () => {
     const manager = new AnimationManager();
     const actor = new FakeActor();
     let completed = 0;
-    manager.animate('slide', actor, {translationX: 10, translationY: 0}, {
+    manager.animate('slide', actor, {translation_x: 10, translation_y: 0}, {
         ...options, onComplete: () => completed++,
     });
     const stale = actor.animations[0].onComplete;
-    manager.animate('slide', actor, {translationX: 0}, options);
-    assert.deepEqual(actor.removed, ['translationX', 'translationY']);
+    manager.animate('slide', actor, {translation_x: 0}, options);
+    assert.deepEqual(actor.removed, ['translation-x', 'translation-y']);
     stale();
     assert.equal(manager.size, 1);
     assert.equal(completed, 0);
