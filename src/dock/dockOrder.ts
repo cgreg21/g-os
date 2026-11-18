@@ -4,6 +4,7 @@ import Clutter from 'gi://Clutter';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {readAppFolders, writeAppFolders} from '../shared/appFolders.js';
+import {resolveReorderInsertionIndex} from '../shared/geometry/insertion.js';
 
 export function withDockOrder(Base) {
     return class extends Base {
@@ -217,14 +218,12 @@ export function withDockOrder(Base) {
                         });
                     }
                 }
-                let targetIndex = state.slots.findIndex((slot, index) => {
-                    const center = slot.position[axis] + slot.size[axis] / 2;
-                    return coordinate < center || (coordinate === center && state.sourceIndex > index);
-                });
-                if (targetIndex < 0)
-                    targetIndex = state.buttons.length;
-                if (state.sourceIndex < targetIndex)
-                    targetIndex--;
+                const midpoints = state.slots.map(slot =>
+                    slot.position[axis] + slot.size[axis] / 2);
+                const targetIndex = resolveReorderInsertionIndex(
+                    midpoints, coordinate, state.sourceIndex);
+                if (targetIndex === null)
+                    return;
                 if (targetIndex === state.targetIndex && !refreshPreview)
                     return;
                 state.targetIndex = targetIndex;
