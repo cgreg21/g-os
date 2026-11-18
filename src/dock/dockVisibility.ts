@@ -3,6 +3,7 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {rectanglesOverlap} from '../shared/geometry/rectangle.js';
 
 export function withDockVisibility(Base) {
     return class extends Base {
@@ -83,8 +84,10 @@ export function withDockVisibility(Base) {
             const dockWidth = screen.dockContainer.width || preferredWidth;
             const [, preferredHeight] = screen.dockContainer.get_preferred_height(dockWidth);
             const dockHeight = screen.dockContainer.height || preferredHeight;
-            return frame.x < dockX + dockWidth && frame.x + frame.width > dockX &&
-                frame.y < dockY + dockHeight && frame.y + frame.height > dockY;
+            return rectanglesOverlap(
+                {x: frame.x, y: frame.y, width: frame.width, height: frame.height},
+                {x: dockX, y: dockY, width: dockWidth, height: dockHeight},
+            );
         }
 
         _updateDockCoverage() {
