@@ -27,6 +27,7 @@ test('folder application drags use shared source registration when a screen exis
     assert.match(dockFoldersSource, /screen\.interactionDnd\.registerSource\(item, delegate/);
     assert.match(dockFoldersSource, /onBegin: \(\) => menu\.close\(\)/);
     assert.match(dockFoldersSource, /\}, \{\}, screen\.lifecycle\)/);
+    assert.doesNotMatch(dockFoldersSource, /this\._makeDraggable\(/);
 });
 
 const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
@@ -65,4 +66,13 @@ test('desktop icons use the per-screen shared DND controller', () => {
     assert.match(desktopIconsSource, /onEnd: \(\) => finish\(false\)/);
     assert.match(desktopIconsSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
     assert.doesNotMatch(desktopIconsSource, /DND\.makeDraggable/);
+});
+
+test('the shared controller is the only GNOME makeDraggable integration', () => {
+    assert.match(dragAndDropSource, /DND\.makeDraggable\(actor/);
+    assert.doesNotMatch(dockOrderSource, /DND\.makeDraggable|_makeDraggable\(/);
+    assert.doesNotMatch(dockFoldersSource, /DND\.makeDraggable|_makeDraggable\(/);
+    assert.doesNotMatch(desktopWidgetsSource, /DND\.makeDraggable|_makeDraggable\(/);
+    assert.doesNotMatch(desktopIconsSource, /DND\.makeDraggable/);
+    assert.doesNotMatch(panelSource, /DND\.makeDraggable/);
 });
