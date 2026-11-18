@@ -6,6 +6,7 @@ import {
     resolveInsertionIndexWithHysteresis,
     resolveReorderInsertionIndex,
 } from '../dist/shared/geometry/insertion.js';
+import {calculateDockMagnificationGeometry} from '../dist/shared/geometry/magnification.js';
 import {
     intersectRectangles,
     isValidRectangle,
@@ -82,4 +83,88 @@ test('resolves reorder indices with stable midpoint tie-breaking', () => {
 const dockOrderSource = await readFile(new URL('../src/dock/dockOrder.ts', import.meta.url), 'utf8');
 test('dock reorder delegates midpoint decisions to shared geometry', () => {
     assert.match(dockOrderSource, /resolveReorderInsertionIndex\(\s*midpoints, coordinate, state\.sourceIndex\)/);
+});
+
+const dockAppearanceSource = await readFile(new URL('../src/dock/dockAppearance.ts', import.meta.url), 'utf8');
+
+test('calculates the dock magnification wave and keeps its pointer anchor fixed', () => {
+    const geometry = calculateDockMagnificationGeometry({
+        centers: [50, 100, 150],
+        buttonSizes: [48, 48, 48],
+        excluded: [false, false, false],
+        coordinate: 100,
+        maximumScale: 2,
+        radius: 1,
+        engaged: true,
+        viewStart: 0,
+        viewEnd: 400,
+        iconSize: 48,
+    });
+    assert.ok(geometry);
+    assert.deepEqual(geometry.scales, [1.5, 2, 1.5]);
+    assert.deepEqual(geometry.shifts, [-36, 0, 36]);
+    assert.equal(geometry.growth, 96);
+    assert.equal(geometry.start, -48);
+});
+
+test('fits magnification growth into the available viewport and excludes widgets', () => {
+    const fitted = calculateDockMagnificationGeometry({
+        centers: [50, 100, 150],
+        buttonSizes: [48, 48, 48],
+        excluded: [false, false, false],
+        coordinate: 100,
+        maximumScale: 2,
+        radius: 1,
+        engaged: true,
+        viewStart: 0,
+        viewEnd: 200,
+        iconSize: 48,
+    });
+    assert.ok(fitted);
+    assert.ok(Math.abs(fitted.growth - 26) < 0.000001);
+    assert.ok(Math.abs(fitted.start + 13) < 0.000001);
+
+    const excluded = calculateDockMagnificationGeometry({
+        centers: [50, 100, 150],
+        buttonSizes: [48, 48, 48],
+        excluded: [false, true, false],
+        coordinate: 100,
+        maximumScale: 2,
+        radius: 1,
+        engaged: true,
+        viewStart: 0,
+        viewEnd: 400,
+        iconSize: 48,
+    });
+    assert.ok(excluded);
+    assert.deepEqual(excluded.scales, [1.5, 1, 1.5]);
+});
+
+test('returns neutral geometry when magnification is disengaged and rejects invalid input', () => {
+    const neutral = calculateDockMagnificationGeometry({
+        centers: [50, 100],
+        buttonSizes: [48, 48],
+        excluded: [false, false],
+        coordinate: null,
+        maximumScale: 2,
+        radius: 2,
+        engaged: false,
+        viewStart: 0,
+        viewEnd: 200,
+        iconSize: 48,
+    });
+    assert.deepEqual(neutral, {scales: [1, 1], shifts: [0, 0], growth: 0, start: 0});
+    assert.equal(calculateDockMagnificationGeometry({
+        centers: [50], buttonSizes: [], excluded: [false], coordinate: 50,
+        maximumScale: 2, radius: 1, engaged: true, viewStart: 0, viewEnd: 100, iconSize: 48,
+    }), null);
+    assert.equal(calculateDockMagnificationGeometry({
+        centers: [Number.NaN], buttonSizes: [48], excluded: [false], coordinate: 50,
+        maximumScale: 2, radius: 1, engaged: true, viewStart: 0, viewEnd: 100, iconSize: 48,
+    }), null);
+});
+
+test('dock magnification delegates its scale and displacement calculations to shared geometry', () => {
+    assert.match(dockAppearanceSource, /calculateDockMagnificationGeometry\(/);
+    assert.doesNotMatch(dockAppearanceSource, /const pointerIndex =|const falloff = 1 - progress/);
 });
