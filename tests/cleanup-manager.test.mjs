@@ -1,0 +1,100 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { CleanupManager } from '../dist/core/cleanupManager.js';
+
+test('runs cleanup callbacks once in reverse registration order', () => {
+    const manager = new CleanupManager();
+    const calls = [];
+    manager.add(() => calls.push('first'));
+    manager.add(() => calls.push('second'));
+    manager.add(() => calls.push('third'));
+
+    manager.clear();
+    manager.clear();
+
+    assert.deepEqual(calls, ['third', 'second', 'first']);
+    assert.equal(manager.size, 0);
+});
+
+test('runs callbacks added after clearing immediately', () => {
+    const manager = new CleanupManager();
+    const calls = [];
+    manager.add(() => calls.push('initial'));
+    manager.clear();
+    manager.add(() => calls.push('late'));
+
+    assert.deepEqual(calls, ['initial', 'late']);
+    assert.equal(manager.size, 0);
+});
+
+test('contains failures from callbacks registered after clearing', () => {
+    const manager = new CleanupManager();
+    const calls = [];
+    const originalLogError = globalThis.logError;
+    globalThis.logError = () => {};
+    try {
+        manager.clear();
+        manager.add(() => { throw new Error('late cleanup failure'); });
+        manager.add(() => calls.push('released'));
+    } finally {
+        globalThis.logError = originalLogError;
+    }
+
+    assert.deepEqual(calls, ['released']);
+    assert.equal(manager.size, 0);
+});
+
+test('continues releasing resources when one cleanup callback fails', () => {
+    const manager = new CleanupManager();
+    const calls = [];
+    manager.add(() => calls.push('first'));
+    manager.add(() => { throw new Error('cleanup failure'); });
+    manager.add(() => calls.push('last'));
+
+    const originalLogError = globalThis.logError;
+    globalThis.logError = () => {};
+    try {
+        manager.clear();
+    } finally {
+        globalThis.logError = originalLogError;
+    }
+
+    assert.deepEqual(calls, ['last', 'first']);
+    assert.equal(manager.size, 0);
+});
+
+test('disconnects registered signals through the shared cleanup manager', () => {
+    const manager = new CleanupManager();
+    const disconnected = [];
+    const emitter = {
+        disconnect(id) {
+            disconnected.push(id);
+        },
+    };
+
+    manager.addSignal(emitter, 12);
+    manager.addSignal(emitter, 34);
+    assert.equal(manager.size, 2);
+
+    manager.clear();
+    manager.clear();
+
+    assert.deepEqual(disconnected, [34, 12]);
+    assert.equal(manager.size, 0);
+});
+
+test('disconnects a signal immediately when registered after clearing', () => {
+    const manager = new CleanupManager();
+    const disconnected = [];
+    const emitter = {
+        disconnect(id) {
+            disconnected.push(id);
+        },
+    };
+
+    manager.clear();
+    manager.addSignal(emitter, 56);
+
+    assert.deepEqual(disconnected, [56]);
+    assert.equal(manager.size, 0);
+});
