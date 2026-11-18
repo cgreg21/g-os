@@ -63,7 +63,6 @@ export class DragAndDropController {
             dragActorOpacity: options.dragActorOpacity,
         });
         let disposed = false;
-        let cancelled = false;
         let dragMonitor: {dragMotion: (event: any) => number} | null = null;
         const removeDragMonitor = () => {
             if (!dragMonitor)
@@ -73,7 +72,6 @@ export class DragAndDropController {
         };
         const signalIds = [
             draggable.connect('drag-begin', () => {
-                cancelled = false;
                 callbacks.onBegin?.();
                 if (callbacks.onMotion) {
                     dragMonitor = {
@@ -90,7 +88,6 @@ export class DragAndDropController {
                 callbacks.onEnd?.(Boolean(success));
             }),
             draggable.connect('drag-cancelled', () => {
-                cancelled = true;
                 callbacks.onCancelled?.();
             }),
         ];
