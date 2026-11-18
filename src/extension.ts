@@ -686,7 +686,7 @@ export default class GOsExtension extends ExtensionComponents {
                         global.display.focus_default_window(global.get_current_time());
                         this._queueDockHide(screen);
                         return Clutter.EVENT_STOP;
-                    });
+                    }));
                     screen.dockContainer.add_action(screen.dockKeyController);
                 }
             }
