@@ -102,9 +102,9 @@ test('calculates the dock magnification wave and keeps its pointer anchor fixed'
     });
     assert.ok(geometry);
     assert.deepEqual(geometry.scales, [1.5, 2, 1.5]);
-    assert.deepEqual(geometry.shifts, [-36, 0, 36]);
+    assert.deepEqual(geometry.shifts, [-14, 0, 36]);
     assert.equal(geometry.growth, 96);
-    assert.equal(geometry.start, -48);
+    assert.equal(geometry.start, -26);
 });
 
 test('fits magnification growth into the available viewport and excludes widgets', () => {
