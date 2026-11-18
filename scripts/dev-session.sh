@@ -18,6 +18,7 @@ echo "Private GNOME profile: $DEV_HOME"
 echo "Your regular GNOME session and extension profile are not modified."
 echo "Close the DevKit window or press Ctrl+C here to stop."
 
+# shellcheck disable=SC2016 # The nested script must expand variables in its own shell.
 dbus-run-session -- bash -Eeuo pipefail -c '
     ROOT="$1"
     shift
