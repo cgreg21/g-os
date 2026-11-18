@@ -17,7 +17,6 @@ import {SoundStatusMenu, RadioStatusMenu, BatteryStatusMenu, DisplayStatusMenu,
 import {GtkGlobalMenu} from './globalMenu.js';
 import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
-import {DragAndDropController} from '../shared/interaction/dragAndDrop.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
@@ -661,8 +660,6 @@ export function withPanel(Base) {
             ].filter(([, actor]) => actor));
             screen.panelLayout = this._normalizePanelLayout(this._settings.get_strv('panel-layout'));
             screen.panelLayoutGroups = new Map();
-            screen.panelLayoutDnd = new DragAndDropController();
-            screen.lifecycle.add(() => screen.panelLayoutDnd.destroy());
             for (const group of PANEL_LAYOUT_GROUPS) {
                 const zone = new St.BoxLayout({
                     name: `g-os-panel-drop-zone-${group}`,
@@ -684,7 +681,7 @@ export function withPanel(Base) {
                 zone.add_child(content);
                 if (group !== 'right')
                     zone.add_child(new St.Widget({x_expand: true, y_expand: true}));
-                screen.panelLayoutDnd.registerTarget(zone, {
+                screen.interactionDnd.registerTarget(zone, {
                     handleDragOver: (source, _dragActor, x) => {
                         const accepted = Boolean(this._getPanelLayoutItem(screen, source));
                         if (screen.panelDropZone && screen.panelDropZone !== zone)
@@ -736,10 +733,10 @@ export function withPanel(Base) {
         }
 
         _attachPanelItemDraggable(screen, id, actor) {
-            if (!actor || screen.panelLayoutDnd.hasSource(actor))
+            if (!actor || screen.interactionDnd.hasSource(actor))
                 return;
             actor._panelLayoutItemId = id;
-            screen.panelLayoutDnd.registerSource(actor, {
+            screen.interactionDnd.registerSource(actor, {
                 panelLayoutItem: {screen, id},
                 getDragActor: () => new Clutter.Clone({source: actor}),
                 getDragActorSource: () => screen.panelDragState?.actor === actor
