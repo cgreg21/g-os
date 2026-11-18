@@ -1,4 +1,5 @@
 import { ChromeActorManager } from './chromeActorManager.js';
+import {AnimationManager} from './animationManager.js';
 import { CleanupManager } from './cleanupManager.js';
 import { TaskScheduler } from './taskScheduler.js';
 
@@ -7,6 +8,7 @@ import { TaskScheduler } from './taskScheduler.js';
  */
 export class LifecycleScope<T extends object = object> {
     readonly cleanup = new CleanupManager();
+    readonly animations = new AnimationManager();
     private destroyed = false;
 
     constructor(
@@ -37,6 +39,7 @@ export class LifecycleScope<T extends object = object> {
         // Stop asynchronous callbacks before releasing their dependent resources.
         this.tasks?.destroy();
         this.cleanup.clear();
+        this.animations.destroy();
         this.chrome?.destroy();
     }
 
