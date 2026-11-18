@@ -36,7 +36,10 @@ export class AnimationManager {
             return;
 
         this.cancel(key);
-        const animation: ActiveAnimation = {actor, properties: Object.keys(properties)};
+        const animation: ActiveAnimation = {
+            actor,
+            properties: Object.keys(properties).map(property => property.replace(/_/g, '-')),
+        };
         this.active.set(key, animation);
         const params: AnimationParameters = {
             ...properties,
