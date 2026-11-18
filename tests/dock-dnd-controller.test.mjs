@@ -7,23 +7,24 @@ const dockOrderSource = await readFile(new URL('../src/dock/dockOrder.ts', impor
 const dockFoldersSource = await readFile(new URL('../src/dock/dockFolders.ts', import.meta.url), 'utf8');
 
 test('each screen owns and destroys a shared dock DND controller', () => {
-    assert.match(extensionSource, /dockDnd: new DragAndDropController\(\)/);
-    assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.dockDnd\.destroy\(\)\)/);
+    assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
+    assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
+    assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
 });
 
 test('application grouping targets are registered with the shared controller', () => {
-    assert.match(dockOrderSource, /screen\.dockDnd\.registerTarget\(button,[\s\S]*?handleDragOver:[\s\S]*?acceptDrop:/);
+    assert.match(dockOrderSource, /screen\.interactionDnd\.registerTarget\(button,[\s\S]*?handleDragOver:[\s\S]*?acceptDrop:/);
     assert.doesNotMatch(dockOrderSource, /button\._delegate\.handleDragOver\s*=/);
     assert.doesNotMatch(dockOrderSource, /button\._delegate\.acceptDrop\s*=/);
 });
 
 test('dock-level drop target uses shared lifecycle ownership', () => {
-    assert.match(dockOrderSource, /screen\.dockDnd\.registerTarget\(screen\.dock,[\s\S]*?screen\.lifecycle\)/);
+    assert.match(dockOrderSource, /screen\.interactionDnd\.registerTarget\(screen\.dock,[\s\S]*?screen\.lifecycle\)/);
     assert.doesNotMatch(dockOrderSource, /screen\.dock\._delegate = \{/);
 });
 
 test('folder application drags use shared source registration when a screen exists', () => {
-    assert.match(dockFoldersSource, /screen\.dockDnd\.registerSource\(item, delegate/);
+    assert.match(dockFoldersSource, /screen\.interactionDnd\.registerSource\(item, delegate/);
     assert.match(dockFoldersSource, /onBegin: \(\) => menu\.close\(\)/);
     assert.match(dockFoldersSource, /\}, \{\}, screen\.lifecycle\)/);
 });
@@ -31,11 +32,19 @@ test('folder application drags use shared source registration when a screen exis
 const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
 
 test('dock reorder uses shared source registration and generic pointer motion', () => {
-    assert.match(dockOrderSource, /screen\.dockDnd\.registerSource\(button, \{\}, \{/);
+    assert.match(dockOrderSource, /screen\.interactionDnd\.registerSource\(button, \{\}, \{/);
     assert.match(dockOrderSource, /onMotion: event => \{/);
     assert.match(dockOrderSource, /onCancelled: \(\) => \{ cancelled = true; \}/);
     assert.match(dockOrderSource, /onEnd: \(\) => finish\(cancelled\)/);
     assert.match(dockOrderSource, /screen\.lifecycle\.add\(\(\) => \{\s*if \(screen\.reorder\?\.button === button\)\s*finish\(true\)/);
     assert.doesNotMatch(dockOrderSource, /this\._makeDraggable\(button/);
     assert.match(dragAndDropSource, /DND\.addDragMonitor\(dragMonitor\)/);
+});
+
+const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+test('panel and dock share the per-screen interaction controller', () => {
+    assert.match(panelSource, /screen\.interactionDnd\.registerTarget\(zone/);
+    assert.match(panelSource, /screen\.interactionDnd\.registerSource\(actor/);
+    assert.doesNotMatch(panelSource, /new DragAndDropController/);
+    assert.doesNotMatch(panelSource, /panelLayoutDnd/);
 });
