@@ -51,6 +51,11 @@ test('topbar uses the shared controller while preserving shadow drag callbacks',
     assert.match(panelSource, /onEnd: success => this\._finishPanelShadowDrag/);
     assert.match(panelSource, /onCancelled: \(\) => this\._finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /onDestroy: \(\) => \{/);
-    assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
     assert.doesNotMatch(panelSource, /DND\.makeDraggable\(actor/);
+});
+
+const extensionSource = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
+test('topbar and dock share the lifecycle-owned per-screen controller', () => {
+    assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
+    assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
 });
