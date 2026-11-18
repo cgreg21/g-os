@@ -3,7 +3,6 @@ import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 
 type DesktopMonitor = (typeof Main.layoutManager.monitors)[number] & {connector?: string};
 type DesktopBackgroundManager = {
@@ -196,71 +195,57 @@ export function withDesktopWidgets(Base) {
             }
 
             _attachDesktopWidgetDrag(widget, monitor, xKey, yKey) {
+                const screen = this._screens?.find(candidate =>
+                    candidate.monitor.index === monitor.index);
+                if (!screen?.interactionDnd)
+                    return;
+
                 let origin = null;
                 let pointerOrigin = null;
                 let destination = null;
-                this._makeDraggable(widget.dragHandle ?? widget, () => {
-                    origin = widget.get_position();
-                    const [pointerX, pointerY] = global.get_pointer();
-                    pointerOrigin = [pointerX, pointerY];
-                    destination = origin;
-                }, event => {
-                    if (!origin)
-                        return;
-                    const [, preferredWidth] = widget.get_preferred_width(-1);
-                    const [, preferredHeight] = widget.get_preferred_height(preferredWidth);
-                    const width = widget.width || preferredWidth;
-                    const height = widget.height || preferredHeight;
-                    const x = Math.max(monitor.x, Math.min(origin[0] + event.x - pointerOrigin[0],
-                        monitor.x + monitor.width - width));
-                    const y = Math.max(monitor.y, Math.min(origin[1] + event.y - pointerOrigin[1],
-                        monitor.y + monitor.height - height));
-                    widget.set_position(Math.round(x), Math.round(y));
-                    destination = [Math.round(x), Math.round(y)];
-                }, () => {
-                    if (!origin)
-                        return;
-                    const [x, y] = destination;
+                const reset = () => {
                     origin = null;
                     pointerOrigin = null;
-                    this._settings.set_int(xKey, Math.max(0, Math.round(x - monitor.x)));
-                    this._settings.set_int(yKey, Math.max(0, Math.round(y - monitor.y)));
-                });
-            }
-
-            _makeDraggable(actor, onBegin, onMotion, onEnd) {
-                const draggable = DND.makeDraggable(actor, {});
-                let monitor = null;
-                let cancelled = false;
-                const removeMonitor = () => {
-                    if (!monitor)
-                        return;
-                    DND.removeDragMonitor(monitor);
-                    monitor = null;
+                    destination = null;
                 };
-                draggable.connect('drag-begin', () => {
-                    cancelled = false;
-                    onBegin();
-                    monitor = {
-                        dragMotion: event => {
-                            onMotion(event);
-                            return DND.DragMotionResult.CONTINUE;
-                        },
-                    };
-                    DND.addDragMonitor(monitor);
-                });
-                draggable.connect('drag-cancelled', () => { cancelled = true; });
-                draggable.connect('drag-end', () => {
-                    removeMonitor();
-                    onEnd(cancelled);
-                });
-                actor.connect('destroy', () => {
-                    if (monitor) {
-                        removeMonitor();
-                        onEnd(true);
-                    }
-                });
-                return draggable;
+                const restore = () => {
+                    if (!origin)
+                        return;
+                    widget.set_position(...origin);
+                    reset();
+                };
+                screen.interactionDnd.registerSource(widget.dragHandle ?? widget, {}, {
+                    onBegin: () => {
+                        origin = widget.get_position();
+                        const [pointerX, pointerY] = global.get_pointer();
+                        pointerOrigin = [pointerX, pointerY];
+                        destination = origin;
+                    },
+                    onMotion: event => {
+                        if (!origin || !pointerOrigin)
+                            return;
+                        const [, preferredWidth] = widget.get_preferred_width(-1);
+                        const [, preferredHeight] = widget.get_preferred_height(preferredWidth);
+                        const width = widget.width || preferredWidth;
+                        const height = widget.height || preferredHeight;
+                        const x = Math.max(monitor.x, Math.min(origin[0] + event.x - pointerOrigin[0],
+                            monitor.x + monitor.width - width));
+                        const y = Math.max(monitor.y, Math.min(origin[1] + event.y - pointerOrigin[1],
+                            monitor.y + monitor.height - height));
+                        widget.set_position(Math.round(x), Math.round(y));
+                        destination = [Math.round(x), Math.round(y)];
+                    },
+                    onEnd: () => {
+                        if (!origin)
+                            return;
+                        const [x, y] = destination;
+                        reset();
+                        this._settings.set_int(xKey, Math.max(0, Math.round(x - monitor.x)));
+                        this._settings.set_int(yKey, Math.max(0, Math.round(y - monitor.y)));
+                    },
+                    onDestroy: restore,
+                }, {}, screen.lifecycle);
+                screen.lifecycle.add(restore);
             }
 
             _updateDesktopWidgets() {
