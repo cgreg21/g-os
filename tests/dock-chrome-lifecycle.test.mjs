@@ -23,3 +23,11 @@ test('dock chrome actors are no longer removed manually during screen teardown',
     assert.doesNotMatch(teardown, /Main\.layoutManager\.removeChrome\?\.\(screen\.(?:edge|dockContainer|tooltip)\)/);
     assert.match(teardown, /screen\.lifecycle\.destroy\(\)/);
 });
+
+const dockVisibilitySource = await readFile(new URL('../src/dock/dockVisibility.ts', import.meta.url), 'utf8');
+
+test('dock reservation uses the lifecycle manager while preserving its stacking order', () => {
+    assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.add\(reservation, \{affectsStruts: true, trackFullscreen: true\}\)/);
+    assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.remove\(reservation\)/);
+    assert.match(dockVisibilitySource, /Main\.layoutManager\.uiGroup\.set_child_below_sibling\(reservation, screen\.dockContainer\)/);
+});
