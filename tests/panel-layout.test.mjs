@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 
 const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+const extensionSource = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
 const layoutStart = panelSource.indexOf('        _initializePanelLayout(screen) {');
 const layoutEnd = panelSource.indexOf('_normalizePanelLayout(saved)', layoutStart);
 const layoutSource = panelSource.slice(layoutStart, layoutEnd);
@@ -36,6 +37,6 @@ test('topbar lifecycle scope owns DND signals and chrome registration', () => {
     assert.match(panelSource, /screen\.lifecycle\.chrome\?\.add\(screen\.panel, \{affectsStruts: true, trackFullscreen: true\}\)/);
     assert.match(panelSource, /screen\.interactionDnd\.registerSource\(actor/);
     assert.match(panelSource, /onDestroy: \(\) => \{/);
-    assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
+    assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
     assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => this\._finishPanelShadowDrag\(screen, false\)\)/);
 });
