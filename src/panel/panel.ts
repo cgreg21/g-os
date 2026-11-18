@@ -682,13 +682,15 @@ export function withPanel(Base) {
                 if (group !== 'right')
                     zone.add_child(new St.Widget({x_expand: true, y_expand: true}));
                 zone._delegate = {
-                    handleDragOver: source => {
+                    handleDragOver: (source, _dragActor, x) => {
                         const accepted = Boolean(this._getPanelLayoutItem(screen, source));
                         if (screen.panelDropZone && screen.panelDropZone !== zone)
                             screen.panelDropZone.remove_style_pseudo_class('drop');
                         screen.panelDropZone = accepted ? zone : null;
-                        if (accepted)
+                        if (accepted) {
                             zone.add_style_pseudo_class('drop');
+                            this._movePanelDropPlaceholder(screen, group, x);
+                        }
                         return accepted ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.CONTINUE;
                     },
                     acceptDrop: (source, _dragActor, x) => {
@@ -733,17 +735,79 @@ export function withPanel(Base) {
                 return;
             const delegate = Object.create(actor._delegate ?? null);
             delegate.panelLayoutItem = {screen, id};
+            delegate.getDragActor = () => new Clutter.Clone({source: actor});
+            delegate.getDragActorSource = () => screen.panelDragState?.actor === actor
+                ? screen.panelDragState.placeholder : actor;
             actor._delegate = delegate;
             actor._panelLayoutItemId = id;
             actor._panelLayoutDraggable = DND.makeDraggable(actor, {});
-            actor._panelLayoutDraggable.connect('drag-end', () => this._clearPanelDropZone(screen));
-            actor._panelLayoutDraggable.connect('drag-cancelled', () => this._clearPanelDropZone(screen));
+            actor._panelLayoutDraggable.connect('drag-begin', () => {
+                this._beginPanelShadowDrag(screen, id, actor);
+            });
+            actor._panelLayoutDraggable.connect('drag-end', (_draggable, _time, success) => {
+                this._finishPanelShadowDrag(screen, Boolean(success));
+            });
+            actor._panelLayoutDraggable.connect('drag-cancelled', () => {
+                this._finishPanelShadowDrag(screen, false);
+            });
             screen.panelLayoutDraggables?.push(actor._panelLayoutDraggable);
             actor.connect('destroy', () => {
+                if (screen.panelDragState?.actor === actor)
+                    this._finishPanelShadowDrag(screen, false);
                 const index = screen.panelLayoutDraggables?.indexOf(actor._panelLayoutDraggable) ?? -1;
                 if (index >= 0)
                     screen.panelLayoutDraggables.splice(index, 1);
             });
+        }
+
+        _beginPanelShadowDrag(screen, id, actor) {
+            if (screen.panelDragState)
+                this._finishPanelShadowDrag(screen, false);
+            const parent = actor.get_parent();
+            if (!parent)
+                return;
+            const index = parent.get_children().indexOf(actor);
+            const [width, height] = actor.get_size();
+            const placeholder = new St.Widget({
+                style_class: 'g-os-panel-dnd-placeholder',
+                width,
+                height,
+                y_expand: true,
+                reactive: false,
+            });
+            screen.panelDragState = {id, actor, parent, index, placeholder};
+            parent.insert_child_at_index(placeholder, index);
+            parent.remove_child(actor);
+        }
+
+        _finishPanelShadowDrag(screen, success) {
+            const state = screen.panelDragState;
+            if (!state)
+                return;
+            screen.panelDragState = null;
+            this._clearPanelDropZone(screen);
+            state.placeholder.get_parent()?.remove_child(state.placeholder);
+            if (!success && state.actor && !state.actor.is_destroyed())
+                state.parent.insert_child_at_index(state.actor, Math.min(state.index, state.parent.get_n_children()));
+            state.placeholder.destroy();
+        }
+
+        _movePanelDropPlaceholder(screen, group, x) {
+            const state = screen.panelDragState;
+            const target = screen.panelLayoutGroups?.get(group);
+            if (!state || !target)
+                return;
+            const dropX = target.zone.get_transformed_position()[0] + x;
+            const siblings = target.content.get_children()
+                .filter(child => child !== state.placeholder);
+            const before = siblings.find(child => {
+                const [childX] = child.get_transformed_position();
+                const [childWidth] = child.get_transformed_size();
+                return dropX < childX + childWidth / 2;
+            });
+            const index = before ? siblings.indexOf(before) : siblings.length;
+            state.placeholder.get_parent()?.remove_child(state.placeholder);
+            target.content.insert_child_at_index(state.placeholder, index);
         }
 
         _getPanelLayoutItem(screen, source) {
