@@ -59,7 +59,7 @@ export function withDockOrder(Base) {
                     (!screen.reorder || (screen.reorder.groupTarget === button && screen.reorder.groupPreviewActive)) &&
                     x >= width * 0.25 && x <= width * 0.75 && y >= height * 0.2 && y <= height * 0.8;
             };
-            screen.dockDnd.registerTarget(button, {
+            screen.interactionDnd.registerTarget(button, {
                 handleDragOver: (source, actor, x, y) => {
                     const accepted = accepts(source, x, y);
                     if (accepted) {
@@ -138,7 +138,7 @@ export function withDockOrder(Base) {
 
         _attachDockReorder(screen, button, getButtons, commit) {
             if (!screen.dock._delegate) {
-                screen.dockDnd.registerTarget(screen.dock, {
+                screen.interactionDnd.registerTarget(screen.dock, {
                     handleDragOver: source => screen.reorder ||
                         (source?.app && this._settings.is_writable('dock-app-folders'))
                         ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.CONTINUE,
@@ -202,7 +202,7 @@ export function withDockOrder(Base) {
                     this._queueDockHide(screen);
                 }
             };
-            button._dockDndDispose = screen.dockDnd.registerSource(button, {}, {
+            button._interactionDndDispose = screen.interactionDnd.registerSource(button, {}, {
                 onBegin: () => {
                     cancelled = false;
                     this._updateDockMagnification(screen, null, true);
