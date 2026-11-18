@@ -9,6 +9,10 @@ test('generic DND controller registers sources through GNOME Shell makeDraggable
     assert.match(source, /drag-begin/);
     assert.match(source, /drag-end/);
     assert.match(source, /drag-cancelled/);
+    assert.match(source, /onMotion\?: \(event: any\) => void/);
+    assert.match(source, /DND\.addDragMonitor\(dragMonitor\)/);
+    assert.match(source, /DND\.removeDragMonitor\(dragMonitor\)/);
+    assert.match(source, /callbacks\.onMotion\?\.\(event\)/);
 });
 
 test('generic DND controller composes delegates without discarding existing behavior', () => {
