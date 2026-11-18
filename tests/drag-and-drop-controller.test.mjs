@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import test from 'node:test';
+
+const source = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
+
+test('generic DND controller registers sources through GNOME Shell makeDraggable', () => {
+    assert.match(source, /DND\.makeDraggable\(actor/);
+    assert.match(source, /drag-begin/);
+    assert.match(source, /drag-end/);
+    assert.match(source, /drag-cancelled/);
+});
+
+test('generic DND controller composes delegates without discarding existing behavior', () => {
+    assert.match(source, /Object\.create\(previousDelegate \?\? null\)/);
+    assert.match(source, /actor\._delegate = composedDelegate/);
+    assert.match(source, /actor\._delegate === composedDelegate/);
+    assert.match(source, /actor\._delegate = previousDelegate/);
+});
+
+test('generic DND controller registers drop targets independently of feature policies', () => {
+    assert.match(source, /registerTarget\(/);
+    assert.match(source, /handleDragOver\?/);
+    assert.match(source, /acceptDrop\?/);
+    assert.doesNotMatch(source, /favorite|folder|insertionIndex|removalZone/i);
+});
+
+test('generic DND registrations are idempotently disposable and lifecycle-aware', () => {
+    assert.match(source, /lifecycle\?\.add\(dispose\)/);
+    assert.match(source, /if \(disposed\)\s*return/);
+    assert.match(source, /destroy\(\): void/);
+    assert.match(source, /this\.sources\.clear\(\)/);
+    assert.match(source, /this\.targets\.clear\(\)/);
+});
