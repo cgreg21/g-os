@@ -43,3 +43,27 @@ export function resolveInsertionIndexWithHysteresis(
         index--;
     return index;
 }
+
+/**
+ * Resolve the destination index for a reorder operation where the dragged
+ * item is removed from its original slot before insertion. Equal midpoints
+ * retain the original stable tie-breaking behavior.
+ */
+export function resolveReorderInsertionIndex(
+    midpoints: readonly (number | null)[],
+    coordinate: number,
+    sourceIndex: number,
+): number | null {
+    if (!Number.isFinite(coordinate) || !Number.isInteger(sourceIndex) ||
+        sourceIndex < 0 || sourceIndex >= midpoints.length ||
+        midpoints.some(midpoint => midpoint === null || !Number.isFinite(midpoint)))
+        return null;
+
+    let targetIndex = midpoints.findIndex((midpoint, index) =>
+        coordinate < midpoint! || (coordinate === midpoint && sourceIndex > index));
+    if (targetIndex < 0)
+        targetIndex = midpoints.length;
+    if (sourceIndex < targetIndex)
+        targetIndex--;
+    return targetIndex;
+}
