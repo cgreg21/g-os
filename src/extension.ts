@@ -19,6 +19,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders} from './shared/appFolders.js';
 import {errorMessage} from './shared/errorMessage.js';
 import {LifecycleScope} from './core/lifecycleScope.js';
+import {DragAndDropController} from './shared/interaction/dragAndDrop.js';
 import {CleanupManager} from './core/cleanupManager.js';
 import {ChromeActorManager} from './core/chromeActorManager.js';
 import {WidgetRuntime} from './widgets/widgetRuntime.js';
@@ -580,8 +581,10 @@ export default class GOsExtension extends ExtensionComponents {
                     popupSide: [St.Side.TOP, St.Side.LEFT, St.Side.RIGHT][position],
                     hoverAnimationUpdates: new Set(),
                     lifecycle: new LifecycleScope(undefined, chrome),
-                    dockAdjustmentCleanup: new CleanupManager()};
+                    dockAdjustmentCleanup: new CleanupManager(),
+                    dockDnd: new DragAndDropController()};
                 screen.lifecycle.add(() => screen.dockAdjustmentCleanup.clear());
+                screen.lifecycle.add(() => screen.dockDnd.destroy());
                 this._screens.push(screen);
                 this._createPanel(screen);
                 if (this._settings.get_boolean('show-dock')) {
