@@ -845,7 +845,8 @@ export function withPanel(Base) {
                 return false;
             const zoneX = target.zone.get_transformed_position()[0];
             const dropX = zoneX + x;
-            const visibleSiblings = target.content.get_children().filter(child => child !== actor);
+            const visibleSiblings = target.content.get_children().filter(child =>
+                child !== actor && child !== screen.panelDragState?.placeholder);
             const before = visibleSiblings.find(child => {
                 const [childX] = child.get_transformed_position();
                 const [childWidth] = child.get_transformed_size();
