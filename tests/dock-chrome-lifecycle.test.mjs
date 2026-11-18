@@ -62,3 +62,8 @@ test('dock magnification releases settings signals and pending work through the 
     assert.match(dockAppearanceSource, /screen\.lifecycle\.add\(\(\) => \{[\s\S]*?laters\.remove\(screen\.magnificationUpdateSource\)/);
     assert.doesNotMatch(dockAppearanceSource, /screen\.dockContainer\.connect\('destroy'/);
 });
+
+test('magnification background is registered through the chrome manager', () => {
+    assert.match(dockAppearanceSource, /screen\.lifecycle\.chrome\?\.add\(screen\.magnificationBackground, \{trackFullscreen: true\}\)/);
+    assert.doesNotMatch(dockAppearanceSource, /Main\.layoutManager\.addChrome\(screen\.magnificationBackground/);
+});
