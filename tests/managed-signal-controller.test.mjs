@@ -4,9 +4,14 @@ import { ManagedSignalController } from '../dist/core/managedSignalController.js
 
 class TestController extends ManagedSignalController {
     connect(source, signal, callback) {
+        return this.connectMany([[source, signal, callback]]);
+    }
+
+    connectMany(connections) {
         if (!this.beginConnect())
             return false;
-        this.connectSignal(source, signal, callback);
+        for (const [source, signal, callback] of connections)
+            this.connectSignal(source, signal, callback);
         return true;
     }
 
@@ -52,19 +57,24 @@ test('disconnects signals automatically on destroy', () => {
     const controller = new TestController();
     const first = createEmitter();
     const second = createEmitter();
-    controller.connect(first, 'first', () => {});
+    controller.connectMany([
+        [first, 'first', () => {}],
+        [second, 'second', () => {}],
+    ]);
     controller.destroy();
     assert.deepEqual(first.disconnected, [1]);
+    assert.deepEqual(second.disconnected, [1]);
     assert.equal(controller.size, 0);
     assert.equal(controller.isDestroyed, true);
-    assert.equal(second.handlers.size, 0);
 });
 
 test('destroy is idempotent and disconnects in reverse order', () => {
     const controller = new TestController();
     const emitter = createEmitter();
-    controller.connect(emitter, 'first', () => {});
-    controller.connect(emitter, 'second', () => {});
+    controller.connectMany([
+        [emitter, 'first', () => {}],
+        [emitter, 'second', () => {}],
+    ]);
     controller.destroy();
     controller.destroy();
     assert.deepEqual(emitter.disconnected, [2, 1]);
