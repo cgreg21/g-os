@@ -48,3 +48,21 @@ test('panel and dock share the per-screen interaction controller', () => {
     assert.doesNotMatch(panelSource, /new DragAndDropController/);
     assert.doesNotMatch(panelSource, /panelLayoutDnd/);
 });
+
+const desktopWidgetsSource = await readFile(new URL('../src/desktop/desktopWidgets.ts', import.meta.url), 'utf8');
+const desktopIconsSource = await readFile(new URL('../src/desktop/desktopIcons.ts', import.meta.url), 'utf8');
+
+test('desktop widgets use the per-screen shared DND controller', () => {
+    assert.match(desktopWidgetsSource, /screen\.interactionDnd\.registerSource\(widget\.dragHandle \?\? widget/);
+    assert.match(desktopWidgetsSource, /onMotion: event => \{/);
+    assert.match(desktopWidgetsSource, /screen\.lifecycle\.add\(restore\)/);
+    assert.doesNotMatch(desktopWidgetsSource, /DND\.makeDraggable|_makeDraggable\(/);
+});
+
+test('desktop icons use the per-screen shared DND controller', () => {
+    assert.match(desktopIconsSource, /screen\.interactionDnd\.registerSource\(button/);
+    assert.match(desktopIconsSource, /onCancelled: \(\) => finish\(true\)/);
+    assert.match(desktopIconsSource, /onEnd: \(\) => finish\(false\)/);
+    assert.match(desktopIconsSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
+    assert.doesNotMatch(desktopIconsSource, /DND\.makeDraggable/);
+});
