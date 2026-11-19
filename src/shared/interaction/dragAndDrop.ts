@@ -67,8 +67,14 @@ export class DragAndDropController {
         const removeDragMonitor = () => {
             if (!dragMonitor)
                 return;
-            DND.removeDragMonitor(dragMonitor);
+            const monitor = dragMonitor;
             dragMonitor = null;
+            try {
+                DND.removeDragMonitor(monitor);
+            } catch (error) {
+                // A monitor may already have been removed during Shell teardown.
+                logError(error as Error, 'Unable to remove g-os drag monitor');
+            }
         };
         const signalIds = [
             draggable.connect('drag-begin', () => {
@@ -98,10 +104,20 @@ export class DragAndDropController {
                 return;
             disposed = true;
             removeDragMonitor();
-            for (const signalId of signalIds)
-                draggable.disconnect(signalId);
-            if (actorDestroySignal)
-                actor.disconnect(actorDestroySignal);
+            for (const signalId of signalIds) {
+                try {
+                    draggable.disconnect(signalId);
+                } catch (error) {
+                    logError(error as Error, 'Unable to disconnect g-os drag signal');
+                }
+            }
+            if (actorDestroySignal) {
+                try {
+                    actor.disconnect(actorDestroySignal);
+                } catch (error) {
+                    logError(error as Error, 'Unable to disconnect g-os actor destroy signal');
+                }
+            }
             if (actor._delegate === composedDelegate) {
                 if (previousDelegate)
                     actor._delegate = previousDelegate;
@@ -145,8 +161,13 @@ export class DragAndDropController {
             if (disposed)
                 return;
             disposed = true;
-            if (actorDestroySignal)
-                actor.disconnect(actorDestroySignal);
+            if (actorDestroySignal) {
+                try {
+                    actor.disconnect(actorDestroySignal);
+                } catch (error) {
+                    logError(error as Error, 'Unable to disconnect g-os drop-target destroy signal');
+                }
+            }
             if (actor._delegate === composedDelegate) {
                 if (previousDelegate)
                     actor._delegate = previousDelegate;
