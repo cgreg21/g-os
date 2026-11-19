@@ -338,3 +338,15 @@ test('Flux session stops before scheduling work when a listener destroys it duri
     assert.equal(timers, 0);
     assert.equal(requests, 0);
 });
+
+
+test('Flux session isolates listener failures so other views still update', () => {
+    const session = new FluxSession({sources: {}}, {GLib: {}});
+    let updates = 0;
+    session.subscribe(() => { throw new Error('broken view'); });
+    session.subscribe(() => { updates++; });
+
+    assert.doesNotThrow(() => session.notify());
+    assert.equal(updates, 1);
+    session.destroy();
+});
