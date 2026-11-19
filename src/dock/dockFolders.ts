@@ -276,7 +276,6 @@ export function withDockFolders(Base) {
                     const delegate = {
                         app: file.app,
                         folderId: folder.get_uri().slice(11),
-                        getDragActor: () => file.app.create_icon_texture(this._settings.get_int('icon-size')),
                         getDragActorSource: () => icon,
                     };
                     registerShadowDragSource({
