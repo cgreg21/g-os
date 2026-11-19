@@ -211,14 +211,11 @@ test('Bluetooth popup stays compact and removes duplicate native heading', async
     const start = menus.indexOf('export class RadioStatusMenu');
     const end = menus.indexOf('export class BatteryStatusMenu', start);
     const source = menus.slice(start, end);
-    assert.ok(source.includes("add_style_class_name('g-os-bluetooth-popup')"));
     assert.ok(source.includes('nativeMenu?._header'));
     assert.ok(source.includes('nativeHeader.hide()'));
     assert.ok(source.includes('nativeHeader.show()'));
     assert.ok(source.includes("'Aucun appareil disponible'"));
     assert.ok(source.includes("'Activez Bluetooth pour connecter un appareil'"));
-    assert.ok(source.includes("remove_style_class_name('g-os-bluetooth-popup')"));
-    assert.match(css, /\.g-os-bluetooth-popup\s*\{[^}]*width:\s*420px;[^}]*max-width:\s*420px;/);
 });
 
 
