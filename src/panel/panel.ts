@@ -3,7 +3,6 @@ import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
@@ -19,7 +18,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {calculatePanelButtonMetrics, createPanelButton} from './panelButton.js';
+import {calculatePanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -238,13 +237,14 @@ export function withPanel(Base) {
         }
 
         _createNotificationButton(screen) {
-            const button = new PanelMenu.Button(0.0, 'Notifications');
+            const button = createPanelMenuButton(St, Clutter, PopupMenu, {
+                iconName: 'preferences-system-notifications-symbolic',
+                accessibleName: 'Notifications',
+            });
             const menu = button.menu as PopupMenu.PopupMenu;
             screen.notificationButton = button;
             screen.notificationMenu = menu;
-            screen.notificationIcon = new St.Icon({icon_name: 'preferences-system-notifications-symbolic',
-                style_class: 'system-status-icon'});
-            button.add_child(screen.notificationIcon);
+            screen.notificationIcon = button.panelIcon;
             this._updatePanelNotificationVisibility(screen);
             menu.actor.add_style_class_name('g-os-popup');
             if (menu._boxPointer?.bin) {
@@ -512,14 +512,12 @@ export function withPanel(Base) {
             if (this._settings.get_boolean('panel-style'))
                 screen.panel.add_style_class_name('g-os-panel');
             screen.menuButton = monitor.index === Main.layoutManager.primaryIndex
-                ? this._menu : new PanelMenu.Button(0.0, 'Applications');
+                ? this._menu : createPanelMenuButton(St, Clutter, PopupMenu, {
+                    iconName: 'view-app-grid-symbolic', accessibleName: 'Applications',
+                });
             screen.menuButton.add_style_class_name('g-os-panel-menu');
             if (screen.menuButton !== this._menu) {
-                screen.menuIcon = new St.Icon({
-                    icon_name: 'view-app-grid-symbolic',
-                    style_class: 'system-status-icon',
-                });
-                screen.menuButton.add_child(screen.menuIcon);
+                screen.menuIcon = screen.menuButton.panelIcon;
                 this._populatePanelMenu(screen.menuButton);
             } else
                 screen.menuIcon = this._menuIcon;
@@ -532,11 +530,11 @@ export function withPanel(Base) {
                 visible: this._settings.get_boolean('show-active-app'),
             });
             screen.appLabel.visible = this._settings.get_boolean('show-active-app');
-            screen.appMenuButton = new PanelMenu.Button(0.0, 'Application');
-            screen.appMenuButton.add_style_class_name('g-os-app-menu');
-            screen.appMenuButton.set_style('padding: 0; margin: 0; min-height: 0;');
+            screen.appMenuButton = createPanelMenuButton(St, Clutter, PopupMenu, {
+                text: screen.appLabel, accessibleName: 'Application', styleClass: 'g-os-app-menu',
+                visible: screen.appLabel.visible,
+            });
             screen.appMenuButton.container.visible = screen.appLabel.visible;
-            screen.appMenuButton.add_child(screen.appLabel);
             this._populateAppMenu(screen.appMenuButton);
             Main.panel.menuManager.addMenu(screen.appMenuButton.menu);
             screen.panel.add_child(screen.appMenuButton.container);
@@ -615,13 +613,11 @@ export function withPanel(Base) {
                 screen.statusButtons.push(button);
                 screen.panel.add_child(button);
             }
-            screen.sessionButton = new PanelMenu.Button(0.0, 'Session');
-            screen.sessionButton.add_style_class_name('g-os-session-button');
-            screen.sessionIcon = new St.Icon({
-                icon_name: 'avatar-default-symbolic',
-                style_class: 'system-status-icon',
+            screen.sessionButton = createPanelMenuButton(St, Clutter, PopupMenu, {
+                iconName: 'avatar-default-symbolic', accessibleName: 'Session',
+                styleClass: 'g-os-session-button',
             });
-            screen.sessionButton.add_child(screen.sessionIcon);
+            screen.sessionIcon = screen.sessionButton.panelIcon;
             this._populateSessionMenu(screen.sessionButton);
             Main.panel.menuManager.addMenu(screen.sessionButton.menu);
             screen.panel.add_child(screen.sessionButton.container);
