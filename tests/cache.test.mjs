@@ -78,7 +78,7 @@ test('dock folder listings use a short-lived cache and skip caching cancelled re
     const {readFile} = await import('node:fs/promises');
     const source = await readFile(new URL('../src/dock/dockFolders.ts', import.meta.url), 'utf8');
     assert.match(source, /dock-folder-contents:\$\{folder\.get_uri\(\)\}/);
-    assert.match(source, /this\._cache\?\.get<DockFolderEntry\[]>\(cacheKey\)/);
+    assert.match(source, /this\._cache\?\.get\(cacheKey\) as DockFolderEntry\[\] \\| undefined/);
     assert.match(source, /if \(!cancellable\.is_cancelled\(\)\)\s+this\._cache\?\.set\(cacheKey, files, DOCK_FOLDER_CACHE_TTL_MS\)/);
     assert.match(source, /const DOCK_FOLDER_CACHE_TTL_MS = 2000/);
 });
