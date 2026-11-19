@@ -508,12 +508,17 @@ class NativeMenuContent {
 export class NetworkStatusMenu {
     [key: string]: any;
 
-    constructor(menu, icon, {toggles, St, Clutter, PopupMenu, openSettings}) {
+    constructor(menu, icon, {toggles, St, Clutter, PopupMenu, GLib, openSettings}) {
         this.menu = menu;
         this.icon = icon;
         this.St = St;
         this.Clutter = Clutter;
         this.PopupMenu = PopupMenu;
+        this.GLib = GLib;
+        this.trafficSamples = [];
+        this.lastTraffic = null;
+        this.trafficRates = {rx: 0, tx: 0};
+        this.trafficTimer = null;
         this.openSettings = openSettings;
         this.toggles = toggles.filter((entry, index, all) =>
             entry.toggle && all.findIndex(candidate => candidate.toggle === entry.toggle) === index);
@@ -539,6 +544,13 @@ export class NetworkStatusMenu {
         this.rootItem.add_child(this.scroll);
         menu.addMenuItem(this.rootItem);
         this._buildOverview();
+        this._sampleTraffic();
+        this.trafficTimer = this.GLib.timeout_add(this.GLib.PRIORITY_DEFAULT, 1000, () => {
+            if (this.destroyed)
+                return this.GLib.SOURCE_REMOVE;
+            this._sampleTraffic();
+            return this.GLib.SOURCE_CONTINUE;
+        });
         this.cleanup.addSignal(menu, menu.connect('open-state-changed', (_actor, open) => {
             if (this.destroyed)
                 return;
@@ -573,24 +585,18 @@ export class NetworkStatusMenu {
     _buildOverview() {
         const previousContents = this.contents;
         this.contents = new Map();
-        this.body.add_child(this._label('Réseau', 'g-os-network-title'));
+        this._buildTrafficGraph();
 
-        this.rowsBox = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-rows'});
+        this.rowsBox = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
+            style_class: 'g-os-network-rows'});
         this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
             const {toggle, title} = entry;
-            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-row'});
-            const iconName = this._iconFor(title);
-            const icon = new this.St.Icon({icon_name: iconName, icon_size: 20,
-                y_align: this.Clutter.ActorAlign.CENTER});
-            row.add_child(icon);
-            const labels = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, 
-                style_class: 'g-os-network-row-labels'});
-            labels.set_x_expand(true);
-            labels.add_child(this._label(title, 'g-os-network-row-title'));
-            const state = this._label('', 'g-os-network-row-state');
-            labels.add_child(state);
-            row.add_child(labels);
+            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
+                style_class: 'g-os-network-row'});
+            row.add_child(new this.St.Icon({icon_name: this._iconFor(title), icon_size: 20,
+                y_align: this.Clutter.ActorAlign.CENTER}));
+            row.add_child(this._label(title, 'g-os-network-row-title'));
             const chevron = new this.St.Icon({icon_name: 'go-next-symbolic', icon_size: 16,
                 y_align: this.Clutter.ActorAlign.CENTER, style_class: 'g-os-network-chevron'});
             row.add_child(chevron);
@@ -598,10 +604,12 @@ export class NetworkStatusMenu {
                 track_hover: true, style_class: 'g-os-network-row-button',
                 accessible_name: title});
             button.set_x_expand(true);
+            button.visible = Boolean(toggle.checked && toggle.visible !== false);
             button.connect('clicked', () => this.showDetail(toggle));
             this.rowsBox.add_child(button);
             const content = previousContents.get(toggle)?.content ?? new NativeMenuContent(this.menu,
-                new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-native-content'}), {
+                new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
+                    style_class: 'g-os-network-native-content'}), {
                     Clutter: this.Clutter,
                     onOpen: () => {
                         if (!this.destroyed) {
@@ -611,15 +619,137 @@ export class NetworkStatusMenu {
                     },
                     onClose: () => toggle._stopScanning?.(),
                 });
-            this.contents.set(toggle, {entry, button, state, icon, content});
+            this.contents.set(toggle, {entry, button, icon: row.get_first_child(), content});
             this.overviewSignals.addSignal(toggle, toggle.connect('notify::checked', () => this.refresh()));
             this.overviewSignals.addSignal(toggle, toggle.connect('notify::visible', () => this.refresh()));
             this.overviewSignals.addSignal(toggle, toggle.connect('notify::reactive', () => this.refresh()));
         }
-        if (!this.toggles.length)
-            this.rowsBox.add_child(this._label('Aucun service réseau disponible', 'g-os-network-empty'));
-        this.body.add_child(this._button('Paramètres', 'g-os-network-settings',
-            this.openSettings, 'emblem-system-symbolic'));
+        this.emptyLabel = this._label('Aucune connexion active', 'g-os-network-empty');
+        this.rowsBox.add_child(this.emptyLabel);
+        this._appendSettingsItem();
+        this._updateOverviewVisibility();
+    }
+
+    _appendSettingsItem() {
+        const item = new this.PopupMenu.PopupMenuItem('Paramètres');
+        item.add_child(new this.St.Icon({icon_name: 'emblem-system-symbolic', icon_size: 16,
+            y_align: this.Clutter.ActorAlign.CENTER}));
+        item.connect('activate', () => {
+            if (!this.destroyed)
+                this.openSettings();
+        });
+        this.body.add_child(item);
+    }
+
+    _buildTrafficGraph() {
+        const graphBox = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
+            style_class: 'g-os-network-traffic'});
+        this.trafficArea = new this.St.DrawingArea({style_class: 'g-os-network-traffic-graph'});
+        this.trafficArea.set_size(350, 82);
+        this.trafficArea.connect('repaint', area => this._drawTrafficGraph(area));
+        graphBox.add_child(this.trafficArea);
+        this.trafficLegend = this._label('↓ 0 B/s     ↑ 0 B/s', 'g-os-network-traffic-legend');
+        graphBox.add_child(this.trafficLegend);
+        this.body.add_child(graphBox);
+    }
+
+    _readTrafficCounters() {
+        try {
+            const [ok, contents] = this.GLib.file_get_contents('/proc/net/dev');
+            if (!ok)
+                return null;
+            const source = new TextDecoder().decode(contents);
+            let rx = 0;
+            let tx = 0;
+            for (const line of source.split('\\n').slice(2)) {
+                const separator = line.indexOf(':');
+                if (separator < 0)
+                    continue;
+                const iface = line.slice(0, separator).trim();
+                if (!iface || /^(lo|veth|docker|br-|virbr|tun|tap|wg)/.test(iface))
+                    continue;
+                const values = line.slice(separator + 1).trim().split(/\\s+/).map(Number);
+                rx += values[0] || 0;
+                tx += values[8] || 0;
+            }
+            return {rx, tx};
+        } catch (error) {
+            console.error('G-OS network traffic counters:', error);
+            return null;
+        }
+    }
+
+    _sampleTraffic() {
+        const counters = this._readTrafficCounters();
+        if (!counters)
+            return;
+        if (this.lastTraffic) {
+            this.trafficRates = {
+                rx: Math.max(0, counters.rx - this.lastTraffic.rx),
+                tx: Math.max(0, counters.tx - this.lastTraffic.tx),
+            };
+        }
+        this.lastTraffic = counters;
+        this.trafficSamples.push(this.trafficRates);
+        if (this.trafficSamples.length > 36)
+            this.trafficSamples.shift();
+        if (this.trafficArea && !this.destroyed)
+            this.trafficArea.queue_repaint();
+        if (this.trafficLegend && !this.destroyed)
+            this.trafficLegend.text = `↓ ${this._formatRate(this.trafficRates.rx)}     ↑ ${this._formatRate(this.trafficRates.tx)}`;
+    }
+
+    _formatRate(bytes) {
+        if (bytes < 1024)
+            return `${Math.round(bytes)} B/s`;
+        if (bytes < 1024 * 1024)
+            return `${(bytes / 1024).toFixed(1)} KB/s`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB/s`;
+    }
+
+    _drawTrafficGraph(area) {
+        const cr = area.get_context();
+        const [width, height] = area.get_surface_size();
+        const samples = this.trafficSamples;
+        const max = Math.max(1024, ...samples.map(sample => Math.max(sample.rx, sample.tx))) * 1.15;
+        const drawLine = (key, red, green, blue) => {
+            cr.setSourceRGBA(red, green, blue, 0.95);
+            cr.setLineWidth(2);
+            samples.forEach((sample, index) => {
+                const x = samples.length > 1 ? index * width / (samples.length - 1) : width;
+                const y = height - 5 - (sample[key] / max) * (height - 12);
+                if (index === 0)
+                    cr.moveTo(x, y);
+                else
+                    cr.lineTo(x, y);
+            });
+            if (samples.length === 1)
+                cr.lineTo(width, height - 5);
+            cr.stroke();
+        };
+        cr.setSourceRGBA(1, 1, 1, 0.08);
+        cr.setLineWidth(1);
+        for (let line = 1; line <= 3; line++) {
+            const y = line * height / 4;
+            cr.moveTo(0, y);
+            cr.lineTo(width, y);
+        }
+        cr.stroke();
+        drawLine('rx', 0.42, 0.78, 0.98);
+        drawLine('tx', 0.55, 0.85, 0.62);
+        cr.$dispose();
+    }
+
+    _updateOverviewVisibility() {
+        let activeCount = 0;
+        for (const {entry, button} of this.contents.values()) {
+            const active = Boolean(entry.toggle.checked && entry.toggle.visible !== false);
+            button.visible = active;
+            if (active)
+                activeCount++;
+        }
+        if (this.emptyLabel)
+            this.emptyLabel.visible = activeCount === 0;
     }
 
     _iconFor(title) {
@@ -712,8 +842,7 @@ export class NetworkStatusMenu {
         else
             state.content.holder = nativeHolder;
         state.content.mount(toggle.menu, true);
-        this.body.add_child(this._button('Paramètres réseau', 'g-os-network-settings',
-            this.openSettings, 'emblem-system-symbolic'));
+        this._appendSettingsItem();
         this.refresh();
     }
 
@@ -725,6 +854,7 @@ export class NetworkStatusMenu {
                 this.detailSwitch.setToggleState(Boolean(this.activeView.checked));
             return;
         }
+        this._updateOverviewVisibility();
         const activeEntry = this.toggles.find(({toggle}) => toggle.checked);
         if (activeEntry?.toggle.icon_name)
             this.icon.icon_name = activeEntry.toggle.icon_name;
@@ -741,6 +871,10 @@ export class NetworkStatusMenu {
         if (this.destroyed)
             return;
         this.destroyed = true;
+        if (this.trafficTimer !== null) {
+            this.GLib.Source.remove(this.trafficTimer);
+            this.trafficTimer = null;
+        }
         this._restoreActiveContent();
         this.detailSignals.clear();
         this.overviewSignals.clear();
