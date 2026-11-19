@@ -175,3 +175,13 @@ test('menu buttons toggle on click and open from the popup-menu gesture', () => 
     button.emit('popup-menu');
     assert.equal(button.menu.opened, true);
 });
+
+test('button padding cannot consume the entire topbar height', () => {
+    const metrics = calculatePanelButtonMetrics({
+        panelHeight: 24, panelVerticalPadding: 1, buttonPadding: 16, spacing: 6,
+    });
+    assert.equal(metrics.padding, 10);
+    assert.equal(metrics.contentHeight, 2);
+    assert.ok(metrics.iconSize > 0);
+    assert.ok(metrics.fontSize > 0);
+});
