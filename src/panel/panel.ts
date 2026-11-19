@@ -783,7 +783,9 @@ export function withPanel(Base) {
                 onCancelled: () => finishDrag(false),
                 onDestroy: () => {
                     if (screen.panelDragState?.actor === actor)
-                        this._finishPanelShadowDrag(screen, false);
+                        finishDrag(false);
+                    else
+                        dragActor = null;
                 },
             });
         }
