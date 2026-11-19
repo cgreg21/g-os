@@ -107,7 +107,9 @@ export class FluxSession {
     }
 
     private notify(): void {
-        for (const listener of this.listeners) {
+        for (const listener of [...this.listeners]) {
+            if (!this.listeners.has(listener))
+                continue;
             try {
                 listener();
             } catch {
