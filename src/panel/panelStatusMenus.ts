@@ -546,19 +546,6 @@ export class NetworkStatusMenu {
     _buildOverview() {
         const previousContents = this.contents;
         this.contents = new Map();
-        this.connectionCard = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
-            style_class: 'g-os-network-connection'});
-        this.connectionIcon = new this.St.Icon({icon_name: 'network-wireless-signal-none-symbolic', icon_size: 28});
-        this.connectionText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
-            style_class: 'g-os-network-connection-text'});
-        this.connectionName = this._label('Aucune connexion active', 'g-os-network-connection-name');
-        this.connectionDetail = this._label('', 'g-os-network-connection-detail');
-        this.connectionText.add_child(this.connectionName);
-        this.connectionText.add_child(this.connectionDetail);
-        this.connectionCard.add_child(this.connectionIcon);
-        this.connectionCard.add_child(this.connectionText);
-        this.body.add_child(this.connectionCard);
-
         this.rowsBox = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
             style_class: 'g-os-status-device-grid'});
         this.body.add_child(this.rowsBox);
@@ -609,7 +596,6 @@ export class NetworkStatusMenu {
         this._buildTrafficGraph();
         this._appendSettingsItem();
         this._updateOverviewVisibility();
-        this._refreshConnectionCard();
     }
 
     _appendSettingsItem() {
@@ -622,28 +608,14 @@ export class NetworkStatusMenu {
         this.body.add_child(this.settingsButton);
     }
 
-    _refreshConnectionCard() {
-        if (!this.connectionCard)
-            return;
-        const active = this.toggles.find(({toggle}) => toggle.checked && toggle.visible !== false);
-        if (!active) {
-            this.connectionName.text = 'Aucune connexion active';
-            this.connectionDetail.text = '';
-            this.connectionIcon.icon_name = 'network-offline-symbolic';
-            return;
-        }
-        const wifi = /wi-?fi|wifi/i.test(active.title);
-        this.connectionName.text = wifi ? (active.toggle.subtitle || 'Wi-Fi connecté') : active.title;
-        this.connectionDetail.text = wifi ? 'Connexion Wi-Fi' : 'Connexion active';
-        this.connectionIcon.icon_name = active.toggle.icon_name || this._iconFor(active.title);
-    }
-
     _refreshWifiRow(toggle) {
         const state = this.contents.get(toggle);
         if (!state || !/wi-?fi|wifi/i.test(state.entry.title))
             return;
         state.icon.icon_name = toggle.icon_name || 'network-wireless-signal-none-symbolic';
-        this._refreshConnectionCard();
+        const active = Boolean(toggle.checked && toggle.visible !== false);
+        state.stateLabel.text = active ? (toggle.subtitle || 'Connecté') : 'Inactif';
+        state.stateLabel.style_class = active ? 'g-os-status-device-active' : 'g-os-status-device-muted';
     }
 
     _toggleInlineContent(toggle) {
