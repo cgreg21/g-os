@@ -65,3 +65,10 @@ test('generic DND cleanup continues when Shell teardown rejects signal or monito
     assert.match(source, /try \{\s*draggable\.disconnect\(signalId\);\s*\} catch/);
     assert.match(source, /try \{\s*actor\.disconnect\(actorDestroySignal\);\s*\} catch/);
 });
+
+test('generic DND source setup rolls back partially acquired resources', () => {
+    assert.match(source, /const signalIds: number\[\] = \[\]/);
+    assert.match(source, /signalIds\.push\(draggable\.connect/);
+    assert.match(source, /catch \(error\) \{\s*\/\/ Signal setup can fail part-way through[\s\S]*?dispose\(\);\s*throw error;/);
+    assert.match(source, /catch \(error\) \{\s*restoreDelegate\(\);\s*throw error;/);
+});
