@@ -1092,7 +1092,7 @@ export function withPanel(Base) {
 
         _populateSessionMenu(button) {
             const actions = SystemActions.getDefault();
-            button.menu.actor.add_style_class_name('g-os-popup');
+            applyNativeMenuTheme(button.menu, 'g-os-popup');
             const addSystemAction = (label, available, activate) => {
                 const item = button.menu.addAction(label, () => {
                     if (actions[available])
