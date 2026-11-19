@@ -49,7 +49,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
 
 test('topbar lifecycle scope owns DND signals and chrome registration', () => {
     assert.match(panelSource, /screen\.lifecycle\.chrome\?\.add\(screen\.panel, \{affectsStruts: true, trackFullscreen: true\}\)/);
-    assert.match(panelSource, /screen\.interactionDnd\.registerSource\(actor/);
+    assert.match(panelSource, /registerShadowDragSource\(\{/);
     assert.match(panelSource, /onDestroy: \(\) => \{/);
     assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
     assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => this\._finishPanelShadowDrag\(screen, false\)\)/);
