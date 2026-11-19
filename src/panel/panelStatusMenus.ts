@@ -673,6 +673,7 @@ export function createPowerDeviceClient(Gio) {
                 });
             },
             disconnect: id => proxy.disconnect(id),
+            dispose: () => proxy.run_dispose?.(),
         };
         for (const [name, property] of Object.entries(properties)) {
             Object.defineProperty(device, name, {get: () => proxy.get_cached_property(property)?.deep_unpack()});
@@ -688,14 +689,22 @@ export function createPowerDeviceClient(Gio) {
         },
         disconnect: id => handlers.delete(id),
         dispose() {
-            if (rootSignal)
+            if (disposed)
+                return;
+            disposed = true;
+            if (rootSignal && root)
                 root.disconnect(rootSignal);
+            rootSignal = 0;
+            for (const device of devices.values())
+                device.dispose?.();
             devices.clear();
             handlers.clear();
+            root?.run_dispose?.();
         },
     };
     let root;
     let rootSignal;
+    let disposed = false;
     try {
         root = Gio.DBusProxy.new_for_bus_sync(Gio.BusType.SYSTEM, Gio.DBusProxyFlags.NONE, null,
             'org.freedesktop.UPower', '/org/freedesktop/UPower', 'org.freedesktop.UPower', null);
@@ -712,8 +721,14 @@ export function createPowerDeviceClient(Gio) {
             const [objectPath] = parameters.deep_unpack();
             if (signal === 'DeviceAdded')
                 add(objectPath);
-            else if (signal === 'DeviceRemoved' && devices.delete(objectPath))
+            else if (signal === 'DeviceRemoved') {
+                const device = devices.get(objectPath);
+                if (!device)
+                    return;
+                devices.delete(objectPath);
                 emit('device-removed', objectPath);
+                device.dispose?.();
+            }
         });
         for (const objectPath of root.call_sync('EnumerateDevices', null, Gio.DBusCallFlags.NONE, -1, null)
             .deep_unpack()[0]) {
