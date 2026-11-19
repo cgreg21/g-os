@@ -200,8 +200,10 @@ export class StatusNotifierHost {
             item.bus, item.path, 'org.kde.StatusNotifierItem', this.token, (_source, result) => {
                 try {
                     const proxy = this.Gio.DBusProxy.new_finish(result);
-                    if (this.disposed || this.items.get(item.key) !== item)
+                    if (this.disposed || this.items.get(item.key) !== item) {
+                        proxy.run_dispose?.();
                         return;
+                    }
                     item.proxy = proxy;
                     item.cleanup.addSignal(proxy,
                         proxy.connect('g-properties-changed', () => this._refreshItem(item)));
@@ -240,6 +242,7 @@ export class StatusNotifierHost {
             return;
         this.items.delete(item.key);
         item.cleanup.clear();
+        item.proxy?.run_dispose?.();
         item.proxy = null;
         if (this.ownsName)
             this.exported?.emit_signal('StatusNotifierItemUnregistered',
@@ -260,8 +263,10 @@ export class StatusNotifierHost {
             STATUS_NOTIFIER_NAME, STATUS_NOTIFIER_PATH, STATUS_NOTIFIER_NAME, this.token, (_source, result) => {
                 try {
                     const proxy = this.Gio.DBusProxy.new_finish(result);
-                    if (this.disposed || this.ownsName)
+                    if (this.disposed || this.ownsName) {
+                        proxy.run_dispose?.();
                         return;
+                    }
                     this.external = proxy;
                     this.externalCleanup.addSignal(proxy, proxy.connect('g-signal', (_proxy, _sender, name, parameters) => {
                         const [address] = parameters.deep_unpack();
@@ -314,6 +319,7 @@ export class StatusNotifierHost {
     _stopExternal() {
         this.externalCleanup.clear();
         this.externalCleanup = new CleanupManager();
+        this.external?.run_dispose?.();
         this.external = null;
     }
 
