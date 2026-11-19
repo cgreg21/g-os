@@ -502,6 +502,7 @@ export class BatteryStatusMenu {
         this.deviceClient = deviceClient;
         this.batteryKind = batteryKind;
         this.devices = [];
+        this.destroyed = false;
         this.cleanup = new CleanupManager();
         this.deviceConnections = new Map();
         this.percentage = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
@@ -529,7 +530,10 @@ export class BatteryStatusMenu {
         menu.addMenuItem(this.settingsSeparator);
         this.settingsItem = menu.addAction('Parametres d\u2019alimentation', openSettings);
         if (this.proxy)
-            this.cleanup.addSignal(this.proxy, this.proxy.connect('g-properties-changed', () => this.refresh()));
+            this.cleanup.addSignal(this.proxy, this.proxy.connect('g-properties-changed', () => {
+                if (!this.destroyed)
+                    this.refresh();
+            }));
         if (deviceClient) {
             try {
                 this.devices = deviceClient.get_devices2() ?? [];
@@ -537,11 +541,15 @@ export class BatteryStatusMenu {
                 this.devices = [];
             }
             this.cleanup.addSignal(deviceClient, deviceClient.connect('device-added', (client, device) => {
+                if (this.destroyed)
+                    return;
                 if (!this.devices.includes(device))
                     this.devices.push(device);
                 this.refresh();
             }));
             this.cleanup.addSignal(deviceClient, deviceClient.connect('device-removed', (client, objectPath) => {
+                if (this.destroyed)
+                    return;
                 this.devices = this.devices.filter(device => device.get_object_path() !== objectPath);
                 this.refresh();
             }));
@@ -559,6 +567,8 @@ export class BatteryStatusMenu {
     }
 
     refresh() {
+        if (this.destroyed)
+            return;
         const batteries = this.syncDevices();
         const proxy = this.proxy;
         const primary = batteries.find(device => device.power_supply) ?? batteries[0];
@@ -596,6 +606,8 @@ export class BatteryStatusMenu {
     }
 
     syncDevices() {
+        if (this.destroyed)
+            return [];
         const batteryDevices = this.devices.filter(device =>
             (device.kind === this.batteryKind || device.is_rechargeable));
         const batteries = batteryDevices.filter(device => device.is_present);
@@ -637,6 +649,9 @@ export class BatteryStatusMenu {
     }
 
     destroy() {
+        if (this.destroyed)
+            return;
+        this.destroyed = true;
         this.content.restore();
         this.cleanup.clear();
         for (const cleanup of this.deviceConnections.values())
