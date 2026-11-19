@@ -15,8 +15,7 @@ export class GtkGlobalMenu {
     [key: string]: any;
 
     constructor(container, {Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar = null,
-        timestamp = () => 0, stylePrefix = 'g-os', getMenuBounds = () => null,
-        getButtonMetrics = () => null}) {
+        timestamp = () => 0, stylePrefix = 'g-os', getButtonMetrics = () => null}) {
         Object.assign(this, {container, Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar,
             timestamp, stylePrefix, getMenuBounds, getButtonMetrics});
         this.window = null;
@@ -271,11 +270,6 @@ export class GtkGlobalMenu {
         this._fill(menu, model);
         const open = menu.open.bind(menu);
         menu.open = (...args) => {
-            const bounds = this.getMenuBounds();
-            if (bounds) {
-                menu.actor.set_style(`max-width: ${bounds.width}px; max-height: ${bounds.height}px;`);
-                scrollView.set_style(`max-width: ${Math.max(1, bounds.width - 32)}px; max-height: ${Math.max(1, bounds.height - 32)}px;`);
-            }
             this.requestedMenu = label;
             model.aboutToShow?.();
             return open(...args);
