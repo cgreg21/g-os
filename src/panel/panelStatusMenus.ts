@@ -735,6 +735,13 @@ export function createPowerDeviceClient(Gio) {
             try { devices.set(objectPath, createDevice(objectPath)); } catch {}
         }
     } catch {
+        if (rootSignal && root)
+            root.disconnect(rootSignal);
+        rootSignal = 0;
+        for (const device of devices.values())
+            device.dispose?.();
+        devices.clear();
+        root?.run_dispose?.();
         root = null;
     }
     return client;
