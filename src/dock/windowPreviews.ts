@@ -1,3 +1,5 @@
+import {CleanupManager} from '../core/cleanupManager.js';
+
 export class DockWindowPreview {
     [key: string]: any;
     constructor(button, screen, {GLib, St, Clutter, PopupMenu, Pango, uiGroup,
@@ -8,7 +10,7 @@ export class DockWindowPreview {
         this.hideSource = 0;
         this.menu = null;
         this.rows = [];
-        this.windowSignals = [];
+        this.windowCleanup = new CleanupManager();
         this.ignoredWindows = new WeakSet();
         this.disposed = false;
         button.connect('notify::hover', () => this.updateHover());
@@ -91,9 +93,8 @@ export class DockWindowPreview {
     }
 
     _disconnectWindows() {
-        for (const [object, signal] of this.windowSignals)
-            object.disconnect(signal);
-        this.windowSignals = [];
+        this.windowCleanup.clear();
+        this.windowCleanup = new CleanupManager();
     }
 
     _render() {
@@ -164,15 +165,15 @@ export class DockWindowPreview {
             }
             if (typeof window.connect === 'function') {
                 for (const signal of ['notify::title', 'size-changed'])
-                    this.windowSignals.push([window, window.connect(signal, () => this.refresh())]);
-                this.windowSignals.push([window, window.connect('unmanaged', () => {
+                    this.windowCleanup.addSignal(window, window.connect(signal, () => this.refresh()));
+                this.windowCleanup.addSignal(window, window.connect('unmanaged', () => {
                     this.ignoredWindows.add(window);
                     this.refresh();
-                })]);
+                }));
             }
         }
         if (typeof this.button.app?.connect === 'function')
-            this.windowSignals.push([this.button.app, this.button.app.connect('windows-changed', () => this.refresh())]);
+            this.windowCleanup.addSignal(this.button.app, this.button.app.connect('windows-changed', () => this.refresh()));
         const scroll = new this.St.ScrollView({child: box,
             width: horizontal ? Math.min(availableWidth, windows.length * (width + 12)) : width,
             hscrollbar_policy: horizontal ? this.St.PolicyType.AUTOMATIC : this.St.PolicyType.NEVER,
