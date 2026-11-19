@@ -24,6 +24,11 @@ export class DelegateManager<T extends DelegateHost> {
                 current: null,
             };
             this.states.set(target, state);
+        } else if (target._delegate !== state.current) {
+            // Another owner replaced the composed delegate while our layers
+            // were active. Preserve that new delegate as the base of the next
+            // composition instead of silently overwriting it.
+            state.original = target._delegate;
         }
 
         const token = Symbol('delegate-layer');
