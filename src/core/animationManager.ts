@@ -72,7 +72,11 @@ export class AnimationManager {
                 animation.actor.remove_transition(property);
             } catch (error) {
                 // Continue cancelling remaining properties if an actor is already disposed.
-                logError(error as Error, `Unable to cancel animation transition: ${property}`);
+                try {
+                    logError(error as Error, `Unable to cancel animation transition: ${property}`);
+                } catch {
+                    // Logging must not prevent later transitions from being cancelled.
+                }
             }
         }
     }
