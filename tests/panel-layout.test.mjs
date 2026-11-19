@@ -161,6 +161,20 @@ test('network overview avoids duplicate status and keeps Wi-Fi scanning in its d
     assert.ok(detail.includes('_appendSettingsItem'));
 });
 
+test('Wi-Fi overview row displays the active SSID and native signal-strength icon', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class NetworkStatusMenu');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.ok(source.includes("toggle.subtitle || title"));
+    assert.ok(source.includes("toggle.icon_name || 'network-wireless-signal-none-symbolic'"));
+    assert.ok(source.includes("notify::subtitle"));
+    assert.ok(source.includes("notify::icon-name"));
+    assert.ok(source.includes('_refreshWifiRow(toggle)'));
+    assert.ok(source.includes('state.button.label.text = toggle.subtitle || state.entry.title'));
+    assert.ok(source.includes('state.icon.icon_name = toggle.icon_name'));
+});
+
 test('network traffic graph reads only interfaces carrying the active default route', async () => {
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
     const start = menus.indexOf('export class NetworkStatusMenu');
