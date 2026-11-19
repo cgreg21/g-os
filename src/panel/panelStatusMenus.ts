@@ -871,19 +871,13 @@ export class NetworkStatusMenu {
         const state = this.contents.get(toggle);
         this.body.destroy_all_children();
 
-        const back = this._button('Tous les réseaux', 'g-os-network-back',
+        const back = this._button('Retour', 'g-os-network-back',
             () => this.showOverview(), 'go-previous-symbolic');
         this.body.add_child(back);
-        this.body.add_child(this._label(state.entry.title, 'g-os-network-title'));
 
-        const status = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-detail-status'});
-        status.add_child(new this.St.Icon({icon_name: this._iconFor(state.entry.title), icon_size: 24,
-            y_align: this.Clutter.ActorAlign.CENTER}));
-        status.add_child(this._label(toggle.checked ? 'Service activé' : 'Service désactivé',
-            'g-os-network-card-title'));
-        this.body.add_child(status);
-
-        this.detailSwitch = new this.PopupMenu.PopupSwitchMenuItem(state.entry.title, Boolean(toggle.checked));
+        const switchLabel = /wi-?fi|wifi/i.test(state.entry.title)
+            ? 'Activer le Wi-Fi' : `Activer ${state.entry.title}`;
+        this.detailSwitch = new this.PopupMenu.PopupSwitchMenuItem(switchLabel, Boolean(toggle.checked));
         this.detailSwitch.setSensitive(toggle.visible !== false && toggle.reactive !== false);
         this.detailSignals.addSignal(this.detailSwitch, this.detailSwitch.connect('toggled', (_item, checked) => {
             if (!this.destroyed && checked !== Boolean(toggle.checked))
@@ -896,7 +890,7 @@ export class NetworkStatusMenu {
         this.body.add_child(this.detailSwitch);
 
         if (/wi-?fi|wifi/i.test(state.entry.title)) {
-            this.body.add_child(this._button('Rechercher les réseaux', 'g-os-network-action', () => {
+            this.body.add_child(this._button('Rechercher', 'g-os-network-action', () => {
                 if (this.destroyed || this.activeView !== toggle)
                     return;
                 toggle._startScanning?.();
