@@ -3,6 +3,16 @@ import {join, relative} from 'node:path';
 
 const root = 'dist';
 const required = ['extension.js', 'prefs.js'];
+const runtimePath = join(root, 'debug', 'debugRuntime.js');
+if (!existsSync(runtimePath))
+    failures.push(`Missing bundled GJS debug runtime: ${runtimePath}`);
+else {
+    const runtime = readFileSync(runtimePath, 'utf8');
+    for (const marker of ['Gio.SocketClient', 'inspectStage', 'stageSnapshot', 'snapshotStage']) {
+        if (!runtime.includes(marker))
+            failures.push(`Bundled GJS debug runtime is missing ${marker}`);
+    }
+}
 const failures = [];
 
 function walk(directory) {

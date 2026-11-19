@@ -27,10 +27,11 @@ a working extension debugger.
 
 ## Architecture
 
-1. **GJS runtime integration** — use the upstream SpiderMonkey/GJS debugger in the
-   same GJS context that executes GNOME Shell extensions. This likely requires
-   upstream GJS and GNOME Shell work; a sidecar process cannot inspect the Shell's
-   JavaScript heap.
+1. **GJS runtime integration** — G-Os now watches the private session descriptor at
+   `~/.cache/g-os-debug/session.json` and connects an asynchronous Gio Unix-socket
+   runtime from the extension's actual GNOME Shell context. This enables read-only
+   Clutter stage inspection; it does not expose the JavaScript heap or execution state.
+   A SpiderMonkey engine bridge is still required for breakpoints and stepping.
 2. **Session controller** — extend the existing isolated DevKit launcher to start
    Shell with a private debugger transport, report its PID/readiness, and clean up
    the transport and process on exit.
@@ -61,17 +62,18 @@ upstream GJS DAP implementation can consume these maps yet.
 - [x] Validate generated maps as part of the CI pipeline.
 - [ ] Pin and integrate a supported GJS DAP revision once the upstream interface
       and GNOME Shell integration path are stable.
-- [ ] Implement an in-process Shell debug endpoint with opt-in activation and a
-      private, permission-restricted Unix socket.
+- [x] Implement opt-in in-process GJS runtime transport with a private,
+      permission-restricted Unix socket and session descriptor watcher.
 - [ ] Implement DAP attach and VS Code launch configuration.
 - [ ] Resolve generated JS locations to TypeScript source locations.
-- [ ] Add a GNOME actor inspector and lifecycle-safe session controls.
+- [x] Add a read-only GNOME actor inspector and lifecycle-safe runtime controls.
+- [ ] Add real actor highlighting and richer property inspection.
 - [ ] Add end-to-end tests against a real nested GNOME Shell session.
 
 ## Security and reliability
 
-The debug endpoint must be disabled by default, available only in the isolated
-development profile, and bound to a private Unix socket with restrictive
-permissions. It must never listen on a public TCP interface. A paused Shell freezes
+The debug runtime remains disconnected unless VS Code publishes the opt-in session
+descriptor. The descriptor and Unix socket are restricted to the current user
+(0600 file/socket, 0700 directory). The runtime never opens a TCP listener. A paused Shell freezes
 the entire nested desktop, so the session controller must provide a reliable
 terminate/restart path even when execution is stopped at a breakpoint.
