@@ -19,6 +19,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
+import {calculatePanelButtonMetrics} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -870,42 +871,46 @@ export function withPanel(Base) {
         _applyPanelMetrics(screen) {
             const height = this._settings.get_int('panel-height');
             const horizontalPadding = this._settings.get_int('panel-padding-horizontal');
-            const iconPadding = this._settings.get_int('panel-icon-padding');
-            const textPadding = this._settings.get_int('panel-text-padding');
+            const buttonPadding = this._settings.get_int('panel-icon-padding');
             const verticalPadding = Math.min(this._settings.get_int('panel-padding-vertical'),
                 Math.max(0, Math.floor((height - 22) / 2)));
-            const contentHeight = height - verticalPadding * 2;
+            const metrics = calculatePanelButtonMetrics({
+                panelHeight: height,
+                panelVerticalPadding: verticalPadding,
+                buttonPadding,
+                spacing: 6,
+            });
             const availableLabelWidth = Math.max(48, screen.monitor.width - 360 - horizontalPadding * 2);
-            const baseFontSize = Math.max(10, Math.min(20, Math.floor(contentHeight * 0.56)));
             const labelLength = screen.appLabel.text?.length ?? 0;
-            const estimatedLabelWidth = labelLength * baseFontSize * 0.56;
+            const estimatedLabelWidth = labelLength * metrics.fontSize * 0.56;
             const widthScale = estimatedLabelWidth > 0
                 ? Math.min(1, availableLabelWidth / estimatedLabelWidth) : 1;
-            screen.fontSize = Math.max(10, Math.floor(baseFontSize * widthScale));
-            screen.iconSize = Math.max(16, screen.fontSize);
+            screen.fontSize = Math.max(1, Math.floor(metrics.fontSize * widthScale));
+            screen.iconSize = metrics.iconSize;
+            screen.panelButtonMetrics = metrics;
             screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px;`);
 
             screen.appLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             screen.appLabel.y_align = Clutter.ActorAlign.CENTER;
-            screen.appLabel.set_style(`font-size: ${screen.fontSize}px; max-width: ${availableLabelWidth}px; padding: 0 ${textPadding}px;`);
+            screen.appLabel.set_style(`font-size: ${screen.fontSize}px; max-width: ${availableLabelWidth}px; padding: 0 ${buttonPadding}px;`);
             for (const label of [screen.clock, screen.transferLabel]) {
                 label.y_align = Clutter.ActorAlign.CENTER;
-                label.set_style(`font-size: ${screen.fontSize}px; padding: 0 ${textPadding}px;`);
+                label.set_style(`font-size: ${screen.fontSize}px; padding: 0 ${buttonPadding}px;`);
             }
-            for (const button of [screen.menuButton.container, screen.searchButton, screen.preferencesButton,
+            for (const button of [screen.menuButton.container, screen.appMenuButton.container,
+                screen.clockButton, screen.searchButton, screen.preferencesButton,
                 screen.notificationButton.container,
                 ...screen.statusNotifierButtons.values(),
                 ...screen.statusButtons, screen.sessionButton.container]) {
                 button.y_align = Clutter.ActorAlign.CENTER;
-                button.set_style(`padding: 0 ${iconPadding}px;`);
+                button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
             }
-            screen.appMenuButton.container.y_align = Clutter.ActorAlign.CENTER;
             if (screen.globalMenuBox) {
                 screen.globalMenuBox.y_align = Clutter.ActorAlign.CENTER;
-                screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px;`);
+                screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px; spacing: ${metrics.spacing}px;`);
             }
             for (const button of screen.globalMenuBox?.get_children() ?? [])
-                button.set_style(`padding: 0 ${textPadding}px; margin: 0; min-height: 0;`);
+                button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
             for (const icon of [screen.menuIcon, screen.searchIcon, screen.preferencesIcon, screen.notificationIcon,
                 ...[...screen.statusNotifierButtons.values()].map(button => button.statusIcon),
                 ...screen.statusButtons.map(button => button.statusIcon), screen.sessionIcon]) {
