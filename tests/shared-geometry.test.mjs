@@ -187,3 +187,23 @@ test('rejects invalid magnification scale, pointer and unsorted centers', () => 
     assert.equal(calculateDockMagnificationGeometry({...input, centers: [50, 150, 100]}), null);
     assert.equal(calculateDockMagnificationGeometry({...input, iconSize: -1}), null);
 });
+
+test('uses each button dimension for magnification growth and anchoring', () => {
+    const geometry = calculateDockMagnificationGeometry({
+        centers: [40, 100, 180],
+        buttonSizes: [32, 48, 64],
+        excluded: [false, false, false],
+        coordinate: 100,
+        maximumScale: 2,
+        radius: 1,
+        engaged: true,
+        viewStart: 0,
+        viewEnd: 400,
+        iconSize: 48,
+    });
+    assert.ok(geometry);
+    assert.deepEqual(geometry.scales, [1.5, 2, 1.5]);
+    assert.deepEqual(geometry.shifts, [-16, 0, 40]);
+    assert.equal(geometry.growth, 96);
+    assert.equal(geometry.start, -24);
+});
