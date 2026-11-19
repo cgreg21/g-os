@@ -1230,8 +1230,6 @@ export function withPanel(Base) {
         _createStatusMenu(button) {
             const menu = new PopupMenu.PopupMenu(button, 0.5, St.Side.TOP);
             applyNativeMenuTheme(menu, 'g-os-popup');
-            menu.actor.add_style_class_name('g-os-compact-status-popup');
-            menu.box.add_style_class_name('g-os-compact-status-popup');
             menu.actor.add_style_class_name(`g-os-status-menu-${button.statusKind}`);
             Main.uiGroup.add_child(menu.actor);
             menu.actor.hide();
