@@ -195,6 +195,12 @@ test('display controls read and write screen brightness and night-light settings
     controller.destroy();
     assert.deepEqual(state.unsubscribed, [7]);
     assert.equal(state.cancelled, true);
+
+    state.signalCallback(null, null, null, null, null,
+        new MockVariant('(sa{sv}as)', ['org.gnome.SettingsDaemon.Power.Screen',
+            {Brightness: new MockVariant('i', 90)}, []]));
+    assert.equal(controller.brightness, 80);
+    assert.equal(controller.brightnessInfo.label.text, 'Luminosité : 80 %');
 });
 
 test('brightness controls report unsupported hardware instead of accepting adjustments', () => {
