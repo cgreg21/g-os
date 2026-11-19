@@ -394,7 +394,9 @@ class NativeMenuContent {
         this.holder.add_child(actor);
         actor.show();
         this.alignDeviceRows(actor);
-        this.activateSignal = nativeMenu.connect('activate', () => this.menu.close());
+        this.mountCleanup = new CleanupManager();
+        this.mountCleanup.addSignal(nativeMenu,
+            nativeMenu.connect('activate', () => this.menu.close()));
         nativeMenu.isOpen = true;
         if (notifyOpen)
             this.onOpen();
@@ -405,7 +407,8 @@ class NativeMenuContent {
         if (!this.saved)
             return;
         const {actor, parent, index, nativeMenu, notifyOpen, wasOpen} = this.saved;
-        nativeMenu.disconnect(this.activateSignal);
+        this.mountCleanup?.clear();
+        this.mountCleanup = null;
         actor.get_parent()?.remove_child(actor);
         actor.remove_style_class_name('g-os-status-native-content');
         parent.insert_child_at_index(actor, index);
