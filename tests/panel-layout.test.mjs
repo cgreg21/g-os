@@ -136,7 +136,7 @@ test('network popup is a dedicated floating panel with a connection card and com
     assert.match(source, /x_expand: true, style_class: 'g-os-network-shell-item'/);
     assert.match(source, /x_expand: true, style_class: 'g-os-network-scroll'/);
     assert.match(source, /x_expand: true, style_class: 'g-os-network-panel'/);
-    assert.ok(source.includes('orientation: Clutter.Orientation.VERTICAL'));
+    assert.ok(source.includes('orientation: this.Clutter.Orientation.VERTICAL'));
     assert.ok(source.includes('orientation: Clutter.Orientation.HORIZONTAL'));
     assert.ok(!source.includes('vertical:'));
     assert.ok(source.includes('g-os-network-connection-card'));
