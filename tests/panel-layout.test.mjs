@@ -32,6 +32,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
     const dragSource = panelSource.slice(dragStart, dragEnd);
     assert.match(dragSource, /registerShadowDragSource\(\{/);
+    assert.match(dragSource, /getDragActorSource: \(\) => actor/);
     const sharedDnd = await readFile(new URL('../src/shared/interaction/shadowDragSource.ts', import.meta.url), 'utf8');
     assert.match(sharedDnd, /g-os-dnd-drag-actor/);
     assert.match(sharedDnd, /new Clutter\.Clone\(\{source: visualActor, reactive: false\}\)/);
