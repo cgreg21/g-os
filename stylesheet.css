@@ -98,7 +98,7 @@
 .g-os-status-device-active { font-size: 0.78em; font-weight: bold; }
 .g-os-status-device-muted, .g-os-status-empty { font-size: 0.82em; }
 .g-os-status-value { min-width: 42px; text-align: right; }
-.g-os-status-control-row { spacing: 10px; padding: 4px 6px; }
+.g-os-status-control-row { spacing: 10px; }
 .g-os-status-section-label { font-size: 0.78em; font-weight: bold; }
 .g-os-status-muted, .g-os-status-empty { font-size: 0.82em; }
 .g-os-status-summary-row { spacing: 12px; }
