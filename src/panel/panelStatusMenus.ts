@@ -54,12 +54,12 @@ export class SoundStatusMenu {
         row.add_style_class_name?.('g-os-status-control-row');
         this.muteIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 20});
         this.muteButton = new St.Button({child: this.muteIcon, can_focus: true, reactive: true, track_hover: true,
-            style_class: 'g-os-sound-mute', accessible_name: 'Couper le son'});
+            style_class: 'button g-os-sound-mute', accessible_name: 'Couper le son'});
         this.cleanup.addSignal(this.muteButton, this.muteButton.connect('clicked', () => this.toggleMute()));
         this.slider = new Slider.Slider(0);
         this.muteButton.y_align = Clutter.ActorAlign.CENTER;
         this.slider.y_align = Clutter.ActorAlign.CENTER;
-        this.slider.width = 190;
+        expandHorizontally(this.slider);
         this.slider.accessible_name = 'Volume de sortie';
         this.cleanup.addSignal(this.slider,
             this.slider.connect('notify::value', () => this.changeVolume()));
@@ -215,7 +215,7 @@ export class SoundStatusMenu {
                 style_class: 'g-os-status-grid-row'});
             for (const entry of available.slice(index, index + 2)) {
                 const active = entry.stream === this.stream;
-                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'g-os-status-device-tile', accessible_name: entry.label}));
+                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'popup-menu-item g-os-status-device-tile', accessible_name: entry.label}));
                 const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
                     style_class: 'g-os-status-device-content'});
                 content.add_child(new this.St.Icon({icon_name: /headphone|casque/i.test(entry.label)
@@ -272,7 +272,7 @@ export class DisplayStatusMenu {
         const brightness = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         brightness.add_style_class_name?.('g-os-status-control-row');
         this.brightnessIcon = new St.Icon({icon_name: 'display-brightness-symbolic', icon_size: 20});
-        this.brightnessSlider = new Slider.Slider(0); this.brightnessSlider.width = 230;
+        this.brightnessSlider = expandHorizontally(new Slider.Slider(0));
         this.brightnessSlider.accessible_name = 'Luminosité de l’écran';
         this.brightnessValue = new St.Label({text: '—', style_class: 'g-os-status-value'});
         for (const actor of [this.brightnessIcon, this.brightnessSlider, this.brightnessValue])
@@ -293,7 +293,7 @@ export class DisplayStatusMenu {
         this.temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         this.temperatureRow.add_style_class_name?.('g-os-status-control-row');
         this.temperatureRow.add_child(new St.Icon({icon_name: 'thermometer-sun-symbolic', icon_size: 20}));
-        this.temperatureSlider = new Slider.Slider(0); this.temperatureSlider.width = 200;
+        this.temperatureSlider = expandHorizontally(new Slider.Slider(0));
         this.temperatureSlider.accessible_name = 'Température du mode nuit';
         this.temperatureValue = new St.Label({text: '', style_class: 'g-os-status-value'});
         this.temperatureRow.add_child(this.temperatureSlider); this.temperatureRow.add_child(this.temperatureValue);
@@ -540,7 +540,7 @@ export class NetworkStatusMenu {
 
     _button(label, styleClass, callback, iconName = null) {
         const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-            style_class: styleClass, accessible_name: label}));
+            style_class: `${styleClass} popup-menu-item`, accessible_name: label}));
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-button-content'});
         if (iconName)
             content.add_child(new this.St.Icon({icon_name: iconName, icon_size: 20,
@@ -555,7 +555,7 @@ export class NetworkStatusMenu {
         const previousContents = this.contents;
         this.contents = new Map();
         this.connectionCard = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
-            style_class: 'g-os-network-connection'});
+            style_class: 'popup-menu-item g-os-network-connection'});
         this.connectionIcon = new this.St.Icon({icon_name: 'network-wireless-signal-none-symbolic', icon_size: 28});
         this.connectionText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
             style_class: 'g-os-network-connection-text'});
@@ -571,13 +571,13 @@ export class NetworkStatusMenu {
             style_class: 'g-os-status-device-grid'});
         this.body.add_child(this.rowsBox);
         const visible = this.toggles.filter(({toggle}) => toggle.visible !== false);
-        for (let index = 0; index < visible.length; index += 2) {
+        for (let index = 0; index < visible.length; index += 3) {
             const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
                 style_class: 'g-os-status-grid-row'});
-            for (const entry of visible.slice(index, index + 2)) {
+            for (const entry of visible.slice(index, index + 3)) {
                 const {toggle, title} = entry;
                 const active = Boolean(toggle.checked);
-                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'g-os-status-device-tile', accessible_name: title}));
+                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'popup-menu-item g-os-status-device-tile', accessible_name: title}));
                 const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
                     style_class: 'g-os-status-device-content'});
                 const icon = new this.St.Icon({icon_name: toggle.icon_name || this._iconFor(title), icon_size: 22});
@@ -610,7 +610,7 @@ export class NetworkStatusMenu {
                     this.overviewSignals.addSignal(toggle, toggle.connect('notify::icon-name', () => this._refreshWifiRow(toggle)));
                 }
             }
-            while (row.get_n_children() < 2)
+            while (row.get_n_children() < 3)
                 row.add_child(expandHorizontally(new this.St.Widget()));
             this.rowsBox.add_child(row);
         }
@@ -841,7 +841,6 @@ export class NetworkStatusMenu {
             style_class: 'g-os-network-traffic-graph',
         });
         this.trafficArea.set_x_expand(true);
-        this.trafficArea.set_height(64);
         this.trafficArea.connect('repaint', area => {
             if (!this.destroyed)
                 this._drawTrafficGraph(area);
@@ -1003,7 +1002,7 @@ export class RadioStatusMenu {
     }
     _tile(device) {
         const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-            style_class: 'g-os-status-device-tile',
+            style_class: 'popup-menu-item g-os-status-device-tile',
             accessible_name: device.connected ? `Déconnecter ${device.alias}` : `Connecter ${device.alias}`}));
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-content'});
         content.add_child(new this.St.Icon({icon_name: device.icon || 'bluetooth-symbolic', icon_size: 22}));
@@ -1029,7 +1028,7 @@ export class RadioStatusMenu {
     }
     _otherDeviceRow(device) {
         const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-            style_class: 'g-os-status-other-device',
+            style_class: 'popup-menu-item g-os-status-other-device',
             accessible_name: `Connecter ${device.alias || 'Périphérique'}`}));
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
             style_class: 'g-os-status-other-content'});
@@ -1167,9 +1166,9 @@ export class BatteryStatusMenu {
             this.deviceItems.add_child(row);
         }
         if (!proxy?.IsPresent) {
-            this.percentage.text = Number.isFinite(level) ? `${Math.round(level)} %` : 'Secteur';
-            this.state.text = Number.isFinite(level) ? 'Batterie' : 'Aucune batterie détectée';
-            this.batteryIcon.icon_name = primary?.icon_name || 'battery-missing-symbolic';
+            this.percentage.text = Number.isFinite(level) ? `${Math.round(level)} %` : '—';
+            this.state.text = Number.isFinite(level) ? 'Batterie' : 'Sur secteur';
+            this.batteryIcon.icon_name = primary?.icon_name || 'ac-adapter-symbolic';
             if (!batteries.length) this.icon.icon_name = 'battery-missing-symbolic';
             return;
         }
