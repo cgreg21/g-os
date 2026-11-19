@@ -453,9 +453,9 @@ test('simple widget templates and surface fallbacks handle missing or non-scalar
 
 test('widget runtime ignores signal and timer callbacks after instance disposal', () => {
     let signalCallback;
-    let timerCallback;
+    const timerCallbacks = [];
+    const removedIds = [];
     let disconnected = false;
-    let removed = false;
     let calls = 0;
     const runtime = Object.create(WidgetRuntime.prototype);
     runtime.env = {
@@ -464,10 +464,10 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
             SOURCE_REMOVE: false,
             SOURCE_CONTINUE: true,
             timeout_add: (_priority, _interval, callback) => {
-                timerCallback = callback;
-                return 7;
+                timerCallbacks.push(callback);
+                return 7 + timerCallbacks.length - 1;
             },
-            source_remove: id => { assert.equal(id, 7); removed = true; },
+            source_remove: id => { removedIds.push(id); },
         },
         St: {},
         Gio: {},
@@ -485,17 +485,21 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
 
     context.context.api.connect(emitter, 'changed', () => calls++);
     context.context.api.every(1000, () => calls++);
+    context.context.api.every(1000, () => calls++);
     signalCallback();
-    timerCallback();
-    assert.equal(calls, 2);
+    timerCallbacks[0]();
+    timerCallbacks[1]();
+    assert.equal(calls, 3);
 
     context.dispose();
+    assert.equal(timerCallbacks[0](), false);
     for (const dispose of cleanup.reverse())
         dispose();
 
     assert.equal(disconnected, true);
-    assert.equal(removed, true);
+    assert.deepEqual(removedIds, [8]);
     signalCallback();
-    assert.equal(timerCallback(), false);
-    assert.equal(calls, 2);
+    assert.equal(timerCallbacks[0](), false);
+    assert.equal(timerCallbacks[1](), false);
+    assert.equal(calls, 3);
 });
