@@ -22,7 +22,7 @@ function disconnectIfConnected(
     isGObject = false,
 ): void {
     if ((isGObject || emitter instanceof GObject.Object) &&
-        !GObject.signal_handler_is_connected(emitter, id))
+        !GObject.signal_handler_is_connected(emitter as GObject.Object, id))
         return;
     emitter.disconnect(id);
 }
