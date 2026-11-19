@@ -261,3 +261,13 @@ test('battery menu presents power profiles as direct icon-grid choices', async (
     assert.ok(!battery.includes('this.content.mount(profiles?.menu)'));
     assert.ok(battery.includes('Périphériques'));
 });
+
+test('network menu keeps connection, service grid, traffic and inline details in one view', async () => {
+    const source = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const network = source.slice(source.indexOf('export class NetworkStatusMenu'), source.indexOf('export class RadioStatusMenu'));
+    assert.ok(network.includes('_refreshConnectionCard()'));
+    assert.ok(network.includes('g-os-status-device-grid'));
+    assert.ok(network.includes('_toggleInlineContent(toggle)'));
+    assert.ok(network.includes('insert_child_at_index(inline'));
+    assert.ok(!network.includes('this.body.destroy_all_children();'));
+});
