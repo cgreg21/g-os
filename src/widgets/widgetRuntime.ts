@@ -217,7 +217,10 @@ export class WidgetRuntime {
         const entry = this.registry.entries.get(instance.widget);
         const config = widgetConfiguration(entry.description, instance.config);
         const appearance = config['background-style'];
+        let disposed = false;
         const guarded = callback => (...args) => {
+            if (disposed)
+                return;
             try { return callback(...args); } catch (error) { this.report(instance.id, error); }
         };
         const pending = new Set<() => void>();
@@ -226,6 +229,7 @@ export class WidgetRuntime {
                 cancel();
             pending.clear();
         });
+        cleanup.push(() => { disposed = true; });
         let tooltipScreen = extra.screen;
         const attachTooltip = (button, title) => {
             if (!tooltipScreen) {
@@ -433,9 +437,10 @@ export class WidgetRuntime {
                 return id;
             },
             every: (milliseconds, callback) => {
+                const onTick = guarded(callback);
                 const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, Math.max(100, milliseconds), () => {
-                    guarded(callback)();
-                    return GLib.SOURCE_CONTINUE;
+                    onTick();
+                    return disposed ? GLib.SOURCE_REMOVE : GLib.SOURCE_CONTINUE;
                 });
                 cleanup.push(() => GLib.source_remove(id));
             },
