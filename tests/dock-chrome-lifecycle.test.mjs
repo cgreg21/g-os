@@ -10,6 +10,10 @@ test('dock chrome actors are registered with the per-screen chrome manager', () 
     assert.match(extensionSource, /screen\.lifecycle\.chrome\?\.add\(screen\.tooltip\)/);
 });
 
+test('monitor changes defer screen teardown until Mutter finishes its layout pass', () => {
+    assert.match(extensionSource, /monitors-changed', \(\) => this\._queueSettingsApply\(\)\)/);
+});
+
 test('tooltip keeps top-chrome registration semantics through the manager', () => {
     assert.match(extensionSource, /actor === topChromeActor[\s\S]*?Main\.layoutManager\.addTopChrome\(actor, options\)/);
     assert.match(extensionSource, /topChromeActor = screen\.tooltip/);
