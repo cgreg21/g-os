@@ -874,14 +874,15 @@ export function withPanel(Base) {
             const estimatedLabelWidth = labelLength * metrics.fontSize * 0.56;
             const widthScale = estimatedLabelWidth > 0
                 ? Math.min(1, availableLabelWidth / estimatedLabelWidth) : 1;
-            screen.fontSize = Math.max(1, Math.floor(metrics.fontSize * widthScale));
+            screen.fontSize = metrics.fontSize;
+            screen.appFontSize = Math.max(1, Math.floor(metrics.fontSize * widthScale));
             screen.iconSize = metrics.iconSize;
             screen.panelButtonMetrics = metrics;
             screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px;`);
 
             screen.appLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             screen.appLabel.y_align = Clutter.ActorAlign.CENTER;
-            screen.appLabel.set_style(`font-size: ${screen.fontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
+            screen.appLabel.set_style(`font-size: ${screen.appFontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
             for (const label of [screen.clock, screen.transferLabel]) {
                 label.y_align = Clutter.ActorAlign.CENTER;
                 label.set_style(`font-size: ${screen.fontSize}px; padding: 0;`);
@@ -897,6 +898,7 @@ export function withPanel(Base) {
                 else
                     button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
             }
+            screen.statusNotifierBox?.set_style(`spacing: ${metrics.spacing}px;`);
             if (screen.globalMenuBox) {
                 screen.globalMenuBox.y_align = Clutter.ActorAlign.CENTER;
                 screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px; spacing: ${metrics.spacing}px;`);
