@@ -16,7 +16,7 @@ function logCleanupError(error: unknown, message: string): void {
 }
 
 export interface DragSourceCallbacks {
-    onBegin?: () => void;
+    onBegin?: (dragActor: Clutter.Actor) => void;
     onMotion?: (event: any) => void;
     onEnd?: (success: boolean) => void;
     onCancelled?: () => void;
