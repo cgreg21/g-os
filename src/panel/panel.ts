@@ -1,4 +1,5 @@
 import St from 'gi://St';
+import {setChildWhenMapped} from '../core/actorUtils.js';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
@@ -287,7 +288,7 @@ export function withPanel(Base) {
                     hscrollbar_policy: St.PolicyType.NEVER});
                 menu._boxPointer.bin.set_child(null);
                 menu._boxPointer.bin.set_child(scroll);
-                scroll.set_child(menu.box);
+                setChildWhenMapped(scroll, menu.box);
                 screen.notificationScroll = scroll;
             }
             this._populateNotificationMenu(menu);
@@ -420,7 +421,7 @@ export function withPanel(Base) {
             });
             content.add_child(scroll);
             menu.box.add_child(content);
-            scroll.set_child(screen.calendarEventList);
+            setChildWhenMapped(scroll, screen.calendarEventList);
             menu.connect('open-state-changed', (menu, open) => {
                 if (open)
                     this._updatePanelCalendarEvents(screen, this._panelCalendarSelectedDate);
