@@ -437,11 +437,25 @@ export class WidgetRuntime {
             },
             every: (milliseconds, callback) => {
                 const onTick = guarded(callback);
+                let active = true;
                 const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, Math.max(100, milliseconds), () => {
+                    if (disposed) {
+                        active = false;
+                        return GLib.SOURCE_REMOVE;
+                    }
                     onTick();
-                    return disposed ? GLib.SOURCE_REMOVE : GLib.SOURCE_CONTINUE;
+                    if (disposed) {
+                        active = false;
+                        return GLib.SOURCE_REMOVE;
+                    }
+                    return GLib.SOURCE_CONTINUE;
                 });
-                cleanup.push(() => GLib.source_remove(id));
+                cleanup.push(() => {
+                    if (active) {
+                        active = false;
+                        GLib.source_remove(id);
+                    }
+                });
             },
             setDynamicLevel: value => {
                 const actor = instance.widgetActor;
