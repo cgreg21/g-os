@@ -7,6 +7,14 @@ type DelegateActor = Clutter.Actor & {
     _delegate?: Record<string, unknown> | null;
 };
 
+function logCleanupError(error: unknown, message: string): void {
+    try {
+        logError(error as Error, message);
+    } catch {
+        // Logging must never interrupt release of the remaining DND resources.
+    }
+}
+
 export interface DragSourceCallbacks {
     onBegin?: () => void;
     onMotion?: (event: any) => void;
@@ -79,7 +87,7 @@ export class DragAndDropController {
                 DND.removeDragMonitor(monitor);
             } catch (error) {
                 // A monitor may already have been removed during Shell teardown.
-                logError(error as Error, 'Unable to remove g-os drag monitor');
+                logCleanupError(error, 'Unable to remove g-os drag monitor');
             }
         };
 
@@ -92,14 +100,14 @@ export class DragAndDropController {
                 try {
                     draggable.disconnect(signalId);
                 } catch (error) {
-                    logError(error as Error, 'Unable to disconnect g-os drag signal');
+                    logCleanupError(error, 'Unable to disconnect g-os drag signal');
                 }
             }
             if (actorDestroySignal) {
                 try {
                     actor.disconnect(actorDestroySignal);
                 } catch (error) {
-                    logError(error as Error, 'Unable to disconnect g-os actor destroy signal');
+                    logCleanupError(error, 'Unable to disconnect g-os actor destroy signal');
                 }
             }
             removeDelegate();
@@ -174,7 +182,7 @@ export class DragAndDropController {
                 try {
                     actor.disconnect(actorDestroySignal);
                 } catch (error) {
-                    logError(error as Error, 'Unable to disconnect g-os drop-target destroy signal');
+                    logCleanupError(error, 'Unable to disconnect g-os drop-target destroy signal');
                 }
             }
             removeDelegate();
