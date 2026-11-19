@@ -66,3 +66,39 @@ test('cancel and destroy are idempotent and reject stale callbacks', () => {
     assert.equal(manager.size, 0);
     assert.equal(manager.isDestroyed, true);
 });
+
+test('continues cancelling remaining properties when a disposed actor rejects one transition', () => {
+    const manager = new AnimationManager();
+    const removed = [];
+    const logged = [];
+    const previousLogError = globalThis.logError;
+    globalThis.logError = (error, message) => logged.push({error, message});
+    const actor = {
+        ease() {},
+        remove_transition(property) {
+            removed.push(property);
+            if (property === 'translation-x')
+                throw new Error('actor already disposed');
+        },
+    };
+
+    try {
+        manager.animate('dock', actor, {
+            translation_x: 10,
+            opacity: 0,
+            translation_y: 5,
+        }, options);
+        manager.destroy();
+
+        assert.deepEqual(removed, ['translation-x', 'opacity', 'translation-y']);
+        assert.equal(logged.length, 1);
+        assert.match(logged[0].message, /translation-x/);
+        assert.equal(manager.size, 0);
+        assert.equal(manager.isDestroyed, true);
+    } finally {
+        if (previousLogError === undefined)
+            delete globalThis.logError;
+        else
+            globalThis.logError = previousLogError;
+    }
+});
