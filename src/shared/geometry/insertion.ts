@@ -7,7 +7,8 @@ export function resolveInsertionIndex(
     coordinate: number,
 ): number | null {
     if (!Number.isFinite(coordinate) ||
-        midpoints.some(midpoint => midpoint === null || !Number.isFinite(midpoint)))
+        midpoints.some((midpoint, index) => midpoint === null || !Number.isFinite(midpoint) ||
+            (index > 0 && midpoint < midpoints[index - 1]!)))
         return null;
 
     let index = 0;
@@ -29,7 +30,8 @@ export function resolveInsertionIndexWithHysteresis(
     hysteresis = 10,
 ): number | null {
     if (!Number.isFinite(coordinate) || !Number.isFinite(hysteresis) || hysteresis < 0 ||
-        midpoints.some(midpoint => midpoint === null || !Number.isFinite(midpoint)))
+        midpoints.some((midpoint, index) => midpoint === null || !Number.isFinite(midpoint) ||
+            (index > 0 && midpoint < midpoints[index - 1]!)))
         return null;
 
     if (currentIndex === null || !Number.isInteger(currentIndex) ||
@@ -56,7 +58,8 @@ export function resolveReorderInsertionIndex(
 ): number | null {
     if (!Number.isFinite(coordinate) || !Number.isInteger(sourceIndex) ||
         sourceIndex < 0 || sourceIndex >= midpoints.length ||
-        midpoints.some(midpoint => midpoint === null || !Number.isFinite(midpoint)))
+        midpoints.some((midpoint, index) => midpoint === null || !Number.isFinite(midpoint) ||
+            (index > 0 && midpoint < midpoints[index - 1]!)))
         return null;
 
     let targetIndex = midpoints.findIndex((midpoint, index) =>
