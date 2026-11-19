@@ -209,96 +209,96 @@ export function withDockOrder(Base) {
                 actor: button,
                 St,
                 callbacks: {
-                onBegin: () => {
-                    cancelled = false;
-                    this._updateDockMagnification(screen, null, true);
-                    const buttons = getButtons();
-                    const sourceIndex = buttons.indexOf(button);
-                    screen.reorder = {
-                        button, buttons, sourceIndex, targetIndex: sourceIndex,
-                        slots: buttons.map(candidate => ({
-                            position: candidate.get_transformed_position(),
-                            size: candidate.get_transformed_size(),
-                        })),
-                    };
-                    button.opacity = 0;
-                    screen.tooltip.hide();
-                    this._revealDock(screen);
+                    onBegin: () => {
+                        cancelled = false;
+                        this._updateDockMagnification(screen, null, true);
+                        const buttons = getButtons();
+                        const sourceIndex = buttons.indexOf(button);
+                        screen.reorder = {
+                            button, buttons, sourceIndex, targetIndex: sourceIndex,
+                            slots: buttons.map(candidate => ({
+                                position: candidate.get_transformed_position(),
+                                size: candidate.get_transformed_size(),
+                            })),
+                        };
+                        button.opacity = 0;
+                        screen.tooltip.hide();
+                        this._revealDock(screen);
 
-                },
-                onMotion: event => {
-                    const state = screen.reorder;
-                    if (!state || screen.disposed)
-                        return;
-                    const axis = screen.position === 0 ? 0 : 1;
-                    const coordinate = axis === 0 ? event.x : event.y;
-                    const grouping = button.app && this._settings.is_writable('dock-app-folders')
-                        ? state.buttons.find((candidate, index) => candidate !== button && (candidate.app || candidate.appFolderId) &&
-                            event.x >= state.slots[index].position[0] + state.slots[index].size[0] * 0.25 &&
-                            event.x <= state.slots[index].position[0] + state.slots[index].size[0] * 0.75 &&
-                            event.y >= state.slots[index].position[1] + state.slots[index].size[1] * 0.2 &&
-                            event.y <= state.slots[index].position[1] + state.slots[index].size[1] * 0.8)
-                        : null;
-                    const refreshPreview = state.groupPreviewActive && grouping !== state.groupTarget;
-                    if (grouping !== state.groupTarget) {
-                        this._clearDockGroupPreview(screen);
-                        if (grouping) {
-                            state.groupTarget = grouping;
-                            state.groupSource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
-                                state.groupSource = 0;
-                                if (screen.disposed || screen.reorder !== state)
+                    },
+                    onMotion: event => {
+                        const state = screen.reorder;
+                        if (!state || screen.disposed)
+                            return;
+                        const axis = screen.position === 0 ? 0 : 1;
+                        const coordinate = axis === 0 ? event.x : event.y;
+                        const grouping = button.app && this._settings.is_writable('dock-app-folders')
+                            ? state.buttons.find((candidate, index) => candidate !== button && (candidate.app || candidate.appFolderId) &&
+                                event.x >= state.slots[index].position[0] + state.slots[index].size[0] * 0.25 &&
+                                event.x <= state.slots[index].position[0] + state.slots[index].size[0] * 0.75 &&
+                                event.y >= state.slots[index].position[1] + state.slots[index].size[1] * 0.2 &&
+                                event.y <= state.slots[index].position[1] + state.slots[index].size[1] * 0.8)
+                            : null;
+                        const refreshPreview = state.groupPreviewActive && grouping !== state.groupTarget;
+                        if (grouping !== state.groupTarget) {
+                            this._clearDockGroupPreview(screen);
+                            if (grouping) {
+                                state.groupTarget = grouping;
+                                state.groupSource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
+                                    state.groupSource = 0;
+                                    if (screen.disposed || screen.reorder !== state)
+                                        return GLib.SOURCE_REMOVE;
+                                    grouping.add_style_pseudo_class('drop');
+                                    state.groupPreviewActive = true;
+                                    for (const candidate of state.buttons) {
+                                        screen.lifecycle.animations.cancel(`dock-reorder:${candidate.dockFocusKey}`);
+                                        candidate.remove_all_transitions();
+                                        candidate.translation_x = 0;
+                                        candidate.translation_y = 0;
+                                    }
                                     return GLib.SOURCE_REMOVE;
-                                grouping.add_style_pseudo_class('drop');
-                                state.groupPreviewActive = true;
-                                for (const candidate of state.buttons) {
-                                    screen.lifecycle.animations.cancel(`dock-reorder:${candidate.dockFocusKey}`);
-                                    candidate.remove_all_transitions();
-                                    candidate.translation_x = 0;
-                                    candidate.translation_y = 0;
-                                }
-                                return GLib.SOURCE_REMOVE;
+                                });
+                            }
+                        }
+                        const midpoints = state.slots.map(slot =>
+                            slot.position[axis] + slot.size[axis] / 2);
+                        const targetIndex = resolveReorderInsertionIndex(
+                            midpoints, coordinate, state.sourceIndex);
+                        if (targetIndex === null)
+                            return;
+                        if (targetIndex === state.targetIndex && !refreshPreview)
+                            return;
+                        state.targetIndex = targetIndex;
+                        const order = state.buttons.filter(candidate => candidate !== button);
+                        order.splice(targetIndex, 0, button);
+                        const motion = St.Settings.get();
+                        const reduced = 'ReducedMotion' in St &&
+                            (motion.reduced_motion ?? motion.reducedMotion) === St.ReducedMotion.REDUCE;
+                        let sizeOffset = 0;
+                        const destinations = order.map((candidate, index) => {
+                            const destination = state.slots[index].position[axis] + sizeOffset;
+                            sizeOffset += state.slots[state.buttons.indexOf(candidate)].size[axis] - state.slots[index].size[axis];
+                            return destination;
+                        });
+                        for (const candidate of state.buttons) {
+                            const original = state.slots[state.buttons.indexOf(candidate)].position;
+                            const destination = destinations[order.indexOf(candidate)];
+                            screen.lifecycle.animations.animate(`dock-reorder:${candidate.dockFocusKey}`, candidate, {
+                                translation_x: axis === 0 ? destination - original[0] : 0,
+                                translation_y: axis === 1 ? destination - original[1] : 0,
+                            }, {
+                                durationMs: motion.enable_animations && !reduced ? 120 : 0,
+                                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                             });
                         }
-                    }
-                    const midpoints = state.slots.map(slot =>
-                        slot.position[axis] + slot.size[axis] / 2);
-                    const targetIndex = resolveReorderInsertionIndex(
-                        midpoints, coordinate, state.sourceIndex);
-                    if (targetIndex === null)
-                        return;
-                    if (targetIndex === state.targetIndex && !refreshPreview)
-                        return;
-                    state.targetIndex = targetIndex;
-                    const order = state.buttons.filter(candidate => candidate !== button);
-                    order.splice(targetIndex, 0, button);
-                    const motion = St.Settings.get();
-                    const reduced = 'ReducedMotion' in St &&
-                        (motion.reduced_motion ?? motion.reducedMotion) === St.ReducedMotion.REDUCE;
-                    let sizeOffset = 0;
-                    const destinations = order.map((candidate, index) => {
-                        const destination = state.slots[index].position[axis] + sizeOffset;
-                        sizeOffset += state.slots[state.buttons.indexOf(candidate)].size[axis] - state.slots[index].size[axis];
-                        return destination;
-                    });
-                    for (const candidate of state.buttons) {
-                        const original = state.slots[state.buttons.indexOf(candidate)].position;
-                        const destination = destinations[order.indexOf(candidate)];
-                        screen.lifecycle.animations.animate(`dock-reorder:${candidate.dockFocusKey}`, candidate, {
-                            translation_x: axis === 0 ? destination - original[0] : 0,
-                            translation_y: axis === 1 ? destination - original[1] : 0,
-                        }, {
-                            durationMs: motion.enable_animations && !reduced ? 120 : 0,
-                            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                        });
-                    }
 
-                },
-                onCancelled: () => { cancelled = true; },
-                onEnd: () => finish(cancelled),
-                onDestroy: () => {
-                    if (screen.reorder?.button === button)
-                        finish(true);
-                },
+                    },
+                    onCancelled: () => { cancelled = true; },
+                    onEnd: () => finish(cancelled),
+                    onDestroy: () => {
+                        if (screen.reorder?.button === button)
+                            finish(true);
+                    },
                 },
                 lifecycle: screen.lifecycle,
             });
