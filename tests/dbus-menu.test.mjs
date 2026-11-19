@@ -292,6 +292,21 @@ test('DBusMenu client builds a filtered model, attributes, submenu links and ena
     assert.equal(eventArgs[3], 1);
 });
 
+test('DBusMenu client releases obsolete submenu model listeners after layout replacement', () => {
+    const {client} = createMenuClient(fullMenuLayout());
+    const previousSubmenu = client.model.get_item_link(1, 'submenu');
+    previousSubmenu.connect('items-changed', () => {});
+    assert.equal(previousSubmenu.signals.size, 1);
+
+    const updated = fullMenuLayout();
+    updated[2][3][1].label = 'Updated recent item';
+    client._apply(updated);
+
+    assert.equal(previousSubmenu.signals.size, 0);
+    assert.notEqual(client.model.get_item_link(1, 'submenu'), previousSubmenu);
+    client.destroy();
+});
+
 test('DBusMenu client refreshes on signals, reports malformed layouts and recovers', () => {
     const {client, proxy, calls, layoutReply} = createMenuClient(fullMenuLayout());
     let changes = 0;
