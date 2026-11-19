@@ -720,6 +720,7 @@ export class WidgetRuntime {
             actor: handle,
             visualActor: actor,
             St: this.env.St,
+            Clutter: this.env.Clutter,
             delegate: {
                 widgetDesktopPlacement: true,
                 widgetInstance: instance,
