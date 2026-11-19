@@ -43,9 +43,10 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     assert.match(dragSource, /_finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
     assert.match(panelSource, /source: dragActor\.get_child_at_index\(0\) \?\? dragActor/);
-    assert.match(panelSource, /if \(!actor \|\| actor\.is_destroyed\(\) \|\| !dragActor \|\| dragActor\.is_destroyed\(\)\)/);
-    assert.match(panelSource, /if \(actor\.get_parent\(\) === parent\)\s*parent\.remove_child\(actor\)/);
-    assert.match(panelSource, /state\.parent && !state\.parent\.is_destroyed\(\) && !state\.actor\.get_parent\(\)/);
+    assert.match(panelSource, /function getActorParent\(actor\)[\s\S]*?actor\?\.get_parent\?\.\(\) \?\? null[\s\S]*?catch/);
+    assert.doesNotMatch(panelSource, /\.is_destroyed\(\)/);
+    assert.match(panelSource, /if \(getActorParent\(actor\) === parent\)\s*parent\.remove_child\(actor\)/);
+    assert.match(panelSource, /if \(!success && !getActorParent\(state\.actor\)\)/);
     assert.match(panelSource, /state\.placeholder\.destroy\(\)/);
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     assert.doesNotMatch(stylesheet, /\.g-os-panel-dnd-placeholder\s*\{[^}]*?(?:background-color|border|shadow)/s);
