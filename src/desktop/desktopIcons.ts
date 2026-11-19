@@ -770,25 +770,25 @@ export function withDesktopIcons(Base) {
                 actor: button,
                 St,
                 callbacks: {
-                onBegin: () => {
-                    origin = button.get_position();
-                    pointerOrigin = global.get_pointer().slice(0, 2);
-                    destination = origin;
-                },
-                onMotion: event => {
-                    if (!origin || !pointerOrigin)
-                        return;
-                    const parent = button.get_parent();
-                    if (!parent)
-                        return;
-                    const x = Math.max(24, Math.min(origin[0] + event.x - pointerOrigin[0], parent.width - buttonWidth));
-                    const y = Math.max(48, Math.min(origin[1] + event.y - pointerOrigin[1], parent.height - button.height));
-                    button.set_position(Math.round(x), Math.round(y));
-                    destination = [Math.round(x), Math.round(y)];
-                },
-                onCancelled: () => finish(true),
-                onEnd: () => finish(false),
-                onDestroy: () => finish(true),
+                    onBegin: () => {
+                        origin = button.get_position();
+                        pointerOrigin = global.get_pointer().slice(0, 2);
+                        destination = origin;
+                    },
+                    onMotion: event => {
+                        if (!origin || !pointerOrigin)
+                            return;
+                        const parent = button.get_parent();
+                        if (!parent)
+                            return;
+                        const x = Math.max(24, Math.min(origin[0] + event.x - pointerOrigin[0], parent.width - buttonWidth));
+                        const y = Math.max(48, Math.min(origin[1] + event.y - pointerOrigin[1], parent.height - button.height));
+                        button.set_position(Math.round(x), Math.round(y));
+                        destination = [Math.round(x), Math.round(y)];
+                    },
+                    onCancelled: () => finish(true),
+                    onEnd: () => finish(false),
+                    onDestroy: () => finish(true),
                 },
                 lifecycle: screen.lifecycle,
             });
