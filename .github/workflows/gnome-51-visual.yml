@@ -24,6 +24,11 @@ jobs:
           dnf install -y dbus-daemon glib2 gnome-shell git mutter-devkit nodejs npm
           gnome-shell --version
           gnome-shell --version | grep -E 'GNOME Shell 51([. ]|$)'
+      - name: Start the system D-Bus required by GNOME Shell
+        run: |
+          mkdir -p /run/dbus
+          dbus-daemon --system --fork --nopidfile
+          test -S /run/dbus/system_bus_socket
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
