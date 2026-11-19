@@ -480,6 +480,23 @@ test('AppMenu registrar owns its name, follows an external registrar and cleans 
     assert.equal(registrar.disposed, true);
 });
 
+test('AppMenu registrar ignores delayed GetMenus replies after external proxy cleanup', () => {
+    const {registrar, state} = createLifecycleRegistrar([
+        [100, ':1.100', '/org/other/Menu'],
+    ], {deferMenus: true});
+    state.ownerExists = true;
+    registrar.start();
+    state.nameOwnerCheck(state.session, {});
+    assert.equal(typeof state.menuReply, 'function');
+    assert.equal(registrar.entries.size, 0);
+
+    registrar._stopExternal();
+    state.menuReply();
+
+    assert.equal(registrar.entries.size, 0);
+    registrar.destroy();
+});
+
 test('AppMenu registrar follows name-owner changes from an external owner to local ownership', () => {
     const {registrar, state} = createLifecycleRegistrar([
         [100, ':1.100', '/org/other/Menu'],
