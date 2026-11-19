@@ -238,7 +238,7 @@ export function withPanel(Base) {
         }
 
         _createNotificationButton(screen) {
-            const button = createPanelMenuButton(St, Clutter, PopupMenu, {
+            const button = createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
                 iconName: 'preferences-system-notifications-symbolic',
                 accessibleName: 'Notifications',
             });
@@ -514,7 +514,7 @@ export function withPanel(Base) {
             if (this._settings.get_boolean('panel-style'))
                 screen.panel.add_style_class_name('g-os-panel');
             screen.menuButton = monitor.index === Main.layoutManager.primaryIndex
-                ? this._menu : createPanelMenuButton(St, Clutter, PopupMenu, {
+                ? this._menu : createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
                     iconName: 'view-app-grid-symbolic', accessibleName: 'Applications',
                 });
             screen.menuButton.add_style_class_name('g-os-panel-menu');
@@ -532,7 +532,7 @@ export function withPanel(Base) {
                 visible: this._settings.get_boolean('show-active-app'),
             });
             screen.appLabel.visible = this._settings.get_boolean('show-active-app');
-            screen.appMenuButton = createPanelMenuButton(St, Clutter, PopupMenu, {
+            screen.appMenuButton = createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
                 text: screen.appLabel, accessibleName: 'Application', styleClass: 'g-os-app-menu',
                 visible: screen.appLabel.visible,
             });
@@ -620,7 +620,7 @@ export function withPanel(Base) {
                 screen.statusButtons.push(button);
                 screen.panel.add_child(button);
             }
-            screen.sessionButton = createPanelMenuButton(St, Clutter, PopupMenu, {
+            screen.sessionButton = createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
                 iconName: 'avatar-default-symbolic', accessibleName: 'Session',
                 styleClass: 'g-os-session-button',
             });
