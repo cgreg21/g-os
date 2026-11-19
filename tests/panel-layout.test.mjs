@@ -221,7 +221,9 @@ test('all status menus share one compact theme-native popup width', async () => 
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
     assert.ok(panel.includes("menu.actor.add_style_class_name('g-os-compact-status-popup')"));
     assert.ok(panel.includes("menu.box.add_style_class_name('g-os-compact-status-popup')"));
-    assert.match(css, /\.g-os-compact-status-popup\s*\{[^}]*width:\s*420px;[^}]*max-width:\s*420px;/);
+    assert.match(css, /\.g-os-compact-status-popup\s*\{[^}]*width:\s*380px;[^}]*max-width:\s*380px;/);
+    assert.match(menus, /for \(let index = 0; index < visible\.length; index \+= 2\)/);
+    assert.match(menus, /visible\.slice\(index, index \+ 2\)/);
     assert.ok(!css.includes('g-os-bluetooth-popup'));
     assert.ok(!menus.includes('g-os-bluetooth-popup'));
     for (const kind of ['sound', 'wifi', 'bluetooth', 'brightness'])
