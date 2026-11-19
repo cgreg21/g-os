@@ -68,13 +68,20 @@ export function registerShadowDragSource({
     return controller.registerSource(actor, {
         ...delegate,
         getDragActorSource,
-        getDragActor: () => dragActor ?? createDragActor(),
+        getDragActor: () => {
+            // GNOME Shell may request the actor before emitting drag-begin.
+            // Keep that exact actor so the begin callback and Shell share it.
+            dragActor ??= createDragActor();
+            return dragActor;
+        },
     }, {
         ...callbacks,
         onBegin: () => {
             // GNOME Shell asks for getDragActor after drag-begin. Capture the
             // clone before feature behavior replaces the source actor.
-            dragActor = createDragActor();
+            // Reuse the actor already requested by GNOME Shell, or create it
+            // only if this Shell version emits drag-begin before requesting it.
+            dragActor ??= createDragActor();
             callbacks.onBegin?.();
             onDragActor?.(dragActor);
         },
