@@ -88,11 +88,13 @@ export function applyPanelButtonMetrics(button, metrics) {
  * The menu variant deliberately remains an St.Button. Popup behavior is
  * composed onto the same shared button instead of using PanelMenu.Button.
  */
-export function createPanelMenuButton(St, Clutter, PopupMenu, options = {}) {
+export function createPanelMenuButton(St, Clutter, PopupMenu, uiGroup, options = {}) {
     const button = createPanelButton(St, Clutter, options);
     const panelButton = button as any;
     panelButton.container = button;
     panelButton.menu = new PopupMenu.PopupMenu(button, 0.5, St.Side.TOP);
+    uiGroup.add_child(panelButton.menu.actor);
+    panelButton.menu.actor.hide();
     button.connect('clicked', () => panelButton.menu.toggle());
     button.connect('popup-menu', () => panelButton.menu.open());
     button.connect('destroy', () => {
