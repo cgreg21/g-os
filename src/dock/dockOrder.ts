@@ -34,13 +34,7 @@ export function withDockOrder(Base) {
                         button._delegate = button;
                     } else {
                         const icon = button.get_child();
-                        button._delegate = {
-                            getDragActor: () => new St.Icon({
-                                ...(icon.gicon ? {gicon: icon.gicon} : {icon_name: icon.icon_name}),
-                                icon_size: this._settings.get_int('icon-size'),
-                            }),
-                            getDragActorSource: () => icon,
-                        };
+                        button._delegate = {getDragActorSource: () => icon};
                     }
                 }
                 this._attachDockReorder(screen, button,
