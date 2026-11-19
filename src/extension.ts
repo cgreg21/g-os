@@ -20,6 +20,7 @@ import {errorMessage} from './shared/errorMessage.js';
 import {LifecycleScope} from './core/lifecycleScope.js';
 import {DragAndDropController} from './shared/interaction/dragAndDrop.js';
 import {CleanupManager} from './core/cleanupManager.js';
+import {GOSCache} from './core/cache.js';
 import {ChromeActorManager} from './core/chromeActorManager.js';
 import {WidgetRuntime} from './widgets/widgetRuntime.js';
 import {withDockVisibility} from './dock/dockVisibility.js';
@@ -91,6 +92,7 @@ export default class GOsExtension extends ExtensionComponents {
             this._appSystem = Shell.AppSystem.get_default();
             this._favorites = AppFavorites.getAppFavorites();
         this._settings = this.getSettings();
+        this._cache = new GOSCache(256, 5 * 60 * 1000);
         this._statusNotifierHost = new StatusNotifierHost({Gio, GLib,
             onChanged: () => {
                 for (const screen of this._screens ?? [])
@@ -269,6 +271,8 @@ export default class GOsExtension extends ExtensionComponents {
             this._stopDesktopIconTracking();
             this._widgetRuntime?.destroy();
             this._widgetRuntime = null;
+            this._cache?.clear();
+            this._cache = null;
             this._stopTrashTracking();
             for (const window of [...this._attentionWindows.keys()])
                 this._forgetAttentionWindow(window);
