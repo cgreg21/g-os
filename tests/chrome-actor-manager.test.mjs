@@ -183,3 +183,27 @@ test('preserves a reentrant replacement registration when the original add throw
     assert.deepEqual(removed, [actor, actor]);
     assert.equal(manager.size, 0);
 });
+
+test('continues releasing chrome actors when the host logger also throws', () => {
+    const actors = [{id: 1}, {id: 2}, {id: 3}];
+    const removed = [];
+    const previousLogError = globalThis.logError;
+    globalThis.logError = () => { throw new Error('logger failure'); };
+    try {
+        const manager = new ChromeActorManager(
+            () => {},
+            actor => {
+                removed.push(actor.id);
+                if (actor.id === 2)
+                    throw new Error('actor already destroyed');
+            },
+        );
+        for (const actor of actors)
+            manager.add(actor);
+        assert.doesNotThrow(() => manager.destroy());
+        assert.deepEqual(removed, [3, 2, 1]);
+        assert.equal(manager.size, 0);
+    } finally {
+        globalThis.logError = previousLogError;
+    }
+});
