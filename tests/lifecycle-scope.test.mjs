@@ -119,6 +119,36 @@ test('destroys chrome actors after scheduled tasks and registered cleanup', () =
     assert.deepEqual(order, ['tasks', 'cleanup', 'chrome']);
 });
 
+test('stops animation callbacks before running resource cleanup', () => {
+    const events = [];
+    let finish;
+    let completed = 0;
+    const actor = {
+        ease(params) {
+            finish = params.onComplete;
+            events.push('animate');
+        },
+        remove_transition(property) {
+            events.push(`remove:${property}`);
+            finish?.();
+        },
+    };
+    const scope = new LifecycleScope();
+    scope.animations.animate('widget', actor, {opacity: 0}, {
+        durationMs: 100, mode: 1, onComplete: () => completed++,
+    });
+    scope.add(() => {
+        events.push('cleanup');
+        finish?.();
+    });
+
+    scope.destroy();
+
+    assert.deepEqual(events, ['animate', 'remove:opacity', 'cleanup']);
+    assert.equal(completed, 0);
+    assert.equal(scope.animations.size, 0);
+});
+
 test('destroys owned animations before releasing chrome actors', () => {
     const removed = [];
     const actor = {
