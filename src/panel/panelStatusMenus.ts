@@ -526,12 +526,15 @@ export class NetworkStatusMenu {
 
         menu.actor.add_style_class_name('g-os-network-popup');
         this.rootItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false,
-            x_expand: true, style_class: 'g-os-network-shell-item'});
+            style_class: 'g-os-network-shell-item'});
+        this.rootItem.set_x_expand(true);
         this.scroll = new St.ScrollView({hscrollbar_policy: St.PolicyType.NEVER,
             vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
-            x_expand: true, style_class: 'g-os-network-scroll'});
+            style_class: 'g-os-network-scroll'});
+        this.scroll.set_x_expand(true);
         this.body = new St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
-            x_expand: true, style_class: 'g-os-network-panel'});
+            style_class: 'g-os-network-panel'});
+        this.body.set_x_expand(true);
         this.scroll.set_child(this.body);
         this.rootItem.add_child(this.scroll);
         menu.addMenuItem(this.rootItem);
@@ -555,7 +558,8 @@ export class NetworkStatusMenu {
 
     _button(label, styleClass, callback, iconName = null) {
         const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-            style_class: styleClass, x_expand: true, accessible_name: label});
+            style_class: styleClass, accessible_name: label});
+        button.set_x_expand(true);
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-button-content'});
         if (iconName)
             content.add_child(new this.St.Icon({icon_name: iconName, icon_size: 20,
@@ -576,8 +580,9 @@ export class NetworkStatusMenu {
         this.connectionIcon = new this.St.Icon({icon_name: 'network-wired-symbolic', icon_size: 28,
             y_align: this.Clutter.ActorAlign.CENTER});
         cardTop.add_child(this.connectionIcon);
-        const cardText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, x_expand: true,
+        const cardText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, 
             style_class: 'g-os-network-card-text'});
+        cardText.set_x_expand(true);
         this.connectionSummary = this._label('Recherche des connexions…', 'g-os-network-card-summary');
         cardText.add_child(this.connectionSummary);
         cardTop.add_child(cardText);
@@ -592,8 +597,9 @@ export class NetworkStatusMenu {
             const icon = new this.St.Icon({icon_name: iconName, icon_size: 20,
                 y_align: this.Clutter.ActorAlign.CENTER});
             row.add_child(icon);
-            const labels = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, x_expand: true,
+            const labels = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, 
                 style_class: 'g-os-network-row-labels'});
+            labels.set_x_expand(true);
             labels.add_child(this._label(title, 'g-os-network-row-title'));
             const state = this._label('', 'g-os-network-row-state');
             labels.add_child(state);
@@ -602,8 +608,9 @@ export class NetworkStatusMenu {
                 y_align: this.Clutter.ActorAlign.CENTER, style_class: 'g-os-network-chevron'});
             row.add_child(chevron);
             const button = new this.St.Button({child: row, reactive: true, can_focus: true,
-                track_hover: true, x_expand: true, style_class: 'g-os-network-row-button',
+                track_hover: true, style_class: 'g-os-network-row-button',
                 accessible_name: title});
+            button.set_x_expand(true);
             button.connect('clicked', () => this.showDetail(toggle));
             this.rowsBox.add_child(button);
             const content = previousContents.get(toggle)?.content ?? new NativeMenuContent(this.menu,
