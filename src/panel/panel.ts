@@ -546,7 +546,11 @@ export function withPanel(Base) {
                 y_align: Clutter.ActorAlign.CENTER,
                 visible: false,
             });
-            screen.panel.add_child(screen.transferLabel);
+            screen.transferButton = createPanelButton(St, Clutter, {
+                text: screen.transferLabel, accessibleName: 'Transferts',
+                canFocus: false, reactive: false,
+            });
+            screen.panel.add_child(screen.transferButton);
             screen.panel.add_child(new St.Widget({x_expand: true}));
             screen.clock = new St.Label({name: 'g-os-panel-clock', y_align: Clutter.ActorAlign.CENTER,
                 visible: this._settings.get_boolean('panel-show-clock')});
@@ -634,7 +638,7 @@ export function withPanel(Base) {
                 ['launcher', screen.menuButton.container],
                 ['application', screen.appMenuButton.container],
                 ['global-menu', screen.globalMenuBox],
-                ['transfer', screen.transferLabel],
+                ['transfer', screen.transferButton],
                 ['clock', screen.clockButton],
                 ['search', screen.searchButton],
                 ['preferences', screen.preferencesButton],
@@ -880,7 +884,7 @@ export function withPanel(Base) {
                 label.y_align = Clutter.ActorAlign.CENTER;
                 label.set_style(`font-size: ${screen.fontSize}px; padding: 0 ${buttonPadding}px;`);
             }
-            for (const button of [screen.menuButton.container, screen.appMenuButton.container,
+            for (const button of [screen.menuButton.container, screen.appMenuButton.container, screen.transferButton,
                 screen.clockButton, screen.searchButton, screen.preferencesButton,
                 screen.notificationButton.container,
                 ...screen.statusNotifierButtons.values(),
