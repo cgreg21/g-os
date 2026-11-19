@@ -1,7 +1,4 @@
 .g-os-secondary-panel {
-	min-height: 24px;
-	spacing: 6px;
-	padding: 0 8px;
 }
 
 .g-os-panel-drop-zone.drop {
@@ -9,13 +6,9 @@
 	border-radius: 6px;
 }
 
-.g-os-panel-zone-content {
-	spacing: 6px;
-}
 
-.macos-global-menu {
-	spacing: 0px;
-}
+
+
 
 .g-os-active-app {
 	max-width: 180px;
