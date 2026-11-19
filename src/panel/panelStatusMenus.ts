@@ -569,10 +569,7 @@ export class NetworkStatusMenu {
     _buildOverview() {
         const previousContents = this.contents;
         this.contents = new Map();
-        const header = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-header'});
-        header.add_child(this._label('Réseau', 'g-os-network-title'));
-        header.add_child(this._label('État des connexions', 'g-os-network-subtitle'));
-        this.body.add_child(header);
+        this.body.add_child(this._label('Réseau', 'g-os-network-title'));
 
         this.connectionCard = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-connection-card'});
         const cardTop = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-card-top'});
@@ -581,16 +578,11 @@ export class NetworkStatusMenu {
         cardTop.add_child(this.connectionIcon);
         const cardText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, x_expand: true,
             style_class: 'g-os-network-card-text'});
-        cardText.add_child(this._label('État du réseau', 'g-os-network-card-title'));
         this.connectionSummary = this._label('Recherche des connexions…', 'g-os-network-card-summary');
         cardText.add_child(this.connectionSummary);
         cardTop.add_child(cardText);
         this.connectionCard.add_child(cardTop);
-        this.connectionHint = this._label('Gérez vos connexions depuis ce panneau', 'g-os-network-card-hint');
-        this.connectionCard.add_child(this.connectionHint);
         this.body.add_child(this.connectionCard);
-
-        this.body.add_child(this._label('CONNEXIONS', 'g-os-network-section-title'));
         this.rowsBox = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-rows'});
         this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
