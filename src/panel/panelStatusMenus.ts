@@ -613,6 +613,16 @@ export class NetworkStatusMenu {
         this._refreshConnectionCard();
     }
 
+    _appendSettingsItem() {
+        this.settingsSeparator = new this.PopupMenu.PopupSeparatorMenuItem();
+        this.body.add_child(this.settingsSeparator);
+        this.settingsButton = this._button('Paramètres', 'popup-menu-item', () => {
+            if (!this.destroyed)
+                this.openSettings?.();
+        });
+        this.body.add_child(this.settingsButton);
+    }
+
     _refreshConnectionCard() {
         if (!this.connectionCard)
             return;
