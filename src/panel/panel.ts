@@ -980,7 +980,6 @@ export function withPanel(Base) {
                 button.visible = properties.Status !== 'Passive';
                 button.y_align = Clutter.ActorAlign.CENTER;
                 button.statusIcon.y_align = Clutter.ActorAlign.CENTER;
-                button.statusIcon.set_style(`icon-size: ${screen.iconSize ?? 16}px;`);
                 if (screen.panelButtonMetrics)
                     applyPanelButtonMetrics(button, screen.panelButtonMetrics);
                 if (button.get_parent() !== screen.statusNotifierBox ||
