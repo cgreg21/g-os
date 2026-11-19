@@ -411,11 +411,25 @@ export function withPanel(Base) {
 
         _populatePanelMenu(button) {
             applyNativeMenuTheme(button.menu, 'g-os-popup');
+
+            // Navigation
             button.menu.addAction('Vue d’ensemble', () => Main.overview.show());
             button.menu.addAction('Applications', () => Main.overview.showApps());
             button.menu.addAction('Rechercher', () => Main.overview.focusSearch());
+
+            button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+            // Bureau
             const desktop = button.menu.addAction('Afficher le bureau', () => this._toggleDesktop());
+
+            button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+            // Personnalisation
             button.menu.addAction('Préférences', () => this.openPreferences());
+
+            button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+            // Paramètres système
             const settings = button.menu.addAction('Paramètres système', () => {
                 const app = this._appSystem.lookup_app('org.gnome.Settings.desktop');
                 if (app) {
@@ -423,6 +437,10 @@ export function withPanel(Base) {
                     app.activate();
                 }
             });
+
+            button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+            // Session
             const actions = SystemActions.getDefault() as ReturnType<typeof SystemActions.getDefault> & {
                 activateLockScreen: () => void;
             };
@@ -439,6 +457,7 @@ export function withPanel(Base) {
                 if (open) {
                     desktop.label.text = this._desktopActionName();
                     settings.setSensitive(Boolean(this._appSystem.lookup_app('org.gnome.Settings.desktop')));
+                    updateExtensions();
                     updateLock();
                     alignMenuRows(button.menu.box, Clutter);
                 }
