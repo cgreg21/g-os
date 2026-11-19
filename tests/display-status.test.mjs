@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {BatteryStatusMenu, DisplayStatusMenu, SoundStatusMenu} from '../dist/panel/panelStatusMenus.js';
+import {BatteryStatusMenu, DisplayStatusMenu, SoundStatusMenu, createPowerDeviceClient} from '../dist/panel/panelStatusMenus.js';
 
 class MockVariant {
     constructor(signature, value) {
@@ -287,6 +287,39 @@ test('sound slider reaches amplified volume only while the system allows it', ()
     assert.equal(controller.slider.value, 1);
 
     controller.destroy();
+});
+
+test('UPower client ignores queued device events after disposal', () => {
+    const root = new MockEmitter();
+    let rootSignal;
+    let disposed = false;
+    let proxyCreations = 0;
+    root.call_sync = () => ({deep_unpack: () => [[]]});
+    root.run_dispose = () => { disposed = true; };
+    const Gio = {
+        BusType: {SYSTEM: 0},
+        DBusProxyFlags: {NONE: 0},
+        DBusCallFlags: {NONE: 0},
+        DBusProxy: {
+            new_for_bus_sync(_bus, _flags, _info, _name, path) {
+                proxyCreations++;
+                assert.equal(path, '/org/freedesktop/UPower');
+                return root;
+            },
+        },
+    };
+    const originalConnect = root.connect.bind(root);
+    root.connect = (signal, callback) => {
+        if (signal === 'g-signal')
+            rootSignal = callback;
+        return originalConnect(signal, callback);
+    };
+    const client = createPowerDeviceClient(Gio);
+    client.dispose();
+    rootSignal(root, null, 'DeviceAdded', new MockVariant('(o)', ['/org/freedesktop/UPower/devices/battery_BAT0']));
+    assert.equal(disposed, true);
+    assert.equal(proxyCreations, 1);
+    assert.deepEqual(client.get_devices2(), []);
 });
 
 test('destroyed battery menus ignore late refreshes and device synchronization', () => {
