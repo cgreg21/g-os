@@ -1,4 +1,5 @@
-export const PANEL_BUTTON_SPACING = 6;
+export const PANEL_BUTTON_DEFAULT_ITEM_SPACING = 6;
+export const PANEL_BUTTON_CONTENT_SPACING = 4;
 
 /**
  * Shared construction and sizing for every interactive topbar item.
@@ -9,9 +10,10 @@ export function calculatePanelButtonMetrics({
     panelHeight,
     panelVerticalPadding = 0,
     buttonPadding = 0,
-    spacing = PANEL_BUTTON_SPACING,
+    itemSpacing = PANEL_BUTTON_DEFAULT_ITEM_SPACING,
+    contentSpacing = PANEL_BUTTON_CONTENT_SPACING,
 }) {
-    const values = [panelHeight, panelVerticalPadding, buttonPadding, spacing];
+    const values = [panelHeight, panelVerticalPadding, buttonPadding, itemSpacing, contentSpacing];
     if (values.some(value => !Number.isFinite(value) || value < 0) || panelHeight <= 0)
         throw new RangeError('Panel button dimensions must be finite non-negative values');
 
@@ -23,7 +25,8 @@ export function calculatePanelButtonMetrics({
         iconSize: Math.max(1, Math.floor(contentHeight * 0.72)),
         fontSize: Math.max(1, Math.floor(contentHeight * 0.64)),
         padding: effectivePadding,
-        spacing,
+        itemSpacing,
+        contentSpacing,
     };
 }
 
@@ -92,7 +95,7 @@ export function calculatePanelLabelFontSize(fontSize, textLength, availableWidth
 
 export function applyPanelButtonMetrics(button, metrics) {
     button.set_style(`padding: ${metrics.padding}px; margin: 0; min-height: 0;`);
-    button.panelContent?.set_style?.(`spacing: ${metrics.spacing}px;`);
+    button.panelContent?.set_style?.(`spacing: ${metrics.contentSpacing}px;`);
     button.panelIcon?.set_style?.(`icon-size: ${metrics.iconSize}px;`);
     button.panelLabel?.set_style?.(`font-size: ${metrics.fontSize}px;`);
 }
