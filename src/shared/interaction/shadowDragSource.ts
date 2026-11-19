@@ -1,4 +1,4 @@
-import Clutter from 'gi://Clutter';
+import type Clutter from 'gi://Clutter';
 import type {LifecycleScope} from '../../core/lifecycleScope.js';
 import type {DragAndDropController, DragSourceCallbacks, DragSourceOptions} from './dragAndDrop.js';
 
@@ -7,6 +7,7 @@ type ShadowDragSourceOptions = {
     actor: Clutter.Actor & {_delegate?: Record<string, unknown> | null};
     visualActor?: Clutter.Actor;
     St: any;
+    Clutter: any;
     delegate?: Record<string, unknown>;
     callbacks?: DragSourceCallbacks;
     options?: DragSourceOptions;
@@ -25,6 +26,7 @@ export function registerShadowDragSource({
     actor,
     visualActor = actor,
     St,
+    Clutter,
     delegate = {},
     callbacks = {},
     options = {},
