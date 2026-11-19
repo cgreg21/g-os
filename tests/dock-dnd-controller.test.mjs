@@ -92,7 +92,8 @@ test('dock reorder transitions are owned by the screen animation manager', () =>
     assert.match(dockOrderSource, /screen\.lifecycle\.animations\.animate\(/);
     assert.match(dockOrderSource, /screen\.lifecycle\.animations\.cancel\(/);
     assert.match(dockOrderSource, /dock-reorder:/);
-    assert.match(dockOrderSource, /screen\.lifecycle\.addSignal\(button, button\.connect\('destroy'/);
+    assert.match(dockOrderSource, /button\.connect\('destroy', \(\) => screen\.lifecycle\.animations\.cancel\(animationKey\)\)/);
+    assert.match(dockOrderSource, /button owns this one-shot destroy handler/i);
     assert.doesNotMatch(dockOrderSource, /candidate\.ease\(\{/);
 });
 
