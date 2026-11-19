@@ -207,7 +207,8 @@ export default class GOsPreferences extends ExtensionPreferences {
             panel.add(row);
         }
         for (const [key, title] of [
-            ['panel-icon-padding', 'Padding des boutons (px)'],
+            ['panel-icon-padding', 'Padding intérieur des boutons (px)'],
+            ['panel-item-spacing', 'Espacement entre les éléments (px)'],
         ]) {
             const row = Adw.SpinRow.new_with_range(0, 24, 1);
             row.title = title;
