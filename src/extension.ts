@@ -198,7 +198,9 @@ export default class GOsExtension extends ExtensionComponents {
                         this._queueDockHide(screen);
                 }
             });
-            this._connect(Main.layoutManager, 'monitors-changed', () => this._applySettings());
+            // Monitor changes can arrive while Mutter is allocating chrome actors. Defer
+            // screen teardown/recreation until the current layout pass has completed.
+            this._connect(Main.layoutManager, 'monitors-changed', () => this._queueSettingsApply());
             this._connect(global.display, 'workareas-changed', () => {
                 if (this._widgetAreaSource)
                     return;
