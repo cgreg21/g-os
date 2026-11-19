@@ -16,8 +16,13 @@ function logCleanupError(error: unknown, message: string): void {
     }
 }
 
-function disconnectIfConnected(emitter: {disconnect(id: number): void}, id: number): void {
-    if (emitter instanceof GObject.Object && !GObject.signal_handler_is_connected(emitter, id))
+function disconnectIfConnected(
+    emitter: {disconnect(id: number): void},
+    id: number,
+    isGObject = false,
+): void {
+    if ((isGObject || emitter instanceof GObject.Object) &&
+        !GObject.signal_handler_is_connected(emitter, id))
         return;
     emitter.disconnect(id);
 }
@@ -112,7 +117,7 @@ export class DragAndDropController {
             }
             if (actorDestroySignal) {
                 try {
-                    disconnectIfConnected(actor, actorDestroySignal);
+                    disconnectIfConnected(actor, actorDestroySignal, true);
                 } catch (error) {
                     logCleanupError(error, 'Unable to disconnect g-os actor destroy signal');
                 }
