@@ -161,6 +161,21 @@ test('network overview avoids duplicate status and keeps Wi-Fi scanning in its d
     assert.ok(detail.includes('_appendSettingsItem'));
 });
 
+test('network traffic graph reads only interfaces carrying the active default route', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class NetworkStatusMenu');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.ok(source.includes("this._readProcFile('/proc/net/route')"));
+    assert.ok(source.includes("this._readProcFile('/proc/net/ipv6_route')"));
+    assert.ok(source.includes("fields[1] === '00000000'"));
+    assert.ok(source.includes("fields[0] === '00000000000000000000000000000000'"));
+    assert.ok(source.includes('activeInterfaces.has(iface)'));
+    assert.ok(source.includes("source.split('\\n')"));
+    assert.ok(source.includes('split(/\\s+/)'));
+    assert.ok(source.includes("this.lastTraffic.interfaces === counters.interfaces"));
+});
+
 test('network popup delegates its visual styling to the active GNOME theme', async () => {
     const css = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
