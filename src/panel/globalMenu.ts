@@ -7,10 +7,10 @@ export class GtkGlobalMenu {
     [key: string]: any;
 
     constructor(container, {Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar = null,
-        timestamp = () => 0, stylePrefix = 'g-os', textPadding = 0, getMenuBounds = () => null,
+        timestamp = () => 0, stylePrefix = 'g-os', getMenuBounds = () => null,
         getButtonMetrics = () => null}) {
         Object.assign(this, {container, Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar,
-            timestamp, stylePrefix, textPadding, getMenuBounds, getButtonMetrics});
+            timestamp, stylePrefix, getMenuBounds, getButtonMetrics});
         this.window = null;
         this.windowCleanup = new CleanupManager();
         this.registrarCleanup = new CleanupManager();
