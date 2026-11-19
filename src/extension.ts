@@ -259,7 +259,8 @@ export default class GOsExtension extends ExtensionComponents {
             });
             this._connectOverviewDash();
             this._setupDesktopWidgetMenu();
-            this._applySettings();
+            // Build chrome actors after GNOME Shell completes the enable/startup layout pass.
+            this._queueSettingsApply();
             this._updateActiveApp();
     }
 
