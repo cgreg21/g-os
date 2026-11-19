@@ -14,7 +14,6 @@ import * as AppDisplay from 'resource:///org/gnome/shell/ui/appDisplay.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders} from './shared/appFolders.js';
 import {errorMessage} from './shared/errorMessage.js';
@@ -29,6 +28,7 @@ import {withMediaWidgets} from './media/mediaWidgets.js';
 import {withDockFolders} from './dock/dockFolders.js';
 import {withDockAppearance} from './dock/dockAppearance.js';
 import {withPanel} from './panel/panel.js';
+import {createPanelMenuButton} from './panel/panelButton.js';
 import {DbusMenuRegistrar} from './panel/menuRegistrar.js';
 import {StatusNotifierHost} from './panel/statusNotifier.js';
 import * as AltTab from 'resource:///org/gnome/shell/ui/altTab.js';
@@ -130,13 +130,14 @@ export default class GOsExtension extends ExtensionComponents {
                 this._updateDockWidgets();
             });
 
-            this._menu = new PanelMenu.Button(0.0, 'Applications');
-            this._menu.add_style_class_name('g-os-panel-menu');
-            this._menuBox = new St.BoxLayout({style_class: 'g-os-panel-menu-box'});
             this._menuIcon = new St.Icon({
                 gicon: this._launcherIcon('panel'),
                 fallback_gicon: this._gnomeLogo,
                 style_class: 'system-status-icon',
+            });
+            this._menu = createPanelMenuButton(St, Clutter, PopupMenu, {
+                icon: this._menuIcon, accessibleName: 'Applications',
+                styleClass: 'g-os-panel-menu',
             });
             this._menuBox.add_child(this._menuIcon);
             this._activeAppLabel = new St.Label({
@@ -149,7 +150,6 @@ export default class GOsExtension extends ExtensionComponents {
                 y_align: Clutter.ActorAlign.CENTER,
                 visible: false,
             });
-            this._menu.add_child(this._menuBox);
             this._populatePanelMenu(this._menu);
 
             this._connect(Main.messageTray, 'source-added', (tray, source) => this._watchNotificationSource(source));
