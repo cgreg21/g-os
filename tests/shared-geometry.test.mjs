@@ -168,3 +168,22 @@ test('dock magnification delegates its scale and displacement calculations to sh
     assert.match(dockAppearanceSource, /calculateDockMagnificationGeometry\(/);
     assert.doesNotMatch(dockAppearanceSource, /const pointerIndex =|const falloff = 1 - progress/);
 });
+
+test('rejects invalid magnification scale, pointer and unsorted centers', () => {
+    const input = {
+        centers: [50, 100, 150],
+        buttonSizes: [48, 48, 48],
+        excluded: [false, false, false],
+        coordinate: 100,
+        maximumScale: 2,
+        radius: 1,
+        engaged: true,
+        viewStart: 0,
+        viewEnd: 400,
+        iconSize: 48,
+    };
+    assert.equal(calculateDockMagnificationGeometry({...input, maximumScale: 0.8}), null);
+    assert.equal(calculateDockMagnificationGeometry({...input, coordinate: Number.NaN}), null);
+    assert.equal(calculateDockMagnificationGeometry({...input, centers: [50, 150, 100]}), null);
+    assert.equal(calculateDockMagnificationGeometry({...input, iconSize: -1}), null);
+});
