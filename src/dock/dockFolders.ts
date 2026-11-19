@@ -281,7 +281,7 @@ export function withDockFolders(Base) {
                     };
                     registerShadowDragSource({
                         controller: screen.interactionDnd,
-                        actor: item,
+                        actor: item as Clutter.Actor & {_delegate?: Record<string, unknown> | null},
                         St,
                         delegate,
                         callbacks: {onBegin: () => menu.close()},
