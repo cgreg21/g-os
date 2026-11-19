@@ -838,7 +838,6 @@ export class WidgetRuntime {
             actor.widgetConfig = description ? widgetConfiguration(description, instance.config) : {};
             actor.dockWidgetType = instance.widget;
             actor.dockFocusKey = instance.legacy ? `widget:${instance.widget}` : `widget-instance:${instance.id}`;
-            actor._delegate ??= {getDragActor: () => new this.env.Clutter.Clone({source: actor}), getDragActorSource: () => actor};
             if (actor.dockWidgetPrimary)
                 this.host._updateDockWidget(actor);
         }
