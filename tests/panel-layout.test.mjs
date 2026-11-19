@@ -99,6 +99,19 @@ test('panel actor cleanup verifies the current parent before removing children',
     assert.match(panel, /removeActorFromParent\(actor, parent\)/);
 });
 
+test('the network panel aggregates Wi-Fi, wired, VPN and mobile native controls', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class NetworkStatusMenu');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    for (const feature of ['Wi-Fi', 'Ethernet', 'VPN', 'Réseau mobile'])
+        assert.match(source, new RegExp(feature));
+    assert.match(source, /content\.mount\(toggle\.menu/);
+    assert.match(source, /toggle\.emit\('clicked', 1\)/);
+    assert.match(panelSource, /new NetworkStatusMenu\([\s\S]*?network\?\._wirelessToggle[\s\S]*?network\?\._wiredToggle[\s\S]*?network\?\._vpnToggle[\s\S]*?network\?\._mobileToggle/);
+    assert.match(panelSource, /\['wifi', 'network-wired-symbolic', 'Réseau'\]/);
+});
+
 test('native status menu content restores only actors it can safely reparent', async () => {
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
     const start = menus.indexOf('class NativeMenuContent');
