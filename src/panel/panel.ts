@@ -549,7 +549,7 @@ export function withPanel(Base) {
             });
             screen.transferButton = createPanelButton(St, Clutter, {
                 text: screen.transferLabel, accessibleName: 'Transferts',
-                canFocus: false, reactive: false,
+                canFocus: false, reactive: true,
             });
             screen.transferButton.bind_property('visible', screen.transferLabel, 'visible', GObject.BindingFlags.SYNC_CREATE);
             screen.panel.add_child(screen.transferButton);
