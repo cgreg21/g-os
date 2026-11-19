@@ -17,7 +17,7 @@ test('panel button dimensions account for both panel and button vertical padding
         itemSpacing: 5,
     }), {
         contentHeight: 36,
-        iconSize: 25,
+        iconSize: 32,
         fontSize: 23,
         padding: 2,
         itemSpacing: 5,
@@ -146,7 +146,7 @@ test('icon-only, text-only and combined buttons receive exactly the same padding
     assert.equal(iconOnly.styles[0], 'padding: 2px; margin: 0; min-height: 0;');
     assert.equal(textOnly.styles[0], iconOnly.styles[0]);
     assert.equal(combined.styles[0], iconOnly.styles[0]);
-    assert.ok(iconOnly.panelIcon.styles.some(style => style.includes('icon-size: 25px')));
+    assert.ok(iconOnly.panelIcon.styles.some(style => style.includes('icon-size: 32px')));
     assert.ok(textOnly.panelLabel.styles.some(style => style.includes('font-size: 23px')));
     assert.ok(combined.panelContent.styles.some(style => style.includes('spacing: 4px')));
 });
