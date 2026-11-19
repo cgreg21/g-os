@@ -483,12 +483,13 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
         disconnect: id => { assert.equal(id, 3); disconnected = true; },
     };
 
-    context.api.connect(emitter, 'changed', () => calls++);
-    context.api.every(1000, () => calls++);
+    context.context.api.connect(emitter, 'changed', () => calls++);
+    context.context.api.every(1000, () => calls++);
     signalCallback();
     timerCallback();
     assert.equal(calls, 2);
 
+    context.dispose();
     for (const dispose of cleanup.reverse())
         dispose();
 
