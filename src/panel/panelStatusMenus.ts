@@ -1,3 +1,5 @@
+import {CleanupManager} from '../core/cleanupManager.js';
+
 export function alignMenuRows(actor, Clutter) {
     if (!actor)
         return;
@@ -19,8 +21,8 @@ export class SoundStatusMenu {
         this.Clutter = Clutter;
         this.PopupMenu = PopupMenu;
         this.soundSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.sound'});
-        this.streamSignals = [];
-        this.controlSignals = [];
+        this.cleanup = new CleanupManager();
+        this.streamCleanup = new CleanupManager();
         const row = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         this.muteIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 20});
         this.muteButton = new St.Button({child: this.muteIcon, can_focus: true, reactive: true, track_hover: true,
@@ -31,7 +33,8 @@ export class SoundStatusMenu {
         this.slider.y_align = Clutter.ActorAlign.CENTER;
         this.slider.width = 200;
         this.slider.accessible_name = 'Volume de sortie';
-        this.sliderSignal = this.slider.connect('notify::value', () => this.changeVolume());
+        this.cleanup.addSignal(this.slider,
+            this.slider.connect('notify::value', () => this.changeVolume()));
         this.percentage = new St.Label({text: 'Volume indisponible', style_class: 'g-os-status-info'});
         this.percentage.y_align = Clutter.ActorAlign.CENTER;
         row.add_child(this.muteButton);
@@ -43,27 +46,25 @@ export class SoundStatusMenu {
         menu.addMenuItem(this.devices);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         menu.addAction('Parametres du son', openSettings);
-        this.openSignal = menu.connect('open-state-changed', (actor, open) => {
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
             if (open)
                 this.syncOutput();
-        });
+        }));
         for (const signal of ['state-changed', 'default-sink-changed', 'stream-added', 'stream-removed', 'output-added', 'output-removed'])
-            this.controlSignals.push(control.connect(signal, () => this.syncOutput()));
-        this.amplificationSignal = this.soundSettings.connect(
-            'changed::allow-volume-above-100-percent', () => this._syncAmplification());
+            this.cleanup.addSignal(control, control.connect(signal, () => this.syncOutput()));
+        this.cleanup.addSignal(this.soundSettings, this.soundSettings.connect(
+            'changed::allow-volume-above-100-percent', () => this._syncAmplification()));
         this.syncOutput();
     }
 
     syncOutput() {
         const stream = this.control.get_default_sink();
         if (stream !== this.stream) {
-            for (const id of this.streamSignals)
-                this.stream?.disconnect(id);
-            this.streamSignals = [];
+            this.streamCleanup.clear();
             this.stream = stream;
             if (stream) {
                 for (const signal of ['notify::volume', 'notify::is-muted'])
-                    this.streamSignals.push(stream.connect(signal, () => this.refresh()));
+                    this.streamCleanup.addSignal(stream, stream.connect(signal, () => this.refresh()));
             }
         }
         this.refresh();
@@ -172,15 +173,8 @@ export class SoundStatusMenu {
     }
 
     destroy() {
-        this.menu.disconnect(this.openSignal);
-        this.slider.disconnect(this.sliderSignal);
-        this.soundSettings.disconnect(this.amplificationSignal);
-        for (const id of this.streamSignals)
-            this.stream?.disconnect(id);
-        for (const id of this.controlSignals)
-            this.control.disconnect(id);
-        this.streamSignals = [];
-        this.controlSignals = [];
+        this.cleanup.clear();
+        this.streamCleanup.clear();
     }
 }
 
