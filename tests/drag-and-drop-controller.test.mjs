@@ -45,7 +45,7 @@ test('topbar registers its existing drop zones with the shared controller', () =
 test('topbar uses the shared controller while preserving shadow drag callbacks', () => {
     assert.match(panelSource, /interactionDnd\.registerSource\(actor/);
     assert.match(panelSource, /getDragActorSource: \(\) => screen\.panelDragState\?\.actor === actor/);
-    assert.match(panelSource, /onBegin: \(\) => this\._beginPanelShadowDrag/);
+    assert.match(panelSource, /onBegin: \(\) => \{[\s\S]*?dragActor = createDragActor\(\);[\s\S]*?_beginPanelShadowDrag\(screen, id, actor\)/);
     assert.match(panelSource, /onEnd: success => this\._finishPanelShadowDrag/);
     assert.match(panelSource, /onCancelled: \(\) => this\._finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /onDestroy: \(\) => \{/);
