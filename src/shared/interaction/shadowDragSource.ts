@@ -46,10 +46,13 @@ export function registerShadowDragSource({
         return container;
     };
     const originalDelegate = actor._delegate;
-    const getDragActorSource = typeof delegate.getDragActorSource === 'function'
-        ? (...args: any[]) => delegate.getDragActorSource(...args)
-        : typeof originalDelegate?.getDragActorSource === 'function'
-            ? (...args: any[]) => originalDelegate.getDragActorSource(...args)
+    const delegateGetDragActorSource = delegate.getDragActorSource as ((...args: any[]) => unknown) | undefined;
+    const originalGetDragActorSource = originalDelegate?.getDragActorSource as
+        ((...args: any[]) => unknown) | undefined;
+    const getDragActorSource = delegateGetDragActorSource
+        ? (...args: any[]) => delegateGetDragActorSource.apply(delegate, args)
+        : originalGetDragActorSource
+            ? (...args: any[]) => originalGetDragActorSource.apply(originalDelegate, args)
             : () => visualActor;
     const finish = callback => {
         try {
