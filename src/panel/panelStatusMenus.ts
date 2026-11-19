@@ -526,11 +526,12 @@ export class NetworkStatusMenu {
 
         menu.actor.add_style_class_name('g-os-network-popup');
         this.rootItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false,
-            style_class: 'g-os-network-shell-item'});
+            x_expand: true, style_class: 'g-os-network-shell-item'});
         this.scroll = new St.ScrollView({hscrollbar_policy: St.PolicyType.NEVER,
             vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
-            style_class: 'g-os-network-scroll'});
-        this.body = new St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-panel'});
+            x_expand: true, style_class: 'g-os-network-scroll'});
+        this.body = new St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
+            x_expand: true, style_class: 'g-os-network-panel'});
         this.scroll.set_child(this.body);
         this.rootItem.add_child(this.scroll);
         menu.addMenuItem(this.rootItem);
