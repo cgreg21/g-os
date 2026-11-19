@@ -84,7 +84,7 @@ test('generic DND source setup rolls back partially acquired resources', () => {
 });
 
 test('generic DND target setup restores the previous delegate when signal registration fails', () => {
-    assert.match(source, /try \{\s*actorDestroySignal = actor\.connect\('destroy', dispose\);\s*this\.targets\.set\(actor, dispose\);[\s\S]*?catch \(error\) \{\s*\/\/ Restore the previous delegate[\s\S]*?dispose\(\);\s*throw error;/);
+    assert.match(source, /try \{\s*actorDestroySignal = actor\.connect\('destroy', \(\) => \{[\s\S]*?actorDestroySignal = 0;[\s\S]*?dispose\(\);\s*\}\);\s*this\.targets\.set\(actor, dispose\);[\s\S]*?catch \(error\) \{\s*\/\/ Restore the previous delegate[\s\S]*?dispose\(\);\s*throw error;/);
 });
 
 test('drag callbacks stop immediately when begin re-enters source disposal', () => {
