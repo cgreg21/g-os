@@ -110,7 +110,9 @@ test('the network panel aggregates Wi-Fi, wired, VPN and mobile native controls'
         assert.match(panelNetworkSource, new RegExp(feature));
     assert.match(source, /content\.mount\(toggle\.menu/);
     assert.match(source, /toggle\.emit\('clicked', 1\)/);
-    assert.match(panelSource, /new NetworkStatusMenu\([\s\S]*?network\?\._wirelessToggle[\s\S]*?network\?\._wiredToggle[\s\S]*?network\?\._vpnToggle[\s\S]*?network\?\._mobileToggle/);
+    assert.match(panelNetworkSource, /new NetworkStatusMenu/);
+    for (const property of ['_wirelessToggle', '_wiredToggle', '_vpnToggle', '_mobileToggle'])
+        assert.match(panelSource, new RegExp('network\\\\\\?\\\\.' + property));
     assert.match(panelSource, /\['wifi', 'network-wired-symbolic', 'Réseau'\]/);
 });
 
