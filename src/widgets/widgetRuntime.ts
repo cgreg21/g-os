@@ -506,7 +506,7 @@ export class WidgetRuntime {
             else if (background === 'transparent')
                 result.actor.set_style('background-color: transparent;');
             else if (background === 'dynamic')
-                context.api.setDynamicLevel(0.35);
+                widgetContext.context.api.setDynamicLevel(0.35);
             if (this.errors[instance.id]) {
                 delete this.errors[instance.id];
                 if (this.host._settings.is_writable('widget-errors'))
