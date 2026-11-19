@@ -1261,7 +1261,7 @@ export function withPanel(Base) {
                 ].filter(([, toggle]) => Boolean(toggle));
                 button.statusController = new NetworkStatusMenu(menu, button.statusIcon, {
                     toggles: networkToggles.map(([title, toggle]) => ({title, toggle})),
-                    St, Clutter, PopupMenu, openSettings: settings('network'),
+                    St, Clutter, PopupMenu, GLib, openSettings: settings('network'),
                 });
             } else if (button.statusKind === 'bluetooth') {
                 const toggle = quick?._bluetooth?.quickSettingsItems?.[0];
