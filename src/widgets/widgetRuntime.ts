@@ -464,10 +464,14 @@ export class WidgetRuntime {
                 const level = Math.max(0, Math.min(1, Number(value) || 0));
                 actor.set_style(`background-color: ${widgetColor(config['background-color'], 0.12 + level * 0.38)};`);
             },
-            saveConfig: changes => this.updateInstance(instance, {config: {...instance.config, ...changes}}),
-            getState: () => readWidgetState(host._settings.get_string('widget-state'), instance.id),
+            saveConfig: changes => {
+                if (!disposed && host._settings)
+                    this.updateInstance(instance, {config: {...instance.config, ...changes}});
+            },
+            getState: () => host._settings
+                ? readWidgetState(host._settings.get_string('widget-state'), instance.id) : {},
             saveState: changes => {
-                if (host._settings.is_writable('widget-state'))
+                if (!disposed && host._settings?.is_writable('widget-state'))
                     host._settings.set_string('widget-state', writeWidgetState(host._settings.get_string('widget-state'), instance.id, changes));
             },
             watchState: callback => {
