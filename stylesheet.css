@@ -121,16 +121,7 @@
     font-size: 11px;
 }
 
-.g-os-network-connection-card {
-    spacing: 8px;
-    padding: 14px;
-    border-radius: 14px;
-    background-color: rgba(255, 255, 255, 0.075);
-}
-
-.g-os-network-card-top, .g-os-network-detail-status { spacing: 12px; }
-.g-os-network-card-text { spacing: 3px; }
-.g-os-network-card-summary { font-size: 13px; font-weight: bold; }
+.g-os-network-detail-status { spacing: 12px; }
 .g-os-network-rows { spacing: 3px; }
 .g-os-network-row-button {
     padding: 8px 10px;
@@ -146,7 +137,6 @@
 .g-os-network-chevron { color: rgba(235, 238, 245, 0.45); }
 .g-os-network-state-on { color: #8bd5a6; }
 .g-os-network-state-off { color: rgba(235, 238, 245, 0.55); }
-.g-os-network-actions { spacing: 8px; }
 .g-os-network-action, .g-os-network-settings, .g-os-network-back {
     padding: 9px 11px;
     border-radius: 10px;
