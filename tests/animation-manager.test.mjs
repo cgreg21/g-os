@@ -102,3 +102,28 @@ test('continues cancelling remaining properties when a disposed actor rejects on
             globalThis.logError = previousLogError;
     }
 });
+
+test('continues cancelling transitions when the host logger also throws', () => {
+    const manager = new AnimationManager();
+    const removed = [];
+    const previousLogError = globalThis.logError;
+    globalThis.logError = () => { throw new Error('logger failure'); };
+    const actor = {
+        ease() {},
+        remove_transition(property) {
+            removed.push(property);
+            if (property === 'translation-x')
+                throw new Error('actor already disposed');
+        },
+    };
+
+    try {
+        manager.animate('dock', actor, {translation_x: 1, opacity: 0}, options);
+        assert.doesNotThrow(() => manager.destroy());
+    } finally {
+        globalThis.logError = previousLogError;
+    }
+
+    assert.deepEqual(removed, ['translation-x', 'opacity']);
+    assert.equal(manager.size, 0);
+});
