@@ -1791,6 +1791,7 @@ export default class GOsExtension extends ExtensionComponents {
                 if (screen.appLabel) {
                     if (screen.appLabel.text !== appName)
                         screen.appLabel.text = appName;
+                    screen.appMenuButton?.refreshTargetApp?.();
                     this._applyPanelMetrics(screen);
                 }
                 for (const button of screen.appButtons ?? []) {
