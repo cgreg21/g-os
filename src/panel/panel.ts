@@ -16,6 +16,7 @@ import GdkPixbuf from 'gi://GdkPixbuf?version=2.0';
 import {SoundStatusMenu, RadioStatusMenu, BatteryStatusMenu, DisplayStatusMenu,
     createPowerDeviceClient, alignMenuRows} from './panelStatusMenus.js';
 import {GtkGlobalMenu} from './globalMenu.js';
+import {applyNativeMenuTheme} from './menuTheme.js';
 import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
@@ -60,7 +61,7 @@ class StatusNotifierMenu {
         this.client = new DbusMenuClient(item.bus, this.path,
             {Gio, GLib, timestamp: () => global.get_current_time()});
         this.menu = new PopupMenu.PopupMenu(button, 0.5, St.Side.TOP);
-        this.menu.actor.add_style_class_name('g-os-popup');
+        applyNativeMenuTheme(this.menu, 'g-os-popup');
         Main.uiGroup.add_child(this.menu.actor);
         this.menu.actor.hide();
         Main.panel.menuManager.addMenu(this.menu);
@@ -97,6 +98,7 @@ class StatusNotifierMenu {
             const submenu = model.get_item_link(index, 'submenu');
             if (submenu) {
                 const entry = new PopupMenu.PopupSubMenuMenuItem(label);
+                applyNativeMenuTheme(entry.menu, 'g-os-popup-submenu');
                 entry.setSensitive(enabled);
                 entry.menu.connect('open-state-changed', (_menu, open) => {
                     if (open) {
@@ -248,7 +250,7 @@ export function withPanel(Base) {
             screen.notificationMenu = menu;
             screen.notificationIcon = button.panelIcon;
             this._updatePanelNotificationVisibility(screen);
-            menu.actor.add_style_class_name('g-os-popup');
+            applyNativeMenuTheme(menu, 'g-os-popup');
             if (menu._boxPointer?.bin) {
                 const scroll = new St.ScrollView({vscrollbar_policy: St.PolicyType.AUTOMATIC,
                     hscrollbar_policy: St.PolicyType.NEVER});
@@ -358,8 +360,7 @@ export function withPanel(Base) {
             if (!dateMenu?._calendar || !dateMenu?._eventSource)
                 return;
             const menu = new PopupMenu.PopupMenu(screen.clockButton, 0.5, St.Side.TOP);
-            menu.actor.add_style_class_name('g-os-popup');
-            menu.actor.add_style_class_name('g-os-calendar-menu');
+            applyNativeMenuTheme(menu, 'g-os-popup', 'g-os-calendar-menu');
             Main.uiGroup.add_child(menu.actor);
             menu.actor.hide();
             screen.calendarMenu = menu;
@@ -414,7 +415,7 @@ export function withPanel(Base) {
         }
 
         _populatePanelMenu(button) {
-            button.menu.actor.add_style_class_name('g-os-popup');
+            applyNativeMenuTheme(button.menu, 'g-os-popup');
             button.menu.addAction('Vue d’ensemble', () => Main.overview.show());
             button.menu.addAction('Applications', () => Main.overview.showApps());
             button.menu.addAction('Rechercher', () => Main.overview.focusSearch());
