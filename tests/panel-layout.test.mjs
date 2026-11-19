@@ -220,3 +220,18 @@ test('Bluetooth popup stays compact and removes duplicate native heading', async
     assert.ok(source.includes("remove_style_class_name('g-os-bluetooth-popup')"));
     assert.match(css, /\.g-os-bluetooth-popup\s*\{[^}]*width:\s*420px;[^}]*max-width:\s*420px;/);
 });
+
+
+test('all status menus share one compact theme-native popup width', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    const css = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    assert.ok(panel.includes("menu.actor.add_style_class_name('g-os-compact-status-popup')"));
+    assert.ok(panel.includes("menu.box.add_style_class_name('g-os-compact-status-popup')"));
+    assert.match(css, /\.g-os-compact-status-popup\s*\{[^}]*width:\s*420px;[^}]*max-width:\s*420px;/);
+    assert.ok(!css.includes('g-os-bluetooth-popup'));
+    assert.ok(!menus.includes('g-os-bluetooth-popup'));
+    for (const kind of ['sound', 'wifi', 'bluetooth', 'brightness'])
+        assert.ok(panel.includes(`button.statusKind === '${kind}'`));
+    assert.ok(panel.includes('new BatteryStatusMenu'));
+});
