@@ -476,7 +476,8 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
     runtime.host = {};
     runtime.registry = {entries: new Map([['test', {description: {configuration: []}}]])};
     const instance = {id: 'instance', widget: 'test', config: {}};
-    const context = runtime.context(instance, {}, {}, []);
+    const cleanup = [];
+    const context = runtime.context(instance, {}, {}, cleanup);
     const emitter = {
         connect: (_signal, callback) => { signalCallback = callback; return 3; },
         disconnect: id => { assert.equal(id, 3); disconnected = true; },
@@ -488,23 +489,12 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
     timerCallback();
     assert.equal(calls, 2);
 
-    const cleanup = [];
-    // Build a fresh context so its lifetime can be disposed deterministically.
-    const disposable = runtime.context(instance, {}, {}, cleanup);
-    let lateSignal;
-    const lateEmitter = {
-        connect: (_signal, callback) => { lateSignal = callback; return 4; },
-        disconnect: () => {},
-    };
-    disposable.api.connect(lateEmitter, 'changed', () => calls++);
-    disposable.api.every(1000, () => calls++);
     for (const dispose of cleanup.reverse())
         dispose();
 
-    assert.equal(disconnected, false);
-    assert.equal(removed, false);
-    lateSignal();
+    assert.equal(disconnected, true);
+    assert.equal(removed, true);
+    signalCallback();
     assert.equal(timerCallback(), false);
     assert.equal(calls, 2);
-    assert.equal(removed, true);
 });
