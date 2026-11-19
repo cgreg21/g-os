@@ -56,6 +56,7 @@ class FakeActor {
     }
     connect(signal, callback) { this.signals.set(signal, callback); return this.signals.size; }
     destroy() { this.signals.get('destroy')?.(); }
+    hide() { this.hidden = true; }
     emit(signal) { this.signals.get(signal)?.(); }
     add_child(child) { this.children.push(child); }
     set_style(style) { this.styles.push(style); }
@@ -68,6 +69,7 @@ const fakeSt = {
     Button: class extends FakeActor {},
     Side: {TOP: 'top'},
 };
+const fakeUiGroup = new FakeActor();
 const fakeClutter = {
     Orientation: {HORIZONTAL: 'horizontal'},
     ActorAlign: {CENTER: 'center'},
@@ -110,6 +112,7 @@ test('menu-capable controls are the same shared St.Button with an attached menu'
             constructor(source, alignment, side) {
                 Object.assign(this, {source, alignment, side});
                 this.destroyed = false;
+                this.actor = new FakeActor();
             }
             close() { this.closed = true; }
             toggle() { this.toggled = true; }
@@ -117,7 +120,7 @@ test('menu-capable controls are the same shared St.Button with an attached menu'
             destroy() { this.destroyed = true; }
         },
     };
-    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu, {
+    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu, fakeUiGroup, {
         iconName: 'applications', accessibleName: 'Applications',
     });
     assert.ok(button instanceof fakeSt.Button);
@@ -125,6 +128,8 @@ test('menu-capable controls are the same shared St.Button with an attached menu'
     assert.equal(button.menu.source, button);
     assert.equal(button.menu.alignment, 0.5);
     assert.equal(button.menu.side, 'top');
+    assert.equal(fakeUiGroup.children.includes(button.menu.actor), true);
+    assert.equal(button.menu.actor.hidden, true);
 });
 
 test('topbar modules delegate every button construction to the shared factory', async () => {
@@ -146,6 +151,7 @@ test('menu lifetime is owned by the shared button', () => {
             constructor(source, alignment, side) {
                 Object.assign(this, {source, alignment, side});
                 this.destroyed = false;
+                this.actor = new FakeActor();
             }
             close() { this.closed = true; }
             destroy() { this.destroyed = true; }
@@ -163,13 +169,14 @@ test('menu lifetime is owned by the shared button', () => {
 test('menu buttons toggle on click and open from the popup-menu gesture', () => {
     const PopupMenu = {
         PopupMenu: class {
+            constructor() { this.actor = new FakeActor(); }
             close() {}
             destroy() {}
             toggle() { this.toggled = true; }
             open() { this.opened = true; }
         },
     };
-    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu);
+    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu, fakeUiGroup);
     button.emit('clicked');
     assert.equal(button.menu.toggled, true);
     button.emit('popup-menu');
