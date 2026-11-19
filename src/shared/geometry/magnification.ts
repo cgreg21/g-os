@@ -75,8 +75,10 @@ export function calculateDockMagnificationGeometry(
     }
 
     let extra = 0;
-    const offsets = scales.map(scale => {
-        const growth = iconSize * (scale - 1);
+    const offsets = scales.map((scale, index) => {
+        // Each dock button can have a different base size (for example,
+        // widgets and launchers); use its own dimensions for scale growth.
+        const growth = buttonSizes[index]! * (scale - 1);
         const offset = extra + growth / 2;
         extra += growth;
         return Number.isFinite(offset) ? offset : 0;
@@ -120,8 +122,8 @@ export function calculateDockMagnificationGeometry(
         scales,
         shifts,
         growth: Number.isFinite(extra) ? extra : 0,
-        start: Number.isFinite(shifts[0]) && Number.isFinite(iconSize)
-            ? shifts[0] - iconSize * (scales[0] - 1) / 2
+        start: shifts.length > 0 && Number.isFinite(shifts[0])
+            ? shifts[0] - buttonSizes[0]! * (scales[0]! - 1) / 2
             : 0,
     };
 }
