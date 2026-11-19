@@ -1170,7 +1170,7 @@ export class BatteryStatusMenu {
         if (!proxy?.IsPresent) {
             this.percentage.text = Number.isFinite(level) ? `${Math.round(level)} %` : '—';
             this.state.text = Number.isFinite(level) ? 'Batterie' : 'Aucune batterie détectée · sur secteur';
-            this.batteryIcon.icon_name = primary?.icon_name || 'ac-adapter-symbolic';
+            this.batteryIcon.icon_name = primary?.icon_name || 'battery-missing-symbolic';
             if (!batteries.length) this.icon.icon_name = 'battery-missing-symbolic';
             return;
         }
