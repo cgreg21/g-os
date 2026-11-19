@@ -6,6 +6,7 @@ import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders, folderViewOptions} from '../shared/appFolders.js';
+import {CleanupManager} from '../core/cleanupManager.js';
 
 type DockFolderButton = St.Button & {
     dockFocusKey: string;
@@ -384,12 +385,14 @@ export function withDockFolders(Base) {
                     return GLib.SOURCE_REMOVE;
                 });
             };
-            const allocation = menu.actor.connect('notify::allocation', update);
-            stack.connect('notify::allocation', update);
+            const cleanup = new CleanupManager();
+            cleanup.addSignal(menu.actor, menu.actor.connect('notify::allocation', update));
+            cleanup.addSignal(stack, stack.connect('notify::allocation', update));
             stack.connect('destroy', () => {
                 if (source)
                     GLib.source_remove(source);
-                menu.actor.disconnect(allocation);
+                source = 0;
+                cleanup.clear();
             });
             update();
         }
