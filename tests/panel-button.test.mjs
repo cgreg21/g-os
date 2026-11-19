@@ -133,6 +133,7 @@ test('topbar modules delegate every button construction to the shared factory', 
     assert.equal(globalMenu.includes('new this.St.Button'), false);
     assert.ok(panel.includes('createPanelMenuButton(St, Clutter, PopupMenu'));
     assert.ok(extension.includes('createPanelMenuButton(St, Clutter, PopupMenu'));
+    assert.equal(extension.includes('_menuBox'), false);
     assert.ok(globalMenu.includes('createPanelButton(this.St, this.Clutter'));
 });
 
