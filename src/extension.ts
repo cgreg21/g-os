@@ -108,7 +108,7 @@ export default class GOsExtension extends ExtensionComponents {
         this._widgetAreaSource = 0;
         this._mediaPlayers = new Map();
         this._mediaViews = new Set();
-        this._mediaSourceSignals = [];
+        this._mediaSourceCleanup = null;
         this._desktopWindows = new Map();
         this._dockCoverageWindows = new Map();
         this._runningAppSignals = new Map();
