@@ -89,6 +89,13 @@
     max-width: 380px;
 }
 
+/* Keep GNOME popup rows compact without overriding the theme's horizontal
+   spacing, colors, surfaces, separators or control styling. */
+.g-os-compact-status-popup .popup-menu-item {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
 /* Shared compact layouts for sound, display, network, Bluetooth and power. */
 .g-os-status-device-grid { spacing: 6px; }
 .g-os-status-grid-row { spacing: 6px; }
