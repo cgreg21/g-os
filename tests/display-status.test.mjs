@@ -212,6 +212,15 @@ test('brightness controls report unsupported hardware instead of accepting adjus
     controller.destroy();
 });
 
+test('destroyed sound menus ignore queued output updates', () => {
+    const controller = Object.create(SoundStatusMenu.prototype);
+    controller.destroyed = true;
+    controller.control = {get_default_sink: () => assert.fail('destroyed menu must not query audio')};
+    assert.equal(controller.syncOutput(), undefined);
+    assert.equal(controller.refresh(), undefined);
+    assert.equal(controller.refreshDevices(), undefined);
+});
+
 test('sound slider reaches amplified volume only while the system allows it', () => {
     let amplificationEnabled = false;
     const soundSettings = new MockEmitter();
