@@ -172,7 +172,10 @@ export class SoundStatusMenu {
             if (!device)
                 continue;
             const label = stream.get_description() || stream.get_name() || 'Sortie audio';
-            const item = this.devices.addAction(label, () => this.control.change_output(device.get_id()));
+            const item = this.devices.addAction(label, () => {
+                if (!this.destroyed)
+                    this.control.change_output(device.get_id());
+            });
             count++;
             item.setOrnament(stream === this.stream ? this.PopupMenu.Ornament.DOT : this.PopupMenu.Ornament.NONE);
         }
@@ -229,7 +232,7 @@ export class DisplayStatusMenu {
         this.nightLightToggle = new PopupMenu.PopupSwitchMenuItem('Activer le mode nuit',
             this.nightLight.get_boolean('night-light-enabled'));
         this.cleanup.addSignal(this.nightLightToggle, this.nightLightToggle.connect('toggled', (item, enabled) => {
-            if (!this.syncingNightLight)
+            if (!this.destroyed && !this.syncingNightLight)
                 this.nightLight.set_boolean('night-light-enabled', enabled);
         }));
         menu.addMenuItem(this.nightLightToggle);
