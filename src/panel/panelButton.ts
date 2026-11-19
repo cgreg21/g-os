@@ -9,7 +9,7 @@ export function calculatePanelButtonMetrics({
     panelHeight,
     panelVerticalPadding = 0,
     buttonPadding = 0,
-    spacing = 0,
+    spacing = PANEL_BUTTON_SPACING,
 }) {
     const values = [panelHeight, panelVerticalPadding, buttonPadding, spacing];
     if (values.some(value => !Number.isFinite(value) || value < 0) || panelHeight <= 0)
