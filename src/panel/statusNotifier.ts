@@ -217,7 +217,8 @@ export class StatusNotifierHost {
 
     _watchItem(item) {
         const info = this.Gio.DBusNodeInfo.new_for_xml(ITEM_XML).interfaces[0];
-        this.Gio.DBusProxy.new(this.Gio.DBus.session, this.Gio.DBusProxyFlags.NONE, info,
+        this.Gio.DBusProxy.new(this.Gio.DBus.session,
+            this.Gio.DBusProxyFlags.GET_INVALIDATED_PROPERTIES ?? this.Gio.DBusProxyFlags.NONE, info,
             item.bus, item.path, 'org.kde.StatusNotifierItem', this.token, (_source, result) => {
                 try {
                     const proxy = this.Gio.DBusProxy.new_finish(result);
