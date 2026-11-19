@@ -27,7 +27,7 @@ export class SoundStatusMenu {
         this.muteIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 20});
         this.muteButton = new St.Button({child: this.muteIcon, can_focus: true, reactive: true, track_hover: true,
             style_class: 'g-os-sound-mute', accessible_name: 'Couper le son'});
-        this.muteButton.connect('clicked', () => this.toggleMute());
+        this.cleanup.addSignal(this.muteButton, this.muteButton.connect('clicked', () => this.toggleMute()));
         this.slider = new Slider.Slider(0);
         this.muteButton.y_align = Clutter.ActorAlign.CENTER;
         this.slider.y_align = Clutter.ActorAlign.CENTER;
@@ -500,9 +500,8 @@ export class BatteryStatusMenu {
         this.deviceClient = deviceClient;
         this.batteryKind = batteryKind;
         this.devices = [];
+        this.cleanup = new CleanupManager();
         this.deviceConnections = new Map();
-        this.deviceSignals = [];
-        this.deviceClientSignals = [];
         this.percentage = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
         this.state = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
         this.percentage.add_style_class_name('g-os-status-info');
@@ -527,24 +526,25 @@ export class BatteryStatusMenu {
         this.settingsSeparator = new PopupMenu.PopupSeparatorMenuItem();
         menu.addMenuItem(this.settingsSeparator);
         this.settingsItem = menu.addAction('Parametres d\u2019alimentation', openSettings);
-        this.proxySignal = this.proxy?.connect('g-properties-changed', () => this.refresh());
+        if (this.proxy)
+            this.cleanup.addSignal(this.proxy, this.proxy.connect('g-properties-changed', () => this.refresh()));
         if (deviceClient) {
             try {
                 this.devices = deviceClient.get_devices2() ?? [];
             } catch {
                 this.devices = [];
             }
-            this.deviceClientSignals.push(deviceClient.connect('device-added', (client, device) => {
+            this.cleanup.addSignal(deviceClient, deviceClient.connect('device-added', (client, device) => {
                 if (!this.devices.includes(device))
                     this.devices.push(device);
                 this.refresh();
             }));
-            this.deviceClientSignals.push(deviceClient.connect('device-removed', (client, objectPath) => {
+            this.cleanup.addSignal(deviceClient, deviceClient.connect('device-removed', (client, objectPath) => {
                 this.devices = this.devices.filter(device => device.get_object_path() !== objectPath);
                 this.refresh();
             }));
         }
-        this.openSignal = menu.connect('open-state-changed', (actor, open) => {
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
             if (open) {
                 const mounted = this.content.mount(profiles?.menu);
                 this.settingsItem.visible = !mounted;
@@ -601,18 +601,18 @@ export class BatteryStatusMenu {
         for (const [device, signals] of this.deviceConnections) {
             if (currentDevices.has(device))
                 continue;
-            for (const id of signals)
-                device.disconnect(id);
+            signals.clear();
             this.deviceConnections.delete(device);
         }
         for (const device of batteries) {
             if (this.deviceConnections.has(device))
                 continue;
-            const signals = ['notify::percentage', 'notify::state', 'notify::is-present', 'notify::kind',
+            const cleanup = new CleanupManager();
+            for (const signal of ['notify::percentage', 'notify::state', 'notify::is-present', 'notify::kind',
                 'notify::model', 'notify::vendor', 'notify::native-path', 'notify::power-supply',
-                'notify::icon-name', 'notify::time-to-empty', 'notify::time-to-full']
-                .map(signal => device.connect(signal, () => this.refresh()));
-            this.deviceConnections.set(device, signals);
+                'notify::icon-name', 'notify::time-to-empty', 'notify::time-to-full'])
+                cleanup.addSignal(device, device.connect(signal, () => this.refresh()));
+            this.deviceConnections.set(device, cleanup);
         }
         this.deviceItems.removeAll();
         const states = ['Etat inconnu', 'En charge', 'Sur batterie', 'Batterie vide', 'Charge complete',
@@ -636,16 +636,9 @@ export class BatteryStatusMenu {
 
     destroy() {
         this.content.restore();
-        this.menu.disconnect(this.openSignal);
-        if (this.proxySignal)
-            this.proxy.disconnect(this.proxySignal);
-        for (const id of this.deviceClientSignals)
-            this.deviceClient.disconnect(id);
-        for (const [device, signals] of this.deviceConnections) {
-            for (const id of signals)
-                device.disconnect(id);
-        }
-        this.deviceClientSignals = [];
+        this.cleanup.clear();
+        for (const cleanup of this.deviceConnections.values())
+            cleanup.clear();
         this.deviceConnections.clear();
         this.devices = [];
         this.deviceClient?.dispose?.();
