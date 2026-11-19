@@ -1,3 +1,5 @@
+export const PANEL_BUTTON_SPACING = 6;
+
 /**
  * Shared construction and sizing for every interactive topbar item.
  * The module is dependency-injected so its geometry can be tested without GNOME.
