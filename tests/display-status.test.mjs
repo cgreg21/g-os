@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {BatteryStatusMenu, DisplayStatusMenu, SoundStatusMenu, createPowerDeviceClient} from '../dist/panel/panelStatusMenus.js';
+import {BatteryStatusMenu, DisplayStatusMenu, RadioStatusMenu, SoundStatusMenu, createPowerDeviceClient} from '../dist/panel/panelStatusMenus.js';
 
 class MockVariant {
     constructor(signature, value) {
@@ -355,6 +355,16 @@ test('UPower client ignores queued device events after disposal', () => {
     assert.equal(disposed, true);
     assert.equal(proxyCreations, 1);
     assert.deepEqual(client.get_devices2(), []);
+});
+
+test('destroyed radio menus ignore queued refreshes', () => {
+    const controller = Object.create(RadioStatusMenu.prototype);
+    controller.destroyed = true;
+    controller.header = {
+        setToggleState: () => assert.fail('destroyed menu must not update its header'),
+        setSensitive: () => assert.fail('destroyed menu must not update its header'),
+    };
+    assert.equal(controller.refresh(), undefined);
 });
 
 test('destroyed battery menus ignore late refreshes and device synchronization', () => {
