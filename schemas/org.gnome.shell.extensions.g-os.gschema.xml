@@ -420,7 +420,12 @@
     <key name="panel-icon-padding" type="i">
       <range min="0" max="24"/>
       <default>8</default>
-      <summary>Padding horizontal des icônes de la barre supérieure en pixels</summary>
+      <summary>Padding intérieur uniforme des boutons de la barre supérieure en pixels</summary>
+    </key>
+    <key name="panel-item-spacing" type="i">
+      <range min="0" max="24"/>
+      <default>6</default>
+      <summary>Espacement entre les éléments de la barre supérieure en pixels</summary>
     </key>
     <key name="show-active-app" type="b">
       <default>true</default>
