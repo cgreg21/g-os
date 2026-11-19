@@ -18,6 +18,7 @@ export class SoundStatusMenu {
         this.menu = menu;
         this.icon = icon;
         this.control = control;
+        this.destroyed = false;
         this.Clutter = Clutter;
         this.PopupMenu = PopupMenu;
         this.soundSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.sound'});
@@ -58,6 +59,8 @@ export class SoundStatusMenu {
     }
 
     syncOutput() {
+        if (this.destroyed)
+            return;
         const stream = this.control.get_default_sink();
         if (stream !== this.stream) {
             this.streamCleanup.clear();
@@ -72,6 +75,8 @@ export class SoundStatusMenu {
     }
 
     refresh() {
+        if (this.destroyed)
+            return;
         const normalMaximum = this.control.get_vol_max_norm() || 1;
         const maximum = this._maximumVolume();
         const level = this.stream ? Math.max(0, this.stream.volume / normalMaximum) : 0;
@@ -153,6 +158,8 @@ export class SoundStatusMenu {
     }
 
     refreshDevices() {
+        if (this.destroyed)
+            return;
         this.devices.removeAll();
         const streams = this.control.get_sinks();
         let count = 0;
@@ -173,6 +180,9 @@ export class SoundStatusMenu {
     }
 
     destroy() {
+        if (this.destroyed)
+            return;
+        this.destroyed = true;
         this.cleanup.clear();
         this.streamCleanup.clear();
     }
