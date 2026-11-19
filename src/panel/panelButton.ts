@@ -22,7 +22,10 @@ export function calculatePanelButtonMetrics({
     const contentHeight = Math.max(1, panelHeight - 2 * panelVerticalPadding - 2 * effectivePadding);
     return {
         contentHeight,
-        iconSize: Math.max(1, Math.floor(contentHeight * 0.72)),
+        // Symbolic icons contain transparent space inside their glyph bounds. Use a
+        // larger actor box than the label font so the visible glyph has the same
+        // optical side inset as text while the St.Button padding stays uniform.
+        iconSize: Math.max(1, Math.floor(contentHeight * 0.9)),
         fontSize: Math.max(1, Math.floor(contentHeight * 0.64)),
         padding: effectivePadding,
         itemSpacing,
