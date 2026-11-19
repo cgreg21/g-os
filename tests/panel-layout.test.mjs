@@ -153,11 +153,14 @@ test('network overview avoids duplicate status and keeps Wi-Fi scanning in its d
     assert.ok(overview.includes('_updateOverviewVisibility'));
     assert.ok(overview.includes('button.visible = active'));
     assert.ok(!overview.includes("_label('Réseau'"));
-    assert.ok(detail.includes('Rechercher les réseaux'));
+    assert.ok(detail.includes("_button('Rechercher', 'g-os-network-action'"));
+    assert.ok(detail.includes("'Activer le Wi-Fi'"));
+    assert.ok(!detail.includes('Service activé'));
+    assert.ok(!detail.includes("_label(state.entry.title, 'g-os-network-title')"));
     assert.ok(detail.includes('toggle._startScanning?.()'));
     assert.ok(detail.includes('toggle._reorderDeviceItems?.()'));
     assert.ok(detail.includes('state.content.mount(toggle.menu, true)'));
-    assert.ok(detail.includes('Tous les réseaux'));
+    assert.ok(detail.includes("_button('Retour', 'g-os-network-back'"));
     assert.ok(detail.includes('_appendSettingsItem'));
 });
 
