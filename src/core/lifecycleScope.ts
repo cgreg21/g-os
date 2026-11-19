@@ -38,8 +38,8 @@ export class LifecycleScope<T extends object = object> {
         this.destroyed = true;
         // Stop asynchronous callbacks before releasing their dependent resources.
         this.tasks?.destroy();
-        this.cleanup.clear();
         this.animations.destroy();
+        this.cleanup.clear();
         this.chrome?.destroy();
     }
 
