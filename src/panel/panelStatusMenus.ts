@@ -594,7 +594,7 @@ export class NetworkStatusMenu {
             const button = new this.PopupMenu.PopupMenuItem(title);
             const icon = new this.St.Icon({icon_name: this._iconFor(title), icon_size: 20,
                 y_align: this.Clutter.ActorAlign.CENTER});
-            button.add_child(icon);
+            button.insert_child_at_index(icon, 0);
             button.label.set_x_expand(true);
             const chevron = new this.St.Icon({icon_name: 'go-next-symbolic', icon_size: 16,
                 y_align: this.Clutter.ActorAlign.CENTER});
