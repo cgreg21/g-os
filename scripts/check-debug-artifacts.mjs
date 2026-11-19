@@ -3,6 +3,8 @@ import {join, relative} from 'node:path';
 
 const root = 'dist';
 const required = ['extension.js', 'prefs.js'];
+const failures = [];
+
 const runtimePath = join(root, 'debug', 'debugRuntime.js');
 if (!existsSync(runtimePath))
     failures.push(`Missing bundled GJS debug runtime: ${runtimePath}`);
@@ -13,7 +15,6 @@ else {
             failures.push(`Bundled GJS debug runtime is missing ${marker}`);
     }
 }
-const failures = [];
 
 function walk(directory) {
     return readdirSync(directory, {withFileTypes: true}).flatMap(entry => {
