@@ -29,6 +29,9 @@ jobs:
           mkdir -p /run/dbus
           dbus-daemon --system --fork --nopidfile
           test -S /run/dbus/system_bus_socket
+          # A container has no logind session; make GNOME Shell use its supported dummy login manager.
+          rm -rf /run/systemd/seats
+          test ! -e /run/systemd/seats
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
