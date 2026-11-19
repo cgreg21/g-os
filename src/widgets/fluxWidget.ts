@@ -35,8 +35,16 @@ export class FluxSession {
     constructor(readonly program: FluxProgram, private environment: FluxEnvironment) {}
 
     subscribe(callback: () => void): () => void {
+        if (this.stopped)
+            return () => {};
         this.listeners.add(callback);
-        return () => this.listeners.delete(callback);
+        let subscribed = true;
+        return () => {
+            if (!subscribed)
+                return;
+            subscribed = false;
+            this.listeners.delete(callback);
+        };
     }
 
     start(): void {
