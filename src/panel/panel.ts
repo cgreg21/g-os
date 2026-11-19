@@ -493,7 +493,6 @@ export function withPanel(Base) {
                 Gio, GLib, St, Clutter, PopupMenu,
                 menuManager: Main.panel.menuManager, uiGroup: Main.uiGroup,
                 registrar: this._menuRegistrar, timestamp: () => global.get_current_time(), stylePrefix: 'g-os',
-                textPadding: this._settings.get_int('panel-icon-padding'),
                 getButtonMetrics: () => screen.panelButtonMetrics ?? null,
                 getMenuBounds: () => {
                     const area = Main.layoutManager.getWorkAreaForMonitor(screen.monitor.index);
