@@ -382,6 +382,23 @@ test('Flux notifications defer new listeners and skip listeners removed mid-disp
     session.destroy();
 });
 
+test('Flux subscriptions with the same callback have independent lifetimes', () => {
+    const session = new FluxSession({sources: {}}, {GLib: {}});
+    let updates = 0;
+    const listener = () => { updates++; };
+    const unsubscribeFirst = session.subscribe(listener);
+    const unsubscribeSecond = session.subscribe(listener);
+
+    unsubscribeFirst();
+    session.notify();
+    assert.equal(updates, 1);
+
+    unsubscribeSecond();
+    session.notify();
+    assert.equal(updates, 1);
+    session.destroy();
+});
+
 
 test('Flux refresh prevents a listener from recursively starting the same request', () => {
     let requests = 0;
