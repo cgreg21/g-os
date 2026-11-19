@@ -165,6 +165,10 @@ test('network traffic graph reads only interfaces carrying the active default ro
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
+    assert.ok(source.includes('    _buildTrafficGraph() {'));
+    assert.ok(source.includes('new this.St.DrawingArea('));
+    assert.ok(source.includes("this.trafficArea.connect('repaint'"));
+    assert.ok(source.includes('this._drawTrafficGraph(area)'));
     assert.ok(source.includes("this._readProcFile('/proc/net/route')"));
     assert.ok(source.includes("this._readProcFile('/proc/net/ipv6_route')"));
     assert.ok(source.includes("fields[1] === '00000000'"));
