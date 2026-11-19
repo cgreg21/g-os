@@ -19,7 +19,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {calculatePanelButtonMetrics} from './panelButton.js';
+import {calculatePanelButtonMetrics, createPanelButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -551,32 +551,28 @@ export function withPanel(Base) {
             screen.panel.add_child(new St.Widget({x_expand: true}));
             screen.clock = new St.Label({name: 'g-os-panel-clock', y_align: Clutter.ActorAlign.CENTER,
                 visible: this._settings.get_boolean('panel-show-clock')});
-            screen.clockButton = new St.Button({style_class: 'panel-button g-os-clock-button',
-                accessible_name: 'Calendrier et événements',
-                can_focus: true, child: screen.clock, visible: screen.clock.visible});
+            screen.clockButton = createPanelButton(St, Clutter, {
+                text: screen.clock, accessibleName: 'Calendrier et événements',
+                styleClass: 'g-os-clock-button', visible: screen.clock.visible,
+            });
             screen.clockButton.set_style('padding: 0; margin: 0; min-height: 0;');
             screen.clockButton.connect('clicked', () => this._togglePanelCalendar(screen));
             screen.clockButton.connect('popup-menu', () => this._togglePanelCalendar(screen));
             screen.panel.add_child(screen.clockButton);
             screen.searchIcon = new St.Icon({icon_name: 'system-search-symbolic', style_class: 'system-status-icon'});
-            const search = new St.Button({
-                style_class: 'panel-button',
-                accessible_name: 'Rechercher',
+            const search = createPanelButton(St, Clutter, {
+                icon: screen.searchIcon, accessibleName: 'Rechercher',
                 visible: this._settings.get_boolean('panel-show-search'),
-                can_focus: true,
-                child: screen.searchIcon,
             });
             screen.searchButton = search;
             search.connect('clicked', () => Main.overview.focusSearch());
             screen.panel.add_child(search);
-            const preferences = new St.Button({
-                style_class: 'panel-button',
-                accessible_name: 'Préférences G-Os',
+            screen.preferencesIcon = new St.Icon({
+                icon_name: 'preferences-system-symbolic', style_class: 'system-status-icon',
+            });
+            const preferences = createPanelButton(St, Clutter, {
+                icon: screen.preferencesIcon, accessibleName: 'Préférences G-Os',
                 visible: this._settings.get_boolean('panel-show-preferences'),
-                can_focus: true,
-                child: screen.preferencesIcon = new St.Icon({
-                    icon_name: 'preferences-system-symbolic', style_class: 'system-status-icon',
-                }),
             });
             screen.preferencesButton = preferences;
             preferences.connect('clicked', () => this.openPreferences());
@@ -595,26 +591,16 @@ export function withPanel(Base) {
                 ['battery', 'battery-good-symbolic', 'Batterie'],
             ]) {
                 const statusIcon = new St.Icon({icon_name: iconName, style_class: 'system-status-icon'});
-                const batteryStatus = name === 'battery' ? new St.BoxLayout({
-                    style_class: 'g-os-battery-status',
-                }) : null;
-                const batteryLevelLabel = batteryStatus ? new St.Label({
+                const batteryLevelLabel = name === 'battery' ? new St.Label({
                     text: '',
                     style_class: 'g-os-battery-level',
                     visible: this._settings.get_boolean('panel-show-battery-level'),
+                    y_align: Clutter.ActorAlign.CENTER,
                 }) : null;
-                if (batteryStatus && batteryLevelLabel) {
-                    batteryStatus.y_align = Clutter.ActorAlign.CENTER;
-                    batteryLevelLabel.y_align = Clutter.ActorAlign.CENTER;
-                    batteryStatus.add_child(statusIcon);
-                    batteryStatus.add_child(batteryLevelLabel);
-                }
-                const button = new St.Button({
-                    style_class: 'panel-button g-os-status-button',
-                    accessible_name: accessibleName,
+                const button = createPanelButton(St, Clutter, {
+                    icon: statusIcon, text: batteryLevelLabel,
+                    accessibleName, styleClass: 'g-os-status-button',
                     visible: this._settings.get_boolean(`panel-show-${name}`),
-                    can_focus: true,
-                    child: batteryStatus ?? statusIcon,
                 }) as StatusButton;
                 button.statusKind = name;
                 button.statusIcon = statusIcon;
@@ -937,11 +923,11 @@ export function withPanel(Base) {
             for (const [index, item] of items.entries()) {
                 let button = screen.statusNotifierButtons.get(item.key);
                 if (!button) {
-                    const icon = new St.Icon({icon_name: 'application-x-executable-symbolic',
-                        style_class: 'system-status-icon'});
-                    button = new St.Button({style_class: 'panel-button g-os-status-notifier-button',
-                        can_focus: true, child: icon});
-                    button.statusIcon = icon;
+                    button = createPanelButton(St, Clutter, {
+                        iconName: 'application-x-executable-symbolic',
+                        styleClass: 'g-os-status-notifier-button',
+                    });
+                    button.statusIcon = button.panelIcon;
                     screen.statusNotifierButtons.set(item.key, button);
                     button.connect('clicked', () => {
                         if (item.properties.Menu && item.properties.Menu !== '/')
