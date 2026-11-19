@@ -42,6 +42,13 @@ test('topbar registers its existing drop zones with the shared controller', () =
     assert.doesNotMatch(panelSource, /zone\._delegate = \{/);
 });
 
+test('shadow drag source memoizes the exact actor requested by GNOME Shell', async () => {
+    const shadowSource = await readFile(new URL('../src/shared/interaction/shadowDragSource.ts', import.meta.url), 'utf8');
+    assert.match(shadowSource, /getDragActor: \(\) => \{[\s\S]*?dragActor \?\?= createDragActor\(\);[\s\S]*?return dragActor;/);
+    assert.match(shadowSource, /onBegin: \(\) => \{[\s\S]*?dragActor \?\?= createDragActor\(\);[\s\S]*?onDragActor\?\.\(dragActor\);/);
+    assert.doesNotMatch(shadowSource, /getDragActor: \(\) => dragActor \?\? createDragActor\(\)/);
+});
+
 test('topbar uses the shared controller while preserving shadow drag callbacks', () => {
     assert.match(panelSource, /registerShadowDragSource\(\{/);
     assert.match(panelSource, /getDragActorSource: \(\) => actor/);
