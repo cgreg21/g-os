@@ -11,7 +11,7 @@ test('generic DND controller registers sources through GNOME Shell makeDraggable
     assert.match(source, /drag-cancelled/);
     assert.match(source, /onMotion\?: \(event: any\) => void/);
     assert.match(source, /DND\.addDragMonitor\(dragMonitor\)/);
-    assert.match(source, /DND\.removeDragMonitor\(dragMonitor\)/);
+    assert.match(source, /DND\.removeDragMonitor\(monitor\)/);
     assert.match(source, /callbacks\.onMotion\?\.\(event\)/);
 });
 
@@ -61,7 +61,7 @@ test('topbar and dock share the lifecycle-owned per-screen controller', () => {
 });
 
 test('generic DND cleanup continues when Shell teardown rejects signal or monitor removal', () => {
-    assert.match(source, /const monitor = dragMonitor;\s*dragMonitor = null;\s*try \{\s*DND\.removeDragMonitor\(monitor\)/);
+    assert.match(source, /DND\.removeDragMonitor\(monitor\)/);
     assert.match(source, /try \{\s*draggable\.disconnect\(signalId\);\s*\} catch/);
     assert.match(source, /try \{\s*actor\.disconnect\(actorDestroySignal\);\s*\} catch/);
 });
