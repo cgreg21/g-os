@@ -310,6 +310,7 @@ test('topbar metrics are initialized and refreshed for every monitor', async () 
     assert.match(panel, /this\._initializePanelLayout\(screen\);\s+this\._applyPanelMetrics\(screen\);/);
     assert.match(extension, /for \(const screen of this\._screens\) \{[\s\S]*?this\._applyPanelMetrics\(screen\);[\s\S]*?\}/);
     assert.match(extension, /monitors-changed', \(\) => this\._queueSettingsApply\(\)/);
+    assert.match(extension, /this\._queueSettingsApply\(\);\s+this\._updateActiveApp\(\);/);
     assert.match(extension, /this\._applyLiveSettings\(keys\)[\s\S]*?for \(const screen of this\._screens\)/);
 });
 
