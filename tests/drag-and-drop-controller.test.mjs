@@ -81,3 +81,10 @@ test('drag callbacks stop immediately when begin re-enters source disposal', () 
     assert.match(source, /if \(!disposed\)\s*callbacks\.onMotion\?\.\(event\)/);
     assert.match(source, /if \(disposed\)\s*return;\s*removeDragMonitor\(\);\s*callbacks\.onEnd/);
 });
+
+test('generic DND cleanup isolates host logger failures', () => {
+    assert.match(source, /function logCleanupError\(error: unknown, message: string\): void/);
+    assert.match(source, /catch \{\s*\/\/ Logging must never interrupt release of the remaining DND resources\./);
+    assert.equal((source.match(/logCleanupError\(error,/g) ?? []).length, 4);
+    assert.doesNotMatch(source, /logError\(error as Error, 'Unable to (?:remove g-os drag monitor|disconnect g-os)/);
+});
