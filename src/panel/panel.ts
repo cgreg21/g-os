@@ -62,7 +62,7 @@ type NativeDateMenu = typeof Main.panel.statusArea.dateMenu & {
 };
 
 type QuickSettingsInternals = {
-    _network?: {_wirelessToggle?: unknown};
+    _network?: {_wirelessToggle?: any; _wiredToggle?: any; _vpnToggle?: any; _mobileToggle?: any; quickSettingsItems?: any[]};
     _bluetooth?: {quickSettingsItems?: unknown[]};
     _system?: {_systemItem?: {powerToggle?: unknown; _powerToggle?: unknown};
         quickSettingsItems?: {powerToggle?: unknown}[]};
