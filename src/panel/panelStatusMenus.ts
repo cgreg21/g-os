@@ -191,6 +191,7 @@ export class DisplayStatusMenu {
         this.syncingNightLight = false;
         this.destroyed = false;
         this.cancellable = new Gio.Cancellable();
+        this.cleanup = new CleanupManager();
         this.nightLight = new Gio.Settings({schema_id: 'org.gnome.settings-daemon.plugins.color'});
 
         const brightnessRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
@@ -207,16 +208,16 @@ export class DisplayStatusMenu {
             {reactive: false, can_focus: false});
         this.brightnessInfo.add_style_class_name('g-os-status-info');
         menu.addMenuItem(this.brightnessInfo);
-        this.brightnessSliderSignal = this.brightnessSlider.connect('notify::value',
-            () => this._writeBrightness());
+        this.cleanup.addSignal(this.brightnessSlider,
+            this.brightnessSlider.connect('notify::value', () => this._writeBrightness()));
 
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Mode nuit'));
         this.nightLightToggle = new PopupMenu.PopupSwitchMenuItem('Activer le mode nuit',
             this.nightLight.get_boolean('night-light-enabled'));
-        this.nightLightToggle.connect('toggled', (item, enabled) => {
+        this.cleanup.addSignal(this.nightLightToggle, this.nightLightToggle.connect('toggled', (item, enabled) => {
             if (!this.syncingNightLight)
                 this.nightLight.set_boolean('night-light-enabled', enabled);
-        });
+        }));
         menu.addMenuItem(this.nightLightToggle);
 
         const temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
@@ -232,16 +233,15 @@ export class DisplayStatusMenu {
         this.temperatureInfo = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
         this.temperatureInfo.add_style_class_name('g-os-status-info');
         menu.addMenuItem(this.temperatureInfo);
-        this.temperatureSliderSignal = this.temperatureSlider.connect('notify::value',
-            () => this._writeTemperature());
-        this.nightLightSignals = [
-            this.nightLight.connect('changed::night-light-enabled', () => this._refreshNightLight()),
-            this.nightLight.connect('changed::night-light-temperature', () => this._refreshNightLight()),
-        ];
+        this.cleanup.addSignal(this.temperatureSlider,
+            this.temperatureSlider.connect('notify::value', () => this._writeTemperature()));
+        for (const signal of ['changed::night-light-enabled', 'changed::night-light-temperature'])
+            this.cleanup.addSignal(this.nightLight,
+                this.nightLight.connect(signal, () => this._refreshNightLight()));
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         menu.addAction('Configurer le mode nuit', openSettings);
 
-        this.brightnessSignal = Gio.DBus.session.signal_subscribe(
+        const brightnessSignal = Gio.DBus.session.signal_subscribe(
             'org.gnome.SettingsDaemon.Power',
             'org.freedesktop.DBus.Properties',
             'PropertiesChanged',
@@ -256,6 +256,7 @@ export class DisplayStatusMenu {
                 const value = properties.Brightness;
                 this._updateBrightness(typeof value === 'number' ? value : value.deep_unpack());
             });
+        this.cleanup.add(() => Gio.DBus.session.signal_unsubscribe(brightnessSignal));
         this._refreshNightLight();
         this._readBrightness();
     }
@@ -361,12 +362,8 @@ export class DisplayStatusMenu {
         this.destroyed = true;
         if (this.brightnessWriteSource)
             this.GLib.source_remove(this.brightnessWriteSource);
-        this.Gio.DBus.session.signal_unsubscribe(this.brightnessSignal);
+        this.cleanup.clear();
         this.cancellable.cancel();
-        this.brightnessSlider.disconnect(this.brightnessSliderSignal);
-        this.temperatureSlider.disconnect(this.temperatureSliderSignal);
-        for (const id of this.nightLightSignals)
-            this.nightLight.disconnect(id);
     }
 }
 
