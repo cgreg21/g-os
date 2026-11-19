@@ -7,6 +7,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 import {errorMessage} from '../shared/errorMessage.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 import {classifyDesktopMount, desktopIconGridPosition, desktopIconLayoutKey, desktopSpecialFolderIcon} from './desktopIconLayout.js';
 
 type DesktopIconItem = {
@@ -764,7 +765,11 @@ export function withDesktopIcons(Base) {
                 }
                 reset();
             };
-            screen.interactionDnd.registerSource(button, {}, {
+            registerShadowDragSource({
+                controller: screen.interactionDnd,
+                actor: button,
+                St,
+                callbacks: {
                 onBegin: () => {
                     origin = button.get_position();
                     pointerOrigin = global.get_pointer().slice(0, 2);
@@ -784,7 +789,9 @@ export function withDesktopIcons(Base) {
                 onCancelled: () => finish(true),
                 onEnd: () => finish(false),
                 onDestroy: () => finish(true),
-            }, {}, screen.lifecycle);
+                },
+                lifecycle: screen.lifecycle,
+            });
             screen.lifecycle.add(() => finish(true));
         }
 
