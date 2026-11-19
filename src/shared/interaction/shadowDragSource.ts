@@ -5,6 +5,7 @@ import type {DragAndDropController, DragSourceCallbacks, DragSourceOptions} from
 type ShadowDragSourceOptions = {
     controller: DragAndDropController;
     actor: Clutter.Actor & {_delegate?: Record<string, unknown> | null};
+    visualActor?: Clutter.Actor;
     St: any;
     delegate?: Record<string, unknown>;
     callbacks?: DragSourceCallbacks;
@@ -22,6 +23,7 @@ type ShadowDragSourceOptions = {
 export function registerShadowDragSource({
     controller,
     actor,
+    visualActor = actor,
     St,
     delegate = {},
     callbacks = {},
@@ -30,7 +32,7 @@ export function registerShadowDragSource({
 }: ShadowDragSourceOptions) {
     let dragActor = null;
     const createDragActor = () => {
-        const [width, height] = actor.get_size();
+        const [width, height] = visualActor.get_size();
         const container = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
             style_class: 'g-os-dnd-drag-actor',
@@ -38,7 +40,7 @@ export function registerShadowDragSource({
             height,
             reactive: false,
         });
-        container.add_child(new Clutter.Clone({source: actor, reactive: false}));
+        container.add_child(new Clutter.Clone({source: visualActor, reactive: false}));
         return container;
     };
     const finish = callback => {
