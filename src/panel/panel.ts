@@ -310,15 +310,11 @@ export function withPanel(Base) {
                 calendar.get_parent()?.remove_child(calendar);
                 parent.insert_child_at_index(calendar, this._panelCalendarOriginalIndex);
             }
-            if (this._panelCalendarCalendarSignal)
-                calendar?.disconnect(this._panelCalendarCalendarSignal);
-            if (this._panelCalendarSourceSignal)
-                this._panelCalendarEventSource?.disconnect(this._panelCalendarSourceSignal);
+            this._panelCalendarCleanup?.clear();
+            this._panelCalendarCleanup = null;
             this._panelCalendarWidget = null;
             this._panelCalendarOriginalParent = null;
             this._panelCalendarOriginalIndex = -1;
-            this._panelCalendarCalendarSignal = 0;
-            this._panelCalendarSourceSignal = 0;
             this._panelCalendarEventSource = null;
         }
 
@@ -332,16 +328,19 @@ export function withPanel(Base) {
                 this._panelCalendarOriginalParent = parent;
                 this._panelCalendarOriginalIndex = parent.get_children().indexOf(calendar);
                 this._panelCalendarEventSource = screen.calendarEventSource;
-                this._panelCalendarCalendarSignal = calendar.connect('selected-date-changed', (actor, dateTime) => {
+                this._panelCalendarCleanup = new CleanupManager();
+                this._panelCalendarCleanup.addSignal(calendar,
+                    calendar.connect('selected-date-changed', (actor, dateTime) => {
                     const selectedDate = new Date(dateTime.to_unix() * 1000);
                     this._panelCalendarSelectedDate = selectedDate;
                     for (const candidate of this._screens)
                         this._updatePanelCalendarEvents(candidate, selectedDate);
-                });
-                this._panelCalendarSourceSignal = screen.calendarEventSource.connect('changed', () => {
-                    for (const candidate of this._screens)
-                        this._updatePanelCalendarEvents(candidate, this._panelCalendarSelectedDate);
-                });
+                }));
+                this._panelCalendarCleanup.addSignal(screen.calendarEventSource,
+                    screen.calendarEventSource.connect('changed', () => {
+                        for (const candidate of this._screens)
+                            this._updatePanelCalendarEvents(candidate, this._panelCalendarSelectedDate);
+                    }));
                 this._panelCalendarSelectedDate = new Date(calendar._selectedDate ?? Date.now());
             }
             if (parent !== screen.calendarContent) {
