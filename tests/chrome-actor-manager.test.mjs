@@ -140,3 +140,20 @@ test('rolls back a partially registered actor when host registration throws', ()
             globalThis.logError = originalLogError;
     }
 });
+
+test('does not release an actor twice when registration removes it before throwing', () => {
+    const actor = {};
+    const removed = [];
+    let manager;
+    manager = new ChromeActorManager(
+        () => {
+            manager.remove(actor);
+            throw new Error('registration failed after reentrant removal');
+        },
+        value => removed.push(value),
+    );
+
+    assert.throws(() => manager.add(actor), /registration failed after reentrant removal/);
+    assert.deepEqual(removed, [actor]);
+    assert.equal(manager.size, 0);
+});
