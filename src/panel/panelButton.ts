@@ -96,8 +96,8 @@ export function calculatePanelLabelFontSize(fontSize, textLength, availableWidth
 export function applyPanelButtonMetrics(button, metrics) {
     button.set_style(`padding: ${metrics.padding}px; margin: 0; min-height: 0;`);
     button.panelContent?.set_style?.(`spacing: ${metrics.contentSpacing}px;`);
-    button.panelIcon?.set_style?.(`icon-size: ${metrics.iconSize}px;`);
-    button.panelLabel?.set_style?.(`font-size: ${metrics.fontSize}px;`);
+    button.panelIcon?.set_style?.(`icon-size: ${metrics.iconSize}px; margin: 0;`);
+    button.panelLabel?.set_style?.(`font-size: ${metrics.fontSize}px; margin: 0;`);
 }
 
 /**
