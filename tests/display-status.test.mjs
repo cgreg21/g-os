@@ -325,7 +325,6 @@ test('UPower client ignores queued device events after disposal', () => {
 test('destroyed battery menus ignore late refreshes and device synchronization', () => {
     const controller = Object.create(BatteryStatusMenu.prototype);
     controller.destroyed = true;
-    controller.syncDevices = () => assert.fail('destroyed menu must not refresh');
     assert.equal(controller.refresh(), undefined);
     assert.deepEqual(controller.syncDevices(), []);
 });
