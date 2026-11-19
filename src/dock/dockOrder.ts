@@ -302,8 +302,10 @@ export function withDockOrder(Base) {
                     finish(true);
             });
             const animationKey = `dock-reorder:${button.dockFocusKey}`;
-            screen.lifecycle.addSignal(button, button.connect('destroy', () =>
-                screen.lifecycle.animations.cancel(animationKey)));
+            // The button owns this one-shot destroy handler. Let Clutter
+            // release it with the actor instead of disconnecting from a disposed
+            // St.Button during screen teardown.
+            button.connect('destroy', () => screen.lifecycle.animations.cancel(animationKey));
         }
 
         _isOverviewAppGridSource(source) {
