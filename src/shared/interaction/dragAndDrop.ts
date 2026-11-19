@@ -102,7 +102,7 @@ export class DragAndDropController {
                     logError(error as Error, 'Unable to disconnect g-os actor destroy signal');
                 }
             }
-            restoreDelegate();
+            removeDelegate();
             this.sources.delete(actor);
         };
 
