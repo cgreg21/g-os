@@ -68,3 +68,22 @@ test('delegate layer cleanup is idempotent', () => {
     assert.equal(actor._delegate, undefined);
     assert.equal(manager.size, 0);
 });
+
+test('rolls back a delegate layer when composition throws', () => {
+    const actor = {};
+    const manager = new DelegateManager();
+    const invalid = Object.defineProperty({}, 'acceptDrop', {
+        enumerable: true,
+        get() { throw new Error('delegate getter failed'); },
+    });
+
+    assert.throws(() => manager.add(actor, invalid), /delegate getter failed/);
+    assert.equal(actor._delegate, undefined);
+    assert.equal(manager.size, 0);
+
+    const acceptDrop = () => true;
+    const remove = manager.add(actor, {acceptDrop});
+    assert.equal(actor._delegate.acceptDrop, acceptDrop);
+    remove();
+    assert.equal(actor._delegate, undefined);
+});
