@@ -123,9 +123,9 @@ test('topbar modules delegate every button construction to the shared factory', 
     const globalMenu = await readFile(new URL('../src/panel/globalMenu.ts', import.meta.url), 'utf8');
     const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
 
-    assert.doesNotMatch(panel, /new St[.]Button/);
-    assert.doesNotMatch(globalMenu, /new this[.]St[.]Button/);
-    assert.match(panel, /createPanelMenuButton[(]St, Clutter, PopupMenu/);
-    assert.match(extension, /createPanelMenuButton[(]St, Clutter, PopupMenu/);
-    assert.match(globalMenu, /createPanelButton[(]this[.]St, this[.]Clutter/);
+    assert.equal(panel.includes('new St.Button'), false);
+    assert.equal(globalMenu.includes('new this.St.Button'), false);
+    assert.ok(panel.includes('createPanelMenuButton(St, Clutter, PopupMenu'));
+    assert.ok(extension.includes('createPanelMenuButton(St, Clutter, PopupMenu'));
+    assert.ok(globalMenu.includes('createPanelButton(this.St, this.Clutter'));
 });
