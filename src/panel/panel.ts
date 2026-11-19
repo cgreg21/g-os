@@ -770,8 +770,8 @@ export function withPanel(Base) {
                 Clutter,
                 delegate: {
                     panelLayoutItem: {screen, id},
-                    // Keep the real item as the snap-back source. The placeholder is
-                    // only a layout spacer and is destroyed at drag completion.
+                    // Keep the real item as the snap-back source. The visual clone
+                    // remains in the layout until the drag is committed or cancelled.
                     getDragActorSource: () => actor,
                 },
                 onDragActor: dragActor => this._beginPanelShadowDrag(screen, id, actor, dragActor),
