@@ -39,6 +39,14 @@ test('panel button dimensions scale with available topbar height', () => {
     assert.equal(roomy.spacing, 6);
 });
 
+test('all topbar buttons use computed metrics without local padding overrides', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    assert.equal(panel.includes("screen.clockButton.set_style('padding: 0"), false);
+    assert.equal(panel.includes('button.set_style(`padding: ${buttonPadding}px'), false);
+    assert.match(panel, /for \(const button of \[screen\.menuButton\.container[\s\S]*?applyPanelButtonMetrics\(button, metrics\);/);
+    assert.match(panel, /for \(const button of screen\.globalMenuBox\?\.get_children\(\) \?\? \[\]\)[\s\S]*?applyPanelButtonMetrics\(button, metrics\);/);
+});
+
 test('topbar spacing and padding are not hardcoded per button style', async () => {
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     assert.doesNotMatch(stylesheet, /\.g-os-(?:status-button|status-notifier-button|panel-button-content)[^{]*\{[^}]*padding:/s);
