@@ -115,9 +115,8 @@
     padding: 16px;
 }
 
-.g-os-network-header { spacing: 3px; }
 .g-os-network-title { font-size: 16px; font-weight: bold; }
-.g-os-network-subtitle, .g-os-network-card-hint, .g-os-network-row-state {
+.g-os-network-row-state {
     color: rgba(235, 238, 245, 0.62);
     font-size: 11px;
 }
@@ -131,14 +130,7 @@
 
 .g-os-network-card-top, .g-os-network-detail-status { spacing: 12px; }
 .g-os-network-card-text { spacing: 3px; }
-.g-os-network-card-title { font-size: 13px; font-weight: bold; }
-.g-os-network-card-summary { font-size: 12px; }
-.g-os-network-section-title {
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: rgba(235, 238, 245, 0.58);
-}
+.g-os-network-card-summary { font-size: 13px; font-weight: bold; }
 .g-os-network-rows { spacing: 3px; }
 .g-os-network-row-button {
     padding: 8px 10px;
