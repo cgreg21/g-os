@@ -132,7 +132,7 @@ export function openWidgetManager(parent, settings, target = 'desktop', requeste
     const addIcon = (row, icon, title, callback) => {
         const button = new Gtk.Button({icon_name: icon, tooltip_text: title, valign: Gtk.Align.CENTER});
         button.add_css_class('flat');
-        button.connect('clicked', callback);
+        button.connect('clicked', () => { if (!closed) callback(); });
         row.add_suffix(button);
         return button;
     };
@@ -335,6 +335,8 @@ export function openWidgetManager(parent, settings, target = 'desktop', requeste
         errorsGroup.visible = rows.errors.length > 0;
     };
     importButton.connect('clicked', () => {
+        if (closed)
+            return;
         const chooser = new Gtk.FileDialog({title: 'Importer un dossier de widget'});
         chooser.select_folder(parent, null, (source, result) => {
             if (closed)
