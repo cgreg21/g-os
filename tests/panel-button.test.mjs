@@ -299,3 +299,12 @@ test('secondary-monitor launcher uses the configured launcher icon and fallback'
     assert.match(panel, /screen\.menuButton = monitor\.index === Main\.layoutManager\.primaryIndex[\s\S]*?icon: new St\.Icon\(\{[\s\S]*?gicon: this\._launcherIcon\('panel'\),[\s\S]*?fallback_gicon: this\._gnomeLogo,[\s\S]*?styleClass: 'g-os-panel-menu'/);
     assert.doesNotMatch(panel, /iconName: 'view-app-grid-symbolic', accessibleName: 'Applications'/);
 });
+
+
+test('active application menu tracks focus changes and excludes the desktop window', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
+    assert.match(panel, /const isDesktop = window\?\.get_window_type\?\.\(\) === Meta\.WindowType\.DESKTOP/);
+    assert.match(panel, /button\.refreshTargetApp = updateQuit/);
+    assert.match(extension, /screen\.appMenuButton\?\.refreshTargetApp\?\.\(\)/);
+});
