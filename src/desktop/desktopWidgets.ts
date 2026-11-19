@@ -228,6 +228,7 @@ export function withDesktopWidgets(Base) {
                     actor: widget.dragHandle ?? widget,
                     visualActor: widget,
                     St,
+                    Clutter,
                     callbacks: {
                     onBegin: () => {
                         origin = widget.get_position();
