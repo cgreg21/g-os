@@ -16,7 +16,7 @@ type ShadowDragSourceOptions = {
 /**
  * Register a source using the shared GNOME Shell drag visual.
  *
- * The source actor is cloned into a styled St container before feature callbacks
+ * The visual actor is cloned into a styled St container before feature callbacks
  * replace or hide the original actor. Features only supply their drag delegate
  * and behavior; clone sizing, shadow and cleanup stay identical everywhere.
  */
