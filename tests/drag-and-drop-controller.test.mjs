@@ -15,7 +15,9 @@ test('generic DND controller registers sources through GNOME Shell makeDraggable
     assert.match(source, /callbacks\.onMotion\?\.\(event\)/);
 });
 
-test('generic DND controller composes delegates without discarding existing behavior', () => {
+test('generic DND controller composes source and target delegates through the shared manager', () => {
+    assert.match(source, /this\\.delegates\\.add\\(actor, delegate\\)/);
+    assert.match(source, /new DelegateManager<DelegateActor>\\(\\)/);
     assert.match(source, /Object\.create\(previousDelegate \?\? null\)/);
     assert.match(source, /actor\._delegate = composedDelegate/);
     assert.match(source, /actor\._delegate === composedDelegate/);
