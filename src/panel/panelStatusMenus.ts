@@ -1,7 +1,7 @@
 import {CleanupManager} from '../core/cleanupManager.js';
 
 function expandHorizontally(actor) {
-    actor.set_x_expand(true);
+    actor.set_x_expand?.(true);
     return actor;
 }
 
@@ -533,7 +533,6 @@ export class NetworkStatusMenu {
     _button(label, styleClass, callback, iconName = null) {
         const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
             style_class: styleClass, accessible_name: label}));
-        button.set_x_expand(true);
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-button-content'});
         if (iconName)
             content.add_child(new this.St.Icon({icon_name: iconName, icon_size: 20,
@@ -1122,7 +1121,7 @@ export class BatteryStatusMenu {
             const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-battery-device'});
             row.add_child(new this.St.Icon({icon_name: device.icon_name || 'battery-good-symbolic', icon_size: 18}));
             row.add_child(expandHorizontally(new this.St.Label({text: [device.vendor, device.model].filter(Boolean).join(' ') || 'Périphérique'})));
-            row.add_child(expandHorizontally(new this.St.Label({text: `${Math.round(Number(device.percentage) || 0)} %`})));
+            row.add_child(new this.St.Label({text: `${Math.round(Number(device.percentage) || 0)} %`}));
             this.deviceItems.add_child(row);
         }
         if (!proxy?.IsPresent) {
