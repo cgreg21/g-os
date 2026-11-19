@@ -298,8 +298,8 @@ export class StatusNotifierHost {
         const key = itemKey(parsed.bus, parsed.path);
         if (this.items.has(key))
             return;
-        const item = {key, ...parsed, address: `${parsed.bus}${parsed.path}`, proxy: null, signal: 0,
-            watcher: 0, properties: {}};
+        const item = {key, ...parsed, address: `${parsed.bus}${parsed.path}`, proxy: null,
+            cleanup: new CleanupManager(), properties: {}};
         this.items.set(key, item);
         this._watchItem(item);
         this.onChanged(this.visibleItems());
