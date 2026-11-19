@@ -26,7 +26,7 @@ export class FluxSession {
     readonly data: Record<string, unknown> = Object.create(null);
     readonly status: Record<string, string> = Object.create(null);
     readonly errors: Record<string, string> = Object.create(null);
-    private listeners = new Set<() => void>();
+    private listeners = new Set<{callback: () => void}>();
     private requests = new Map<string, FluxHttpRequest>();
     private refreshing = new Set<string>();
     private timers: number[] = [];
@@ -38,13 +38,14 @@ export class FluxSession {
     subscribe(callback: () => void): () => void {
         if (this.stopped)
             return () => {};
-        this.listeners.add(callback);
+        const subscription = {callback};
+        this.listeners.add(subscription);
         let subscribed = true;
         return () => {
             if (!subscribed)
                 return;
             subscribed = false;
-            this.listeners.delete(callback);
+            this.listeners.delete(subscription);
         };
     }
 
@@ -107,11 +108,11 @@ export class FluxSession {
     }
 
     private notify(): void {
-        for (const listener of [...this.listeners]) {
-            if (!this.listeners.has(listener))
+        for (const subscription of [...this.listeners]) {
+            if (!this.listeners.has(subscription))
                 continue;
             try {
-                listener();
+                subscription.callback();
             } catch {
                 // One broken view must not prevent other views from receiving updates.
             }
