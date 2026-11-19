@@ -505,6 +505,89 @@ class NativeMenuContent {
     }
 }
 
+export class NetworkStatusMenu {
+    [key: string]: any;
+    constructor(menu, icon, {toggles, St, Clutter, PopupMenu, openSettings}) {
+        this.menu = menu;
+        this.icon = icon;
+        this.toggles = toggles.filter((entry, index, all) =>
+            entry.toggle && all.findIndex(candidate => candidate.toggle === entry.toggle) === index);
+        this.destroyed = false;
+        this.cleanup = new CleanupManager();
+        this.contents = [];
+        for (const {toggle, title} of this.toggles) {
+            const header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle.checked));
+            header.setSensitive(toggle.visible !== false && toggle.reactive !== false);
+            this.cleanup.addSignal(header, header.connect('toggled', (actor, checked) => {
+                if (!this.destroyed && checked !== Boolean(toggle.checked))
+                    toggle.emit('clicked', 1);
+            }));
+            this.cleanup.addSignal(toggle, toggle.connect('notify::checked', () => {
+                if (!this.destroyed)
+                    header.setToggleState(Boolean(toggle.checked));
+            }));
+            this.cleanup.addSignal(toggle, toggle.connect('notify::visible', () => {
+                if (!this.destroyed)
+                    header.setSensitive(toggle.visible !== false && toggle.reactive !== false);
+            }));
+            menu.addMenuItem(header);
+            const holderItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+            const holder = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL});
+            holderItem.add_child(holder);
+            menu.addMenuItem(holderItem);
+            this.contents.push({toggle, content: new NativeMenuContent(menu, holder, {
+                Clutter,
+                onOpen: () => {
+                    if (!this.destroyed) {
+                        toggle._startScanning?.();
+                        toggle._reorderDeviceItems?.();
+                    }
+                },
+                onClose: () => toggle._stopScanning?.(),
+            })});
+        }
+        if (!this.toggles.length) {
+            menu.addMenuItem(new PopupMenu.PopupMenuItem('Aucun service réseau disponible',
+                {reactive: false, can_focus: false}));
+        }
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        this.settingsItem = menu.addAction('Paramètres réseau', openSettings);
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
+            if (this.destroyed)
+                return;
+            if (open) {
+                let mounted = false;
+                for (const {toggle, content} of this.contents)
+                    mounted = content.mount(toggle.menu, toggle.visible !== false) || mounted;
+                this.settingsItem.visible = !mounted;
+            } else {
+                for (const {content} of this.contents)
+                    content.restore();
+            }
+        }));
+        this.refresh();
+    }
+
+    refresh() {
+        if (this.destroyed)
+            return;
+        const active = this.toggles.find(({toggle}) => toggle.checked && toggle.icon_name);
+        const fallback = this.toggles.find(({toggle}) => toggle.icon_name);
+        const iconName = active?.toggle.icon_name ?? fallback?.toggle.icon_name;
+        if (iconName)
+            this.icon.icon_name = iconName;
+    }
+
+    destroy() {
+        if (this.destroyed)
+            return;
+        this.destroyed = true;
+        for (const {content} of this.contents)
+            content.destroy();
+        this.cleanup.clear();
+    }
+}
+
 export class RadioStatusMenu {
     [key: string]: any;
     constructor(menu, icon, {toggle, title, St, Clutter, PopupMenu, openSettings, deviceChangeSignal = null}) {
