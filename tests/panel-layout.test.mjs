@@ -133,9 +133,11 @@ test('network popup is a dedicated floating panel with a connection card and com
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
     assert.ok(source.includes('new St.ScrollView'));
-    assert.match(source, /x_expand: true, style_class: 'g-os-network-shell-item'/);
-    assert.match(source, /x_expand: true, style_class: 'g-os-network-scroll'/);
-    assert.match(source, /x_expand: true, style_class: 'g-os-network-panel'/);
+    assert.ok(!source.includes('x_expand:'));
+    assert.ok(source.includes('this.rootItem.set_x_expand(true)'));
+    assert.ok(source.includes('this.scroll.set_x_expand(true)'));
+    assert.ok(source.includes('this.body.set_x_expand(true)'));
+    assert.ok(source.includes('button.set_x_expand(true)'));
     assert.ok(source.includes('orientation: this.Clutter.Orientation.VERTICAL'));
     assert.ok(source.includes('orientation: Clutter.Orientation.HORIZONTAL'));
     assert.ok(!source.includes('vertical:'));
