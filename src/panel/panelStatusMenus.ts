@@ -1066,7 +1066,7 @@ export class RadioStatusMenu {
         this.destroyed = true;
         this.content.destroy();
         this._restoreNativeContent();
-        for (const actor of this.popupActors)
+        for (const actor of this.popupActors ?? [])
             actor.remove_style_class_name('g-os-bluetooth-popup');
         this.cleanup.clear();
     }
