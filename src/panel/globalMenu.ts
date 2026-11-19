@@ -17,7 +17,7 @@ export class GtkGlobalMenu {
     constructor(container, {Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar = null,
         timestamp = () => 0, stylePrefix = 'g-os', getButtonMetrics = () => null}) {
         Object.assign(this, {container, Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar,
-            timestamp, stylePrefix, getMenuBounds, getButtonMetrics});
+            timestamp, stylePrefix, getButtonMetrics});
         this.window = null;
         this.windowCleanup = new CleanupManager();
         this.registrarCleanup = new CleanupManager();
