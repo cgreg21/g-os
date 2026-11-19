@@ -95,3 +95,13 @@ test('dock reorder transitions are owned by the screen animation manager', () =>
     assert.match(dockOrderSource, /screen\.lifecycle\.addSignal\(button, button\.connect\('destroy'/);
     assert.doesNotMatch(dockOrderSource, /candidate\.ease\(\{/);
 });
+
+
+test('drag actor visuals are created only by the shared shadow source', () => {
+    const featureSources = [extensionSource, panelSource, dockOrderSource, dockFoldersSource,
+        desktopIconsSource, desktopWidgetsSource, widgetRuntimeSource];
+    for (const source of featureSources)
+        assert.doesNotMatch(source, /getDragActor\\s*:/);
+    const sharedDnd = featureSources.length && null;
+    assert.match(dragAndDropSource, /DND\\.makeDraggable\\(actor/);
+});
