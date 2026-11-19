@@ -425,12 +425,13 @@ export class RadioStatusMenu {
         this.menu = menu;
         this.icon = icon;
         this.toggle = toggle;
+        this.cleanup = new CleanupManager();
         this.header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle?.checked));
         this.header.setSensitive(Boolean(toggle) && toggle.visible !== false && toggle.reactive !== false);
-        this.header.connect('toggled', (actor, checked) => {
+        this.cleanup.addSignal(this.header, this.header.connect('toggled', (actor, checked) => {
             if (toggle && checked !== Boolean(toggle.checked))
                 toggle.emit('clicked', 1);
-        });
+        }));
         menu.addMenuItem(this.header);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
@@ -451,14 +452,14 @@ export class RadioStatusMenu {
         this.settingsSeparator = new PopupMenu.PopupSeparatorMenuItem();
         menu.addMenuItem(this.settingsSeparator);
         this.settingsItem = menu.addAction(`Parametres ${title}`, openSettings);
-        this.deviceSignal = deviceChangeSignal
-            ? toggle?._client?.connect(deviceChangeSignal, () => this.content.alignDeviceRows()) ?? 0 : 0;
-        this.signals = [];
+        if (deviceChangeSignal && toggle?._client)
+            this.cleanup.addSignal(toggle._client,
+                toggle._client.connect(deviceChangeSignal, () => this.content.alignDeviceRows()));
         if (toggle) {
             for (const signal of ['notify::checked', 'notify::icon-name', 'notify::visible', 'notify::reactive'])
-                this.signals.push(toggle.connect(signal, () => this.refresh()));
+                this.cleanup.addSignal(toggle, toggle.connect(signal, () => this.refresh()));
         }
-        this.openSignal = menu.connect('open-state-changed', (actor, open) => {
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
             if (open) {
                 const mounted = this.content.mount(toggle?.menu, Boolean(toggle) && toggle.visible !== false);
                 this.settingsItem.visible = !mounted;
@@ -466,7 +467,7 @@ export class RadioStatusMenu {
                 this.refresh();
             } else
                 this.content.restore();
-        });
+        }));
         this.refresh();
     }
 
@@ -479,12 +480,7 @@ export class RadioStatusMenu {
 
     destroy() {
         this.content.restore();
-        if (this.deviceSignal)
-            this.toggle._client.disconnect(this.deviceSignal);
-        this.deviceSignal = 0;
-        this.menu.disconnect(this.openSignal);
-        for (const id of this.signals)
-            this.toggle.disconnect(id);
+        this.cleanup.clear();
     }
 }
 
