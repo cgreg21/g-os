@@ -973,174 +973,142 @@ export class BatteryStatusMenu {
     [key: string]: any;
     constructor(menu, icon, {powerToggle, profiles, deviceClient, batteryKind, levelLabel, showLevel = false,
         St, Clutter, PopupMenu, openSettings}) {
-        this.menu = menu;
-        this.icon = icon;
-        this.levelLabel = levelLabel;
-        this.showLevel = showLevel;
-        this.powerToggle = powerToggle;
-        this.Clutter = Clutter;
-        this.proxy = powerToggle?._proxy;
-        this.profiles = profiles;
-        this.PopupMenu = PopupMenu;
-        this.deviceClient = deviceClient;
-        this.batteryKind = batteryKind;
-        this.devices = [];
-        this.destroyed = false;
-        this.cleanup = new CleanupManager();
+        this.menu = menu; this.icon = icon; this.levelLabel = levelLabel; this.showLevel = showLevel;
+        this.powerToggle = powerToggle; this.Clutter = Clutter; this.proxy = powerToggle?._proxy;
+        this.profiles = profiles; this.deviceClient = deviceClient; this.batteryKind = batteryKind;
+        this.St = St; this.devices = []; this.destroyed = false; this.cleanup = new CleanupManager();
         this.deviceConnections = new Map();
-        this.percentage = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
-        this.state = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
-        this.percentage.add_style_class_name('g-os-status-info');
-        this.state.add_style_class_name('g-os-status-info');
-        menu.addMenuItem(this.percentage);
-        menu.addMenuItem(this.state);
-        this.deviceHeading = new PopupMenu.PopupMenuItem('Batteries détectées', {reactive: false, can_focus: false});
-        this.deviceHeading.visible = false;
-        this.deviceItems = new PopupMenu.PopupMenuSection();
-        menu.addMenuItem(this.deviceHeading);
-        menu.addMenuItem(this.deviceItems);
-        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Mode d\u2019alimentation'));
-        const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        this.holder = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL});
-        item.add_child(this.holder);
-        menu.addMenuItem(item);
-        this.content = new NativeMenuContent(menu, this.holder, {Clutter});
-        if (!profiles) {
-            const unavailable = new PopupMenu.PopupMenuItem('Profils indisponibles', {reactive: false, can_focus: false});
-            menu.addMenuItem(unavailable);
-        }
-        this.settingsSeparator = new PopupMenu.PopupSeparatorMenuItem();
-        menu.addMenuItem(this.settingsSeparator);
-        this.settingsItem = menu.addAction('Parametres d\u2019alimentation', openSettings);
+        const summaryItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        const summary = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-battery-summary'});
+        const top = new St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-summary-row'});
+        this.batteryIcon = new St.Icon({icon_name: 'battery-missing-symbolic', icon_size: 32});
+        const details = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL});
+        this.percentage = new St.Label({text: '—', style_class: 'g-os-battery-percentage'});
+        this.state = new St.Label({text: '', style_class: 'g-os-status-muted'});
+        details.add_child(this.percentage); details.add_child(this.state); top.add_child(this.batteryIcon); top.add_child(details);
+        summary.add_child(top); summaryItem.add_child(summary); menu.addMenuItem(summaryItem);
+        this.deviceHeading = new St.Label({text: 'Périphériques', style_class: 'g-os-status-section-label'});
+        const headingItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        headingItem.add_child(this.deviceHeading); menu.addMenuItem(headingItem);
+        this.deviceItems = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-battery-devices'});
+        const devicesItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        devicesItem.add_child(this.deviceItems); menu.addMenuItem(devicesItem);
+        this.profileHeading = new St.Label({text: 'Mode d’alimentation', style_class: 'g-os-status-section-label'});
+        const profileHeadingItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        profileHeadingItem.add_child(this.profileHeading); menu.addMenuItem(profileHeadingItem);
+        this.profileGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-grid'});
+        const profilesItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        profilesItem.add_child(this.profileGrid); menu.addMenuItem(profilesItem);
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        menu.addAction('Paramètres d’alimentation', openSettings);
         if (this.proxy)
-            this.cleanup.addSignal(this.proxy, this.proxy.connect('g-properties-changed', () => {
-                if (!this.destroyed)
-                    this.refresh();
-            }));
+            this.cleanup.addSignal(this.proxy, this.proxy.connect('g-properties-changed', () => this.refresh()));
+        if (profiles?._proxy)
+            this.cleanup.addSignal(profiles._proxy, profiles._proxy.connect('g-properties-changed', () => this._buildProfiles()));
         if (deviceClient) {
-            try {
-                this.devices = deviceClient.get_devices2() ?? [];
-            } catch {
-                this.devices = [];
-            }
-            this.cleanup.addSignal(deviceClient, deviceClient.connect('device-added', (client, device) => {
-                if (this.destroyed)
-                    return;
-                if (!this.devices.includes(device))
-                    this.devices.push(device);
+            try { this.devices = deviceClient.get_devices2() ?? []; } catch { this.devices = []; }
+            this.cleanup.addSignal(deviceClient, deviceClient.connect('device-added', (_client, device) => {
+                if (!this.destroyed && !this.devices.includes(device)) this.devices.push(device);
                 this.refresh();
             }));
-            this.cleanup.addSignal(deviceClient, deviceClient.connect('device-removed', (client, objectPath) => {
-                if (this.destroyed)
-                    return;
-                this.devices = this.devices.filter(device => device.get_object_path() !== objectPath);
+            this.cleanup.addSignal(deviceClient, deviceClient.connect('device-removed', (_client, path) => {
+                if (this.destroyed) return;
+                this.devices = this.devices.filter(device => device.get_object_path() !== path);
                 this.refresh();
             }));
         }
-        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
-            if (open) {
-                const mounted = this.content.mount(profiles?.menu);
-                this.settingsItem.visible = !mounted;
-                this.settingsSeparator.visible = !mounted;
-                this.refresh();
-            } else
-                this.content.restore();
-        }));
-        this.refresh();
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', () => this.refresh()));
+        this._buildProfiles(); this.refresh();
     }
-
+    _buildProfiles() {
+        if (!this.profileGrid) return;
+        this.profileGrid.destroy_all_children();
+        const proxy = this.profiles?._proxy;
+        const entries = [...(this.profiles?._profileItems?.entries?.() ?? [])]
+            .filter(([profile]) => ['power-saver', 'balanced', 'performance'].includes(profile));
+        for (let index = 0; index < entries.length; index += 3) {
+            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-grid-row'});
+            for (const [profile, item] of entries.slice(index, index + 3)) {
+                const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
+                    x_expand: true, style_class: 'g-os-status-device-tile', accessible_name: item.label?.text || profile});
+                const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-content'});
+                content.add_child(new this.St.Icon({icon_name: item.icon?.icon_name || 'power-profile-balanced-symbolic', icon_size: 22}));
+                content.add_child(new this.St.Label({text: item.label?.text || profile, style_class: 'g-os-status-device-label'}));
+                if (proxy?.ActiveProfile === profile)
+                    content.add_child(new this.St.Icon({icon_name: 'object-select-symbolic', icon_size: 14}));
+                button.set_child(content);
+                button.connect('clicked', () => { if (!this.destroyed && proxy) proxy.ActiveProfile = profile; });
+                row.add_child(button);
+            }
+            this.profileGrid.add_child(row);
+        }
+        this.profileHeading.visible = entries.length > 0;
+    }
     refresh() {
-        if (this.destroyed)
-            return;
+        if (this.destroyed) return;
         const batteries = this.syncDevices();
-        const proxy = this.proxy;
         const primary = batteries.find(device => device.power_supply) ?? batteries[0];
-        const proxyPercentage = proxy?.IsPresent ? Number(proxy.Percentage) : Number.NaN;
-        const levelPercentage = Number.isFinite(proxyPercentage) ? proxyPercentage
-            : primary ? Number(primary.percentage) : Number.NaN;
+        const proxy = this.proxy;
+        const proxyLevel = proxy?.IsPresent ? Number(proxy.Percentage) : Number.NaN;
+        const level = Number.isFinite(proxyLevel) ? proxyLevel : primary ? Number(primary.percentage) : Number.NaN;
         if (this.levelLabel) {
-            this.levelLabel.text = Number.isFinite(levelPercentage) ? `${Math.round(levelPercentage)}%` : '';
-            this.levelLabel.visible = this.showLevel && Number.isFinite(levelPercentage);
+            this.levelLabel.text = Number.isFinite(level) ? `${Math.round(level)}%` : '';
+            this.levelLabel.visible = this.showLevel && Number.isFinite(level);
         }
-        this.percentage.visible = batteries.length === 0;
-        this.state.visible = batteries.length === 0;
         this.deviceHeading.visible = batteries.length > 0;
-        if (primary)
-            this.icon.icon_name = proxy?.IconName || primary.icon_name || 'battery-good-symbolic';
+        this.deviceItems.destroy_all_children();
+        for (const device of batteries) {
+            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-battery-device'});
+            row.add_child(new this.St.Icon({icon_name: device.icon_name || 'battery-good-symbolic', icon_size: 18}));
+            row.add_child(new this.St.Label({text: [device.vendor, device.model].filter(Boolean).join(' ') || 'Périphérique', x_expand: true}));
+            row.add_child(new this.St.Label({text: `${Math.round(Number(device.percentage) || 0)} %`}));
+            this.deviceItems.add_child(row);
+        }
         if (!proxy?.IsPresent) {
-            this.percentage.label.text = batteries.length ? '' : 'Aucune batterie';
-            this.state.label.text = batteries.length ? '' : 'Alimentation secteur';
-            if (!batteries.length)
-                this.icon.icon_name = 'battery-missing-symbolic';
+            this.percentage.text = Number.isFinite(level) ? `${Math.round(level)} %` : 'Secteur';
+            this.state.text = Number.isFinite(level) ? 'Batterie' : 'Aucune batterie détectée';
+            this.batteryIcon.icon_name = primary?.icon_name || 'battery-missing-symbolic';
+            if (!batteries.length) this.icon.icon_name = 'battery-missing-symbolic';
             return;
         }
-        this.percentage.label.text = `Batterie : ${Math.round(proxy.Percentage)} %`;
-        const states = ['Etat inconnu', 'En charge', 'Sur batterie', 'Batterie vide', 'Charge complete', 'Charge en attente', 'Decharge en attente'];
+        this.percentage.text = `${Math.round(proxy.Percentage)} %`;
+        const states = ['État inconnu', 'En charge', 'Sur batterie', 'Batterie vide', 'Charge complète', 'Charge en attente', 'Décharge en attente'];
         const seconds = proxy.State === 1 ? proxy.TimeToFull : proxy.State === 2 ? proxy.TimeToEmpty : 0;
         const minutes = Math.max(0, Math.round(Number(seconds) / 60));
-        const time = minutes > 0 ? ` - ${Math.floor(minutes / 60)} h ${minutes % 60} min` : '';
-        this.state.label.text = `${states[proxy.State] ?? states[0]}${time}`;
+        const time = minutes > 0 ? ` · ${Math.floor(minutes / 60)} h ${minutes % 60} min` : '';
+        this.state.text = `${states[proxy.State] ?? states[0]}${time}`;
         const percentage = Number(proxy.Percentage);
-        const level = proxy.State === 3 ? 'empty' : percentage >= 95 ? 'full' : percentage >= 60 ? 'good'
+        const levelName = proxy.State === 3 ? 'empty' : percentage >= 95 ? 'full' : percentage >= 60 ? 'good'
             : percentage >= 20 ? 'caution' : percentage > 0 ? 'low' : 'empty';
-        const fallbackIcon = proxy.State === 4 ? 'battery-full-charged-symbolic'
-            : `battery-${level}${proxy.State === 1 ? '-charging' : ''}-symbolic`;
-        this.icon.icon_name = proxy.IconName || fallbackIcon;
+        const fallback = proxy.State === 4 ? 'battery-full-charged-symbolic'
+            : `battery-${levelName}${proxy.State === 1 ? '-charging' : ''}-symbolic`;
+        this.icon.icon_name = proxy.IconName || fallback;
+        this.batteryIcon.icon_name = proxy.IconName || fallback;
     }
-
     syncDevices() {
-        if (this.destroyed)
-            return [];
-        const batteryDevices = this.devices.filter(device =>
-            (device.kind === this.batteryKind || device.is_rechargeable));
-        const batteries = batteryDevices.filter(device => device.is_present);
-        const currentDevices = new Set(batteryDevices);
-        for (const [device, signals] of this.deviceConnections) {
-            if (currentDevices.has(device))
-                continue;
-            signals.clear();
-            this.deviceConnections.delete(device);
+        if (this.destroyed) return [];
+        const candidates = this.devices.filter(device => device.kind === this.batteryKind || device.is_rechargeable);
+        const batteries = candidates.filter(device => device.is_present);
+        const current = new Set(candidates);
+        for (const [device, cleanup] of this.deviceConnections) {
+            if (current.has(device)) continue;
+            cleanup.clear(); this.deviceConnections.delete(device);
         }
         for (const device of batteries) {
-            if (this.deviceConnections.has(device))
-                continue;
+            if (this.deviceConnections.has(device)) continue;
             const cleanup = new CleanupManager();
             for (const signal of ['notify::percentage', 'notify::state', 'notify::is-present', 'notify::kind',
-                'notify::model', 'notify::vendor', 'notify::native-path', 'notify::power-supply',
-                'notify::icon-name', 'notify::time-to-empty', 'notify::time-to-full'])
+                'notify::model', 'notify::vendor', 'notify::icon-name', 'notify::time-to-empty', 'notify::time-to-full'])
                 cleanup.addSignal(device, device.connect(signal, () => this.refresh()));
             this.deviceConnections.set(device, cleanup);
         }
-        this.deviceItems.removeAll();
-        const states = ['Etat inconnu', 'En charge', 'Sur batterie', 'Batterie vide', 'Charge complete',
-            'Charge en attente', 'Decharge en attente'];
-        batteries.forEach((device, index) => {
-            const percentage = Number(device.percentage);
-            const charge = Number.isFinite(percentage) ? `${Math.round(percentage)} %` : 'inconnue';
-            const seconds = device.state === 1 ? device.time_to_full : device.state === 2 ? device.time_to_empty : 0;
-            const minutes = Math.max(0, Math.round(Number(seconds) / 60));
-            const time = minutes > 0 ? ` - ${Math.floor(minutes / 60)} h ${minutes % 60} min` : '';
-            const model = [device.vendor, device.model].filter(Boolean).join(' ') || `Batterie ${index + 1}`;
-            const category = /\/org\/bluez\//i.test(device.native_path ?? '') ? 'Bluetooth'
-                : device.power_supply ? 'Interne' : 'Périphérique';
-            this.deviceItems.addMenuItem(new this.PopupMenu.PopupMenuItem(`${category} : ${model} - ${charge} - ${states[device.state] ?? states[0]}${time}`, {
-                reactive: false, can_focus: false,
-            }));
-        });
-        alignMenuRows(this.deviceItems.actor, this.Clutter);
         return batteries;
     }
-
     destroy() {
-        if (this.destroyed)
-            return;
-        this.destroyed = true;
-        this.content.destroy();
-        this.cleanup.clear();
-        for (const cleanup of this.deviceConnections.values())
-            cleanup.clear();
-        this.deviceConnections.clear();
-        this.devices = [];
+        if (this.destroyed) return;
+        this.destroyed = true; this.cleanup.clear();
+        for (const cleanup of this.deviceConnections.values()) cleanup.clear();
+        this.deviceConnections.clear(); this.devices = [];
         this.deviceClient?.dispose?.();
     }
 }
