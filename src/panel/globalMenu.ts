@@ -1,5 +1,6 @@
 import {DbusMenuClient} from './dbusMenu.js';
 import {alignMenuRows} from './panelStatusMenus.js';
+import {CleanupManager} from '../core/cleanupManager.js';
 
 export class GtkGlobalMenu {
     [key: string]: any;
@@ -9,7 +10,8 @@ export class GtkGlobalMenu {
         Object.assign(this, {container, Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar,
             timestamp, stylePrefix, textPadding, getMenuBounds});
         this.window = null;
-        this.windowSignals = [];
+        this.windowCleanup = new CleanupManager();
+        this.registrarCleanup = new CleanupManager();
         this.remoteSignals = [];
         this.buttons = [];
         this.models = [];
@@ -24,10 +26,12 @@ export class GtkGlobalMenu {
         this.submenus = [];
         this.dbusClient = null;
         this.backend = null;
-        this.registrarSignal = registrar?.connect('changed', (_registrar, windowId) => {
-            if (registrar.windowId(this.window) === windowId)
-                this._load();
-        }) ?? 0;
+        if (registrar) {
+            this.registrarCleanup.addSignal(registrar, registrar.connect('changed', (_registrar, windowId) => {
+                if (registrar.windowId(this.window) === windowId)
+                    this._load();
+            }));
+        }
         container.hide();
     }
 
@@ -41,16 +45,15 @@ export class GtkGlobalMenu {
         if (window) {
             for (const signal of ['notify::gtk-unique-bus-name', 'notify::gtk-menubar-object-path',
                 'notify::gtk-app-menu-object-path', 'notify::gtk-application-object-path', 'notify::gtk-window-object-path'])
-                this.windowSignals.push(window.connect(signal, () => this._load()));
-            this.windowSignals.push(window.connect('unmanaged', () => this.setWindow(null)));
+                this.windowCleanup.addSignal(window, window.connect(signal, () => this._load()));
+            this.windowCleanup.addSignal(window, window.connect('unmanaged', () => this.setWindow(null)));
         }
         this._load();
     }
 
     _disconnectWindow() {
-        for (const signal of this.windowSignals)
-            this.window.disconnect(signal);
-        this.windowSignals = [];
+        this.windowCleanup.clear();
+        this.windowCleanup = new CleanupManager();
     }
 
     _clearButtons() {
@@ -319,9 +322,7 @@ export class GtkGlobalMenu {
         if (this.disposed)
             return;
         this.disposed = true;
-        if (this.registrarSignal)
-            this.registrar.disconnect(this.registrarSignal);
-        this.registrarSignal = 0;
+        this.registrarCleanup.clear();
         this._disconnectWindow();
         this._clearRemote();
         this.window = null;
