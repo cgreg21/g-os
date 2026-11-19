@@ -273,15 +273,12 @@ export class DisplayStatusMenu {
         brightness.add_child(this.brightnessValue); menu.addMenuItem(brightness);
         this.cleanup.addSignal(this.brightnessSlider, this.brightnessSlider.connect('notify::value', () => this._writeBrightness()));
 
-        const night = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        night.add_child(new St.Icon({icon_name: 'weather-clear-night-symbolic', icon_size: 20}));
-        night.add_child(new St.Label({text: 'Mode nuit', x_expand: true}));
-        this.nightLightSwitch = new St.Switch({state: this.nightLight.get_boolean('night-light-enabled')});
-        this.nightLightSwitch.y_align = Clutter.ActorAlign.CENTER;
-        night.add_child(this.nightLightSwitch); menu.addMenuItem(night);
-        this.cleanup.addSignal(this.nightLightSwitch, this.nightLightSwitch.connect('notify::state', () => {
+        this.nightLightItem = new PopupMenu.PopupSwitchMenuItem(
+            'Mode nuit', this.nightLight.get_boolean('night-light-enabled'));
+        menu.addMenuItem(this.nightLightItem);
+        this.cleanup.addSignal(this.nightLightItem, this.nightLightItem.connect('toggled', (_item, state) => {
             if (!this.destroyed && !this.syncingNightLight)
-                this.nightLight.set_boolean('night-light-enabled', this.nightLightSwitch.state);
+                this.nightLight.set_boolean('night-light-enabled', state);
         }));
 
         this.temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
@@ -316,7 +313,7 @@ export class DisplayStatusMenu {
         const enabled = this.nightLight.get_boolean('night-light-enabled');
         const temperature = this.nightLight.get_uint('night-light-temperature');
         this.syncingNightLight = true;
-        this.nightLightSwitch.state = enabled;
+        this.nightLightItem.setToggleState(enabled);
         this.temperatureSlider.value = Math.max(0, Math.min(1, (temperature - 1000) / 9000));
         this.syncingNightLight = false;
         this.temperatureValue.text = `${temperature.toLocaleString()} K`;
