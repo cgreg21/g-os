@@ -402,8 +402,12 @@ export default class GOsExtension extends ExtensionComponents {
             for (const source of [...this._notificationSources.keys()])
                 this._unwatchNotificationSource(source);
             for (const [object, id] of this._connections) {
-                if (GObject.signal_handler_is_connected(object, id))
+                if (object instanceof GObject.Object) {
+                    if (GObject.signal_handler_is_connected(object, id))
+                        object.disconnect(id);
+                } else {
                     object.disconnect(id);
+                }
             }
             this._connections = [];
             this._overviewDash?.show();
