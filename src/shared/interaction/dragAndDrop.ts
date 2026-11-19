@@ -108,25 +108,34 @@ export class DragAndDropController {
 
         try {
             signalIds.push(draggable.connect('drag-begin', () => {
+                if (disposed)
+                    return;
                 callbacks.onBegin?.();
-                if (callbacks.onMotion) {
-                    dragMonitor = {
-                        dragMotion: event => {
+                // onBegin may synchronously unregister or destroy this source.
+                if (disposed || !callbacks.onMotion)
+                    return;
+                dragMonitor = {
+                    dragMotion: event => {
+                        if (!disposed)
                             callbacks.onMotion?.(event);
-                            return DND.DragMotionResult.CONTINUE;
-                        },
-                    };
-                    DND.addDragMonitor(dragMonitor);
-                }
+                        return DND.DragMotionResult.CONTINUE;
+                    },
+                };
+                DND.addDragMonitor(dragMonitor);
             }));
             signalIds.push(draggable.connect('drag-end', (_draggable, _time, success) => {
+                if (disposed)
+                    return;
                 removeDragMonitor();
                 callbacks.onEnd?.(Boolean(success));
             }));
             signalIds.push(draggable.connect('drag-cancelled', () => {
-                callbacks.onCancelled?.();
+                if (!disposed)
+                    callbacks.onCancelled?.();
             }));
             actorDestroySignal = actor.connect('destroy', () => {
+                if (disposed)
+                    return;
                 try {
                     callbacks.onDestroy?.();
                 } finally {
