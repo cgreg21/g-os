@@ -160,6 +160,9 @@ function createDisplayMenu(initialBrightness = 42) {
     const St = {
         Icon: class { constructor(properties) { Object.assign(this, properties); } },
         Label: class { constructor(properties) { Object.assign(this, properties); } },
+        BoxLayout: class { constructor() { this.children = []; } add_child(child) { this.children.push(child); }
+            destroy_all_children() { this.children = []; } },
+        Widget: class { constructor(properties) { Object.assign(this, properties); } },
     };
     const Slider = {Slider: MockSlider};
     const PopupMenu = {PopupBaseMenuItem, PopupMenuItem, PopupSwitchMenuItem,
@@ -312,6 +315,9 @@ test('sound slider reaches amplified volume only while the system allows it', ()
     const St = {
         Icon: class { constructor(properties) { Object.assign(this, properties); } },
         Label: class { constructor(properties) { Object.assign(this, properties); } },
+        BoxLayout: class { constructor() { this.children = []; } add_child(child) { this.children.push(child); }
+            destroy_all_children() { this.children = []; } },
+        Widget: class { constructor(properties) { Object.assign(this, properties); } },
         Button,
     };
     const PopupMenu = {PopupBaseMenuItem, PopupMenuItem, PopupMenuSection,
@@ -370,15 +376,14 @@ test('UPower client ignores queued device events after disposal', () => {
     assert.deepEqual(client.get_devices2(), []);
 });
 
-test('radio menu destruction permanently disposes native menu content', () => {
+test('radio menu destruction releases its device signal handlers', () => {
     const controller = Object.create(RadioStatusMenu.prototype);
-    let destroyed = 0;
+    let cleared = 0;
     controller.destroyed = false;
-    controller.content = {destroy() { destroyed++; }};
-    controller.cleanup = {clear() {}};
+    controller.cleanup = {clear() { cleared++; }};
     controller.destroy();
     controller.destroy();
-    assert.equal(destroyed, 1);
+    assert.equal(cleared, 1);
     assert.equal(controller.destroyed, true);
 });
 
@@ -408,10 +413,12 @@ test('battery percentage is shown in the panel only when enabled and a level is 
         proxy: {IsPresent: true, IconName: 'battery-good-symbolic', Percentage: 73, State: 2,
             TimeToEmpty: 3600, TimeToFull: 0},
         icon: {},
-        percentage: {visible: false, label: {text: ''}},
-        state: {visible: false, label: {text: ''}},
+        percentage: {text: ''},
+        state: {text: ''},
         deviceHeading: {visible: false},
+        deviceItems: {destroy_all_children() {}},
         syncDevices: () => [],
+        batteryIcon: {},
     });
 
     controller.refresh();
