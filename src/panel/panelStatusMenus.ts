@@ -596,7 +596,7 @@ export class NetworkStatusMenu {
         for (const {entry, row} of this.contents.values()) {
             const {toggle, title} = entry;
             const available = toggle.visible !== false;
-            row.visible = available;
+            row.visible = available && !this.activeView;
             row.setSensitive(available && toggle.reactive !== false);
             row.label.text = `${title}  ·  ${toggle.checked ? 'Activé' : 'Désactivé'}`;
         }

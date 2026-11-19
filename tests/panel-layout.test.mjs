@@ -139,6 +139,7 @@ test('network menu uses a compact overview and one focused native detail view', 
     assert.match(source, /_restoreActiveContent\(\)/);
     assert.match(source, /row\.label\.text = .*Activé.*Désactivé/s);
     assert.match(source, /for \(const item of this\.overviewItems\)\s+item\.visible = false/);
+    assert.match(source, /row\.visible = available && !this\.activeView/);
     assert.match(source, /for \(const item of this\.overviewItems\)\s+item\.visible = true/);
     assert.match(source, /for \(const item of this\.transientItems\.splice\(0\)\)/);
 });
