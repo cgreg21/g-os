@@ -22,10 +22,10 @@ export class ChromeActorManager<T extends object> {
         try {
             this.addActor(actor, options);
         } catch (error) {
-            this.actors.delete(actor);
-            // Host registration may fail after partially registering the actor.
-            // Roll back defensively while preserving the original error.
-            this.release(actor);
+            // Roll back only if ownership remains here; host code may already
+            // have re-entered remove() or destroy() and released the actor.
+            if (this.actors.delete(actor))
+                this.release(actor);
             throw error;
         }
     }
