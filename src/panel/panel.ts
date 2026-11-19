@@ -1115,6 +1115,11 @@ export function withPanel(Base) {
                 settings.setSensitive(Boolean(this._appSystem.lookup_app('org.gnome.Settings.desktop')));
             };
             updateSensitivity();
+            const capabilityCleanup = new CleanupManager();
+            for (const signal of ['notify::can-restart', 'notify::can-power-off', 'notify::can-logout',
+                'notify::can-lock-screen', 'notify::can-suspend'])
+                capabilityCleanup.addSignal(actions, actions.connect(signal, updateSensitivity));
+            button.connect('destroy', () => capabilityCleanup.clear());
             button.menu.connect('open-state-changed', (menu, open) => {
                 if (open) {
                     updateSensitivity();
