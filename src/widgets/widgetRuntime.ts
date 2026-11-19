@@ -378,7 +378,7 @@ export class WidgetRuntime {
             formatDuration,
             formatBytes,
             wallTime: () => Date.now(),
-            notify: (title, message = '') => this.env.Main.notify?.(title, message),
+            notify: (title, message = '') => !disposed && this.env.Main.notify?.(title, message),
             homeDirectory: () => GLib.get_home_dir(),
             systemStats: async () => {
                 const values = await Promise.all(['/proc/stat', '/proc/meminfo', '/proc/uptime', '/proc/loadavg'].map(readText));
@@ -466,7 +466,7 @@ export class WidgetRuntime {
             },
             setDynamicLevel: value => {
                 const actor = instance.widgetActor;
-                if (appearance !== 'dynamic' || !actor)
+                if (disposed || appearance !== 'dynamic' || !actor)
                     return;
                 const level = Math.max(0, Math.min(1, Number(value) || 0));
                 actor.set_style(`background-color: ${widgetColor(config['background-color'], 0.12 + level * 0.38)};`);
@@ -486,8 +486,10 @@ export class WidgetRuntime {
                 const id = settings.connect('changed::widget-state', guarded(() => callback(readWidgetState(settings.get_string('widget-state'), instance.id))));
                 registerCleanup(() => settings.disconnect(id));
             },
-            openConfiguration: () => host._openWidgetManager(instance.target, instance.monitor),
+            openConfiguration: () => !disposed && host._openWidgetManager(instance.target, instance.monitor),
             createMediaView: properties => {
+                if (disposed)
+                    return null;
                 host._mediaServiceUsers = (host._mediaServiceUsers ?? 0) + 1;
                 registerCleanup(() => {
                     host._mediaServiceUsers--;
@@ -498,8 +500,8 @@ export class WidgetRuntime {
                 return host._createMediaView(properties);
             },
             mediaState: () => host._mediaState(),
-            mediaAction: action => host._mediaAction(action),
-            createDockBuiltin: (type, context) => ({actor: host._addDockWidget(context.screen, type,
+            mediaAction: action => !disposed && host._mediaAction(action),
+            createDockBuiltin: (type, context) => disposed ? null : ({actor: host._addDockWidget(context.screen, type,
                 context.iconSize, context.iconPadding, instance)}),
         };
         return {
