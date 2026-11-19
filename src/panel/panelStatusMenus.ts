@@ -61,12 +61,22 @@ export class SoundStatusMenu {
         row.add_child(this.slider);
         row.add_child(this.percentage);
         menu.addMenuItem(row);
-        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Sortie audio'));
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Sorties audio'));
         this.devices = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL,
             style_class: 'g-os-status-device-grid'});
         const devicesItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         devicesItem.add_child(this.devices);
         menu.addMenuItem(devicesItem);
+        this.inputItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        this.inputs = new St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL,
+            style_class: 'g-os-status-input-row'});
+        this.inputIcon = new St.Icon({icon_name: 'audio-input-microphone-symbolic', icon_size: 18});
+        this.inputName = new St.Label({text: '', style_class: 'g-os-status-device-label', x_expand: true});
+        this.inputs.add_child(this.inputIcon);
+        this.inputs.add_child(this.inputName);
+        this.inputItem.add_child(this.inputs);
+        this.inputItem.visible = false;
+        menu.addMenuItem(this.inputItem);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         menu.addAction('Parametres du son', openSettings);
         this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
@@ -266,10 +276,12 @@ export class DisplayStatusMenu {
         const night = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         night.add_child(new St.Icon({icon_name: 'weather-clear-night-symbolic', icon_size: 20}));
         night.add_child(new St.Label({text: 'Mode nuit', x_expand: true}));
-        this.nightLightToggle = new PopupMenu.PopupSwitchMenuItem('', this.nightLight.get_boolean('night-light-enabled'));
-        night.add_child(this.nightLightToggle); menu.addMenuItem(night);
-        this.cleanup.addSignal(this.nightLightToggle, this.nightLightToggle.connect('toggled', (_item, enabled) => {
-            if (!this.destroyed && !this.syncingNightLight) this.nightLight.set_boolean('night-light-enabled', enabled);
+        this.nightLightSwitch = new St.Switch({state: this.nightLight.get_boolean('night-light-enabled')});
+        this.nightLightSwitch.y_align = Clutter.ActorAlign.CENTER;
+        night.add_child(this.nightLightSwitch); menu.addMenuItem(night);
+        this.cleanup.addSignal(this.nightLightSwitch, this.nightLightSwitch.connect('notify::state', () => {
+            if (!this.destroyed && !this.syncingNightLight)
+                this.nightLight.set_boolean('night-light-enabled', this.nightLightSwitch.state);
         }));
 
         this.temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
