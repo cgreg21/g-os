@@ -45,10 +45,14 @@ export class FluxSession {
         this.started = true;
         const {GLib} = this.environment;
         for (const [name, source] of Object.entries(this.program.sources)) {
+            if (this.stopped)
+                return;
             this.refresh(name);
+            if (this.stopped)
+                return;
             this.timers.push(GLib.timeout_add(GLib.PRIORITY_DEFAULT, source.refresh * 1000, () => {
                 this.refresh(name);
-                return GLib.SOURCE_CONTINUE;
+                return this.stopped ? GLib.SOURCE_REMOVE : GLib.SOURCE_CONTINUE;
             }));
         }
     }
@@ -60,6 +64,8 @@ export class FluxSession {
         this.status[name] = 'loading';
         this.errors[name] = '';
         this.notify();
+        if (this.stopped)
+            return;
         const request = requestFluxJson(this.environment, source.url, source.timeout);
         this.requests.set(name, request);
         request.promise.then(value => {
