@@ -52,19 +52,38 @@ export class TaskScheduler {
         if (this.destroyed)
             return;
         this.cancel(key);
-        let sourceId = 0;
-        sourceId = createSource(() => {
-            if (this.destroyed || this.sources.get(key) !== sourceId)
-                return false;
-            this.sources.delete(key);
+        let sourceId: number | undefined;
+        let completedBeforeRegistration = false;
+        const run = (): void => {
             try {
                 callback();
             } catch (error) {
                 logError(error as Error, `g-os scheduled task failed: ${key}`);
             }
+        };
+        const done = (): boolean => {
+            if (sourceId === undefined) {
+                completedBeforeRegistration = true;
+                return false;
+            }
+            if (this.destroyed || this.sources.get(key) !== sourceId)
+                return false;
+            this.sources.delete(key);
+            run();
             return false;
-        });
-        this.sources.set(key, sourceId);
+        };
+        sourceId = createSource(done);
+        // Injectable backends may complete synchronously, before their source ID
+        // can be registered. Defer the callback until registration has returned.
+        if (completedBeforeRegistration) {
+            if (!this.destroyed)
+                run();
+            return;
+        }
+        if (this.destroyed)
+            this.removeSource(sourceId);
+        else
+            this.sources.set(key, sourceId);
     }
 
     private removeSource(sourceId: number): void {
