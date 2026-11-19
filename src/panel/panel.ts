@@ -789,10 +789,14 @@ export function withPanel(Base) {
         _beginPanelShadowDrag(screen, id, actor, dragActor) {
             if (screen.panelDragState)
                 this._finishPanelShadowDrag(screen, false);
+            if (!actor || actor.is_destroyed() || !dragActor || dragActor.is_destroyed())
+                return;
             const parent = actor.get_parent();
-            if (!parent)
+            if (!parent || parent.is_destroyed())
                 return;
             const index = parent.get_children().indexOf(actor);
+            if (index < 0)
+                return;
             const [width, height] = actor.get_size();
             // Keep a visual copy in the layout while the dragged item is
             // represented by the drag actor that GNOME Shell moves with the pointer.
@@ -809,20 +813,39 @@ export function withPanel(Base) {
             placeholder.set_size(width, height);
             placeholder.y_expand = true;
             screen.panelDragState = {id, actor, parent, index, placeholder};
-            parent.insert_child_at_index(placeholder, index);
-            parent.remove_child(actor);
+            try {
+                parent.insert_child_at_index(placeholder, index);
+                // Shell callbacks can change the source parent while a drag starts.
+                // Never remove an actor from a parent it no longer belongs to.
+                if (actor.get_parent() === parent)
+                    parent.remove_child(actor);
+            } catch (error) {
+                screen.panelDragState = null;
+                if (placeholder.get_parent())
+                    placeholder.get_parent().remove_child(placeholder);
+                if (!placeholder.is_destroyed())
+                    placeholder.destroy();
+                throw error;
+            }
         }
 
         _finishPanelShadowDrag(screen, success) {
             const state = screen.panelDragState;
             if (!state)
                 return;
+            // Clear state first: destroy/remove signals may re-enter this method.
             screen.panelDragState = null;
             this._clearPanelDropZone(screen);
-            state.placeholder.get_parent()?.remove_child(state.placeholder);
-            if (!success && state.actor && !state.actor.is_destroyed())
-                state.parent.insert_child_at_index(state.actor, Math.min(state.index, state.parent.get_n_children()));
-            state.placeholder.destroy();
+            const placeholderParent = state.placeholder.get_parent();
+            if (placeholderParent)
+                placeholderParent.remove_child(state.placeholder);
+            if (!success && state.actor && !state.actor.is_destroyed() &&
+                state.parent && !state.parent.is_destroyed() && !state.actor.get_parent()) {
+                state.parent.insert_child_at_index(state.actor,
+                    Math.min(state.index, state.parent.get_n_children()));
+            }
+            if (!state.placeholder.is_destroyed())
+                state.placeholder.destroy();
         }
 
         _movePanelDropPlaceholder(screen, group, x) {
