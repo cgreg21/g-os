@@ -560,7 +560,6 @@ export function withPanel(Base) {
                 text: screen.clock, accessibleName: 'Calendrier et événements',
                 styleClass: 'g-os-clock-button', visible: screen.clock.visible,
             });
-            screen.clockButton.set_style('padding: 0; margin: 0; min-height: 0;');
             screen.clockButton.connect('clicked', () => this._togglePanelCalendar(screen));
             screen.clockButton.connect('popup-menu', () => this._togglePanelCalendar(screen));
             screen.panel.add_child(screen.clockButton);
@@ -889,10 +888,7 @@ export function withPanel(Base) {
                 ...screen.statusNotifierButtons.values(),
                 ...screen.statusButtons, screen.sessionButton.container]) {
                 button.y_align = Clutter.ActorAlign.CENTER;
-                if (button.panelContent)
-                    applyPanelButtonMetrics(button, metrics);
-                else
-                    button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
+                applyPanelButtonMetrics(button, metrics);
             }
             // The application label is the only width-constrained topbar text.
             // Apply its fit after the shared button metrics so generic sizing
@@ -906,19 +902,9 @@ export function withPanel(Base) {
                 screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px; spacing: ${metrics.spacing}px;`);
             }
             for (const button of screen.globalMenuBox?.get_children() ?? []) {
-                if (button.panelContent)
-                    applyPanelButtonMetrics(button, metrics);
-                else
-                    button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
+                applyPanelButtonMetrics(button, metrics);
             }
-            for (const icon of [screen.menuIcon, screen.searchIcon, screen.preferencesIcon, screen.notificationIcon,
-                ...[...screen.statusNotifierButtons.values()].map(button => button.statusIcon),
-                ...screen.statusButtons.map(button => button.statusIcon), screen.sessionIcon]) {
-                if (!icon)
-                    continue;
-                icon.y_align = Clutter.ActorAlign.CENTER;
-                icon.set_style(`icon-size: ${screen.iconSize}px;`);
-            }
+
         }
 
         _syncStatusNotifierItems(screen) {
