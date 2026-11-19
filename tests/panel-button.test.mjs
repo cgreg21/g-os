@@ -56,6 +56,23 @@ test('topbar spacing and padding are not hardcoded per button style', async () =
     assert.match(panel, /for \(const \{content\} of screen\.panelLayoutGroups\?\.values\(\) \?\? \[\]\)[\s\S]*?content\.set_style\(`spacing:/);
 });
 
+
+test('live topbar geometry settings refresh shared metrics without rebuilding controls', async () => {
+    const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
+    assert.match(extension, /'panel-height', 'panel-padding-horizontal', 'panel-padding-vertical', 'panel-icon-padding'/);
+    assert.match(extension, /\['panel-height', 'panel-padding-horizontal', 'panel-padding-vertical',[\s\S]*?'panel-icon-padding'\]\.some\(key => keys\.has\(key\)\)[\s\S]*?this\._applyPanelMetrics\(screen\);/);
+    assert.match(extension, /if \(keys\.has\('panel-height'\)\)\s+screen\.panel\.set_height/);
+});
+
+test('dynamic status notifier icons use only the shared button metrics', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    const start = panel.indexOf('_syncStatusNotifierItems(screen)');
+    const end = panel.indexOf('_destroyStatusNotifierMenus(screen)', start);
+    const sync = panel.slice(start, end);
+    assert.match(sync, /if \(screen\.panelButtonMetrics\)\s+applyPanelButtonMetrics\(button, screen\.panelButtonMetrics\);/);
+    assert.doesNotMatch(sync, /statusIcon\.set_style\([^\n]*icon-size/);
+});
+
 test('application label font size follows shared metrics and available width', () => {
     assert.equal(calculatePanelLabelFontSize(24, 5, 200), 24);
     assert.equal(calculatePanelLabelFontSize(24, 20, 120), 10);
