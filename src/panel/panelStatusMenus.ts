@@ -141,7 +141,7 @@ export class SoundStatusMenu {
         this.icon.icon_name = icon;
         this.muteIcon.icon_name = icon;
         this.muteButton.accessible_name = muted ? 'Activer le son' : 'Couper le son';
-        this.percentage.text = this.stream ? `${Math.round(level * 100)} %${muted ? ' - Muet' : ''}` : 'Aucune sortie';
+        this.percentage.text = this.stream ? `${Math.round(level * 100)} %${muted ? ' - Muet' : ''}` : '—';
     }
 
     changeVolume() {
@@ -557,8 +557,8 @@ export class NetworkStatusMenu {
         this.connectionCard = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
             style_class: 'popup-menu-item g-os-network-connection'});
         this.connectionIcon = new this.St.Icon({icon_name: 'network-wireless-signal-none-symbolic', icon_size: 28});
-        this.connectionText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
-            style_class: 'g-os-network-connection-text'});
+        this.connectionText = expandHorizontally(new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
+            style_class: 'g-os-network-connection-text'}));
         this.connectionName = this._label('Aucune connexion active', 'g-os-network-connection-name');
         this.connectionDetail = this._label('', 'g-os-network-connection-detail');
         this.connectionText.add_child(this.connectionName);
@@ -636,7 +636,8 @@ export class NetworkStatusMenu {
         const active = this.toggles.find(({toggle}) => toggle.checked && toggle.visible !== false);
         if (!active) {
             this.connectionName.text = 'Aucune connexion active';
-            this.connectionDetail.text = '';
+            this.connectionDetail.text = this.toggles.some(({toggle}) => toggle.visible !== false)
+                ? 'Choisissez un réseau ou activez le Wi-Fi' : 'Aucun adaptateur réseau détecté';
             this.connectionIcon.icon_name = 'network-offline-symbolic';
             return;
         }
@@ -1064,7 +1065,8 @@ export class RadioStatusMenu {
         this._fill(this.connectedGrid, connected); this._fillOtherList(this.otherGrid, available);
         this.connectedLabel.visible = connected.length > 0; this.connectedGrid.get_parent().visible = connected.length > 0;
         this.otherLabel.visible = available.length > 0; this.otherGrid.get_parent().visible = available.length > 0;
-        this.emptyLabel.visible = enabled && connected.length === 0 && available.length === 0;
+        this.emptyLabel.text = enabled ? 'Aucun appareil disponible' : 'Bluetooth désactivé';
+        this.emptyLabel.visible = !enabled || (connected.length === 0 && available.length === 0);
     }
     destroy() {
         if (this.destroyed) return;
@@ -1167,7 +1169,7 @@ export class BatteryStatusMenu {
         }
         if (!proxy?.IsPresent) {
             this.percentage.text = Number.isFinite(level) ? `${Math.round(level)} %` : '—';
-            this.state.text = Number.isFinite(level) ? 'Batterie' : 'Sur secteur';
+            this.state.text = Number.isFinite(level) ? 'Batterie' : 'Aucune batterie détectée · sur secteur';
             this.batteryIcon.icon_name = primary?.icon_name || 'ac-adapter-symbolic';
             if (!batteries.length) this.icon.icon_name = 'battery-missing-symbolic';
             return;
