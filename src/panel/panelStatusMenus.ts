@@ -27,6 +27,8 @@ function removeActorFromParent(actor, parent = getActorParent(actor)) {
 export function alignMenuRows(actor, Clutter) {
     if (!actor)
         return;
+    if (actor.has_style_class_name?.('popup-menu-item'))
+        actor.add_style_class_name?.('g-os-status-menu-row');
     if (['popup-menu-item', 'bt-device-item', 'nm-network-item'].some(name => actor.has_style_class_name?.(name))) {
         for (const child of actor.get_children())
             child.y_align = Clutter.ActorAlign.CENTER;
@@ -139,7 +141,7 @@ export class SoundStatusMenu {
         this.icon.icon_name = icon;
         this.muteIcon.icon_name = icon;
         this.muteButton.accessible_name = muted ? 'Activer le son' : 'Couper le son';
-        this.percentage.text = this.stream ? `${Math.round(level * 100)} %${muted ? ' - Muet' : ''}` : 'Aucune sortie audio';
+        this.percentage.text = this.stream ? `${Math.round(level * 100)} %${muted ? ' - Muet' : ''}` : 'Aucune sortie';
     }
 
     changeVolume() {
@@ -793,8 +795,16 @@ export class NetworkStatusMenu {
 
     _sampleTraffic() {
         const counters = this._readTrafficCounters();
-        if (!counters)
+        if (!counters) {
+            this.lastTraffic = null;
+            this.trafficRates = {rx: 0, tx: 0};
+            this.trafficSamples = [];
+            if (this.trafficGraph)
+                this.trafficGraph.visible = false;
             return;
+        }
+        if (this.trafficGraph)
+            this.trafficGraph.visible = true;
         if (this.lastTraffic && this.lastTraffic.interfaces === counters.interfaces) {
             this.trafficRates = {
                 rx: Math.max(0, counters.rx - this.lastTraffic.rx),
