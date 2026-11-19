@@ -247,6 +247,10 @@ export class WidgetRuntime {
             host._attachTooltip(tooltipScreen, button, title, {magnify: false, scroll: false});
         };
         const readText = (path: string): Promise<string> => new Promise((resolve, reject) => {
+            if (disposed) {
+                reject(new Error('Widget detruit'));
+                return;
+            }
             const file = Gio.File.new_for_path(path);
             const cancellable = new Gio.Cancellable();
             const cancel = () => cancellable.cancel();
@@ -385,6 +389,10 @@ export class WidgetRuntime {
                 return parseSystemStats(values[0], values[1], values[2], values[3]);
             },
             diskStats: path => new Promise((resolve, reject) => {
+                if (disposed) {
+                    reject(new Error('Widget detruit'));
+                    return;
+                }
                 const expanded = path === '~' ? GLib.get_home_dir() : path.startsWith('~/')
                     ? GLib.build_filenamev([GLib.get_home_dir(), path.slice(2)]) : path;
                 const file = Gio.File.new_for_path(expanded);
@@ -401,6 +409,10 @@ export class WidgetRuntime {
                     });
             }),
             solve: expression => new Promise((resolve, reject) => {
+                if (disposed) {
+                    reject(new Error('Widget detruit'));
+                    return;
+                }
                 if (!expression.trim() || expression.length > 512) {
                     reject(new Error('Expression vide ou trop longue'));
                     return;
