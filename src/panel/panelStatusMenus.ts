@@ -965,6 +965,9 @@ export class RadioStatusMenu {
         this.toggle = toggle;
         this.destroyed = false;
         this.cleanup = new CleanupManager();
+        this.popupActors = [menu.actor, menu.box].filter(Boolean);
+        for (const actor of this.popupActors)
+            actor.add_style_class_name('g-os-bluetooth-popup');
         this.header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle?.checked));
         this.header.setSensitive(Boolean(toggle) && toggle.visible !== false && toggle.reactive !== false);
         this.cleanup.addSignal(this.header, this.header.connect('toggled', (actor, checked) => {
@@ -983,10 +986,14 @@ export class RadioStatusMenu {
             onOpen: () => {
                 if (this.destroyed)
                     return;
+                this._compactNativeContent();
                 toggle?._startScanning?.();
                 toggle?._reorderDeviceItems?.();
             },
-            onClose: () => toggle?._stopScanning?.(),
+            onClose: () => {
+                this._restoreNativeContent();
+                toggle?._stopScanning?.();
+            },
         });
         if (!toggle) {
             const unavailable = new PopupMenu.PopupMenuItem('Service indisponible', {reactive: false, can_focus: false});
@@ -1017,6 +1024,33 @@ export class RadioStatusMenu {
         this.refresh();
     }
 
+    _compactNativeContent() {
+        const nativeMenu = this.toggle?.menu;
+        const nativeHeader = nativeMenu?._header;
+        if (nativeHeader) {
+            this.nativeHeaderWasVisible = nativeHeader.visible;
+            nativeHeader.hide();
+        }
+        const placeholder = this.toggle?._placeholderItem?.label;
+        if (placeholder) {
+            this.originalPlaceholder = placeholder.text;
+            placeholder.text = this.toggle.checked
+                ? 'Aucun appareil disponible'
+                : 'Activez Bluetooth pour connecter un appareil';
+        }
+    }
+
+    _restoreNativeContent() {
+        const nativeHeader = this.toggle?.menu?._header;
+        if (nativeHeader && this.nativeHeaderWasVisible)
+            nativeHeader.show();
+        this.nativeHeaderWasVisible = false;
+        const placeholder = this.toggle?._placeholderItem?.label;
+        if (placeholder && this.originalPlaceholder !== undefined)
+            placeholder.text = this.originalPlaceholder;
+        this.originalPlaceholder = undefined;
+    }
+
     refresh() {
         if (this.destroyed)
             return;
@@ -1031,6 +1065,9 @@ export class RadioStatusMenu {
             return;
         this.destroyed = true;
         this.content.destroy();
+        this._restoreNativeContent();
+        for (const actor of this.popupActors)
+            actor.remove_style_class_name('g-os-bluetooth-popup');
         this.cleanup.clear();
     }
 }
