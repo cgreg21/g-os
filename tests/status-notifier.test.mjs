@@ -14,7 +14,11 @@ class MockVariant {
 }
 
 function createHost() {
-    const state = {items: [], signals: [], watches: new Map(), disposedProxies: 0, proxySignals: new Map(), properties: {\n        Id: 'fixture', Title: 'Fixture', Status: 'Active', IconName: 'fixture-symbolic',\n        AttentionIconName: '', ToolTip: ['', [], 'Fixture title', 'Fixture tip'],\n        ItemIsMenu: false, Menu: '/Menu',\n    }};
+    const state = {items: [], signals: [], watches: new Map(), disposedProxies: 0, proxySignals: new Map(), properties: {
+        Id: 'fixture', Title: 'Fixture', Status: 'Active', IconName: 'fixture-symbolic',
+        AttentionIconName: '', ToolTip: ['', [], 'Fixture title', 'Fixture tip'],
+        ItemIsMenu: false, Menu: '/Menu',
+    }};
     const session = {
         get_unique_name: () => ':1.99',
         call(_bus, _path, _interface, _method, parameters, _reply, _flags, _timeout, _token, callback) {
