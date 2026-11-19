@@ -111,3 +111,4 @@
 .g-os-network-connection-detail { font-size: 0.82em; }
 .g-os-network-inline-content { spacing: 6px; }
 .g-os-network-traffic-graph { height: 58px; }
+.g-os-status-input-row { spacing: 10px; min-height: 28px; }
