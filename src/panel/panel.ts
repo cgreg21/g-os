@@ -514,8 +514,13 @@ export function withPanel(Base) {
                 height: this._settings.get_int('panel-height'),
                 reactive: true,
             });
-            if (this._settings.get_boolean('panel-style'))
+            if (this._settings.get_boolean('panel-style')) {
+                // Reuse GNOME Shell's native panel node so its active theme supplies
+                // background, foreground, borders and state colors. St restyles this
+                // actor automatically when the Shell theme or color scheme changes.
+                screen.panel.add_style_class_name('panel');
                 screen.panel.add_style_class_name('g-os-panel');
+            }
             screen.menuButton = monitor.index === Main.layoutManager.primaryIndex
                 ? this._menu : createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
                     icon: new St.Icon({
