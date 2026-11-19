@@ -276,6 +276,8 @@ export class DisplayStatusMenu {
     }
 
     _refreshNightLight() {
+        if (this.destroyed)
+            return;
         const enabled = this.nightLight.get_boolean('night-light-enabled');
         const temperature = this.nightLight.get_uint('night-light-temperature');
         this.syncingNightLight = true;
@@ -319,6 +321,8 @@ export class DisplayStatusMenu {
     }
 
     _updateBrightness(value) {
+        if (this.destroyed)
+            return;
         if (!Number.isFinite(value))
             return this._disableBrightness();
         this.brightness = Math.max(0, Math.min(100, Math.round(value)));
@@ -331,6 +335,8 @@ export class DisplayStatusMenu {
     }
 
     _disableBrightness() {
+        if (this.destroyed)
+            return;
         this.brightness = null;
         this.brightnessSlider.reactive = false;
         this.brightnessSlider.can_focus = false;
@@ -373,6 +379,8 @@ export class DisplayStatusMenu {
     }
 
     destroy() {
+        if (this.destroyed)
+            return;
         this.destroyed = true;
         if (this.brightnessWriteSource)
             this.GLib.source_remove(this.brightnessWriteSource);
