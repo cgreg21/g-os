@@ -19,7 +19,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {calculatePanelButtonMetrics, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
+import {calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -871,18 +871,14 @@ export function withPanel(Base) {
             });
             const availableLabelWidth = Math.max(48, screen.monitor.width - 360 - horizontalPadding * 2);
             const labelLength = screen.appLabel.text?.length ?? 0;
-            const estimatedLabelWidth = labelLength * metrics.fontSize * 0.56;
-            const widthScale = estimatedLabelWidth > 0
-                ? Math.min(1, availableLabelWidth / estimatedLabelWidth) : 1;
             screen.fontSize = metrics.fontSize;
-            screen.appFontSize = Math.max(1, Math.floor(metrics.fontSize * widthScale));
+            screen.appFontSize = calculatePanelLabelFontSize(metrics.fontSize, labelLength, availableLabelWidth);
             screen.iconSize = metrics.iconSize;
             screen.panelButtonMetrics = metrics;
             screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px;`);
 
             screen.appLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             screen.appLabel.y_align = Clutter.ActorAlign.CENTER;
-            screen.appLabel.set_style(`font-size: ${screen.appFontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
             for (const label of [screen.clock, screen.transferLabel]) {
                 label.y_align = Clutter.ActorAlign.CENTER;
                 label.set_style(`font-size: ${screen.fontSize}px; padding: 0;`);
@@ -898,6 +894,10 @@ export function withPanel(Base) {
                 else
                     button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
             }
+            // The application label is the only width-constrained topbar text.
+            // Apply its fit after the shared button metrics so generic sizing
+            // does not overwrite the width-aware font size.
+            screen.appLabel.set_style(`font-size: ${screen.appFontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
             screen.statusNotifierBox?.set_style(`spacing: ${metrics.spacing}px;`);
             if (screen.globalMenuBox) {
                 screen.globalMenuBox.y_align = Clutter.ActorAlign.CENTER;
