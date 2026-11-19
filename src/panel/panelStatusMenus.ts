@@ -357,6 +357,8 @@ export class DisplayStatusMenu {
             this.GLib.source_remove(this.brightnessWriteSource);
         this.brightnessWriteSource = this.GLib.timeout_add(this.GLib.PRIORITY_DEFAULT, 80, () => {
             this.brightnessWriteSource = 0;
+            if (this.destroyed)
+                return this.GLib.SOURCE_REMOVE;
             const value = new this.GLib.Variant('i', this.brightness);
             this.Gio.DBus.session.call(
                 'org.gnome.SettingsDaemon.Power',
