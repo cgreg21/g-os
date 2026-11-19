@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {
     applyPanelButtonMetrics,
     calculatePanelButtonMetrics,
+    calculatePanelLabelFontSize,
     createPanelButton,
     createPanelMenuButton,
 } from '../dist/panel/panelButton.js';
@@ -36,6 +37,13 @@ test('panel button dimensions scale with available topbar height', () => {
     assert.equal(roomy.padding, 3);
     assert.equal(compact.spacing, 3);
     assert.equal(roomy.spacing, 6);
+});
+
+test('application label font size follows shared metrics and available width', () => {
+    assert.equal(calculatePanelLabelFontSize(24, 5, 200), 24);
+    assert.equal(calculatePanelLabelFontSize(24, 20, 120), 10);
+    assert.equal(calculatePanelLabelFontSize(24, 0, 0), 24);
+    assert.throws(() => calculatePanelLabelFontSize(0, 5, 100), RangeError);
 });
 
 test('panel button dimensions reject invalid geometry', () => {
@@ -142,6 +150,7 @@ test('topbar modules delegate every button construction to the shared factory', 
     assert.ok(panel.includes('createPanelMenuButton(St, Clutter, PopupMenu'));
     assert.ok(extension.includes('createPanelMenuButton(St, Clutter, PopupMenu'));
     assert.equal(extension.includes('_menuBox'), false);
+    assert.ok(panel.indexOf('screen.appLabel.set_style') > panel.indexOf('applyPanelButtonMetrics(button, metrics)'));
     assert.ok(globalMenu.includes('createPanelButton(this.St, this.Clutter'));
 });
 
