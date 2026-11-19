@@ -724,7 +724,7 @@ export function withPanel(Base) {
 
             const statusArea = Main.panel.statusArea as Record<string, any>;
             const sessionPanel = Main.sessionMode.panel;
-            const availableRoles = new Set([
+            const availableRoles = new Set<string>([
                 ...(sessionPanel.left ?? []),
                 ...(sessionPanel.center ?? []),
                 ...(sessionPanel.right ?? []),
