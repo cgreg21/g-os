@@ -769,6 +769,7 @@ export function withDesktopIcons(Base) {
                 controller: screen.interactionDnd,
                 actor: button,
                 St,
+                Clutter,
                 callbacks: {
                     onBegin: () => {
                         origin = button.get_position();
