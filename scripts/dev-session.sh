@@ -23,12 +23,14 @@ dbus-run-session -- bash -Eeuo pipefail -c '
     ROOT="$1"
     shift
     SHELL_PID=""
+    SHELL_LOG="$(mktemp)"
 
     cleanup() {
         if [[ -n "$SHELL_PID" ]]; then
             kill "$SHELL_PID" 2>/dev/null || true
             wait "$SHELL_PID" 2>/dev/null || true
         fi
+        rm -f "$SHELL_LOG"
     }
     trap cleanup EXIT INT TERM
 
@@ -36,7 +38,8 @@ dbus-run-session -- bash -Eeuo pipefail -c '
     while true; do
         echo
         echo "Launching isolated GNOME Shell DevKit..."
-        gnome-shell --devkit --wayland &
+        : > "$SHELL_LOG"
+        gnome-shell --devkit --wayland > >(tee "$SHELL_LOG") 2>&1 &
         SHELL_PID=$!
 
         timeout 45s gdbus wait --session org.gnome.Shell &
@@ -54,6 +57,23 @@ dbus-run-session -- bash -Eeuo pipefail -c '
             echo "GNOME Shell did not expose org.gnome.Shell within 45 seconds." >&2
             exit 1
         fi
+
+        # The Shell D-Bus service is available before Main.layoutManager and
+        # global.stage finish startup. Enabling extensions at that point makes
+        # their St actors allocate while they are not yet attached to the stage.
+        STARTUP_DEADLINE=$((SECONDS + 45))
+        until grep -q "GNOME Shell started at" "$SHELL_LOG"; do
+            if ! kill -0 "$SHELL_PID" 2>/dev/null; then
+                wait "$SHELL_PID" || true
+                echo "GNOME Shell exited before startup completed." >&2
+                exit 1
+            fi
+            if ((SECONDS >= STARTUP_DEADLINE)); then
+                echo "GNOME Shell did not complete startup within 45 seconds." >&2
+                exit 1
+            fi
+            sleep 0.25
+        done
 
         WATCH_STATUS=0
         npm run dev:watch || WATCH_STATUS=$?
