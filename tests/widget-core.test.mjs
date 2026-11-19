@@ -479,6 +479,25 @@ test('widget runtime ignores state and configuration writes after instance dispo
     assert.equal(updates.length, 1);
 });
 
+test('widget cleanup callbacks registered after disposal run immediately', () => {
+    const runtime = Object.create(WidgetRuntime.prototype);
+    runtime.env = {St: {}, Gio: {}, GLib: {}, Clutter: {}};
+    runtime.host = {_settings: {get_string: () => '{}', is_writable: () => false}};
+    runtime.registry = {entries: new Map([['test', {description: {configuration: []}}]])};
+    const cleanup = [];
+    const context = runtime.context({id: 'instance', widget: 'test', config: {}}, {}, {}, cleanup);
+    let calls = 0;
+
+    context.context.api.onCleanup(() => calls++);
+    context.dispose();
+    context.context.api.onCleanup(() => calls++);
+    assert.equal(calls, 1);
+
+    for (const dispose of cleanup.reverse())
+        dispose();
+    assert.equal(calls, 2);
+});
+
 test('widget runtime ignores signal and timer callbacks after instance disposal', () => {
     let signalCallback;
     const timerCallbacks = [];
