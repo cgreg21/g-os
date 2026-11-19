@@ -1,3 +1,4 @@
+import {setChildWhenMapped} from '../core/actorUtils.js';
 import {CleanupManager} from '../core/cleanupManager.js';
 
 export class DockWindowPreview {
@@ -182,7 +183,7 @@ export class DockWindowPreview {
         const item = new this.PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         item.add_child(scroll);
         this.menu.addMenuItem(item);
-        scroll.set_child(box);
+        setChildWhenMapped(scroll, box);
         return true;
     }
 
