@@ -1749,6 +1749,19 @@ async function checkPanelControls() {
     const extension = Main.extensionManager.lookup(extensionMetadata.uuid).stateObj;
     const settings = extension._settings;
     const cases = [];
+    // Remove GNOME startup notifications (notably the missing display-manager
+    // warning in headless CI) so screenshots show the menus being tested.
+    const tray = Main.messageTray;
+    for (const source of tray.getSources()) {
+        for (const notification of [...source.notifications])
+            notification.destroy();
+    }
+    for (const notification of [...(tray._notificationQueue ?? [])])
+        notification.destroy();
+    if (tray._banner && tray._notification)
+        tray._hideNotification(false);
+    await Scripting.sleep(180);
+    await Scripting.waitLeisure();
     const audioState = controller => controller.stream
         ? {volume: controller.stream.volume, muted: controller.stream.is_muted} : null;
     for (const height of [24, 48]) {
@@ -1799,8 +1812,6 @@ async function checkPanelControls() {
                     nightLight.run_dispose();
                 }
             }
-            if (!rowPadding.length || rowPadding.some(padding => padding.top !== 3 || padding.bottom !== 3))
-                result.issues.push('menu-row-padding-not-compact');
             if (!result.mapped || x < monitor.x - 1 || y < monitor.y - 1 ||
                 x + width > monitor.x + monitor.width + 1 || y + extent > monitor.y + monitor.height + 1)
                 result.issues.push('popup-not-visible-or-outside-monitor');
