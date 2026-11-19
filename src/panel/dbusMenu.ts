@@ -13,6 +13,7 @@ export class MenuSignals {
     constructor() { this.signals = new Map(); this.nextSignal = 0; }
     connect(signal, callback) { this.signals.set(++this.nextSignal, [signal, callback]); return this.nextSignal; }
     disconnect(id) { this.signals.delete(id); }
+    clear() { this.signals.clear(); }
     emit(signal, ...args) {
         for (const [name, callback] of [...this.signals.values()]) {
             if (name === signal)
@@ -211,7 +212,11 @@ export class DbusMenuClient {
         this.signal = 0;
         this.proxy?.run_dispose?.();
         this.proxy = null;
+        for (const node of this.nodes.values())
+            node.model?.clear();
         this.nodes.clear();
         this.model.items = [];
+        this.model.clear();
+        this.actions.clear();
     }
 }
