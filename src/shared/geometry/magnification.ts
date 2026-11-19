@@ -8,7 +8,6 @@ export interface DockMagnificationInput {
     engaged: boolean;
     viewStart: number;
     viewEnd: number;
-    iconSize: number;
 }
 
 export interface DockMagnificationGeometry {
@@ -24,7 +23,7 @@ export function calculateDockMagnificationGeometry(
 ): DockMagnificationGeometry | null {
     const {
         centers, buttonSizes, excluded, coordinate, maximumScale, radius,
-        engaged, viewStart, viewEnd, iconSize,
+        engaged, viewStart, viewEnd,
     } = input;
     const count = centers.length;
     if (buttonSizes.length !== count || excluded.length !== count ||
