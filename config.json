@@ -649,7 +649,16 @@
       "panel-icon-padding": {
         "type": "i",
         "default": 8,
-        "summary": "Padding horizontal des icônes de la barre supérieure en pixels",
+        "summary": "Padding intérieur uniforme des boutons de la barre supérieure en pixels",
+        "range": {
+          "min": 0,
+          "max": 24
+        }
+      },
+      "panel-item-spacing": {
+        "type": "i",
+        "default": 6,
+        "summary": "Espacement entre les éléments de la barre supérieure en pixels",
         "range": {
           "min": 0,
           "max": 24
