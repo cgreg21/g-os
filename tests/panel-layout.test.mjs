@@ -125,3 +125,19 @@ test('native status menu content restores only actors it can safely reparent', a
     assert.match(source, /if \(currentParent && currentParent !== parent\)\s+removeActorFromParent\(actor, currentParent\)/);
     assert.match(source, /if \(!getActorParent\(actor\)\)[\s\S]*?parent\.insert_child_at_index\(actor, index\)/);
 });
+
+
+test('network menu uses a compact overview and one focused native detail view', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class NetworkStatusMenu');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.match(source, /showOverview\(\)/);
+    assert.match(source, /showDetail\(toggle\)/);
+    assert.match(source, /Tous les réseaux/);
+    assert.match(source, /state\.content\.mount\(toggle\.menu, true\)/);
+    assert.match(source, /_restoreActiveContent\(\)/);
+    assert.match(source, /row\.label\.text = .*Activé.*Désactivé/s);
+    assert.match(source, /settingsItem\.visible = false/);
+    assert.match(source, /for \(const item of this\.transientItems\.splice\(0\)\)/);
+});

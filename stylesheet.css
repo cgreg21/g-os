@@ -81,3 +81,24 @@
 .g-os-dnd-drag-actor {
     -st-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
+
+
+/* Network popup: keep the overview compact and constrain wide native lists. */
+.g-os-network-popup {
+    min-width: 320px;
+    max-width: 380px;
+}
+
+.g-os-network-native-content {
+    spacing: 4px;
+    padding: 4px 0;
+}
+
+.g-os-network-heading {
+    font-weight: bold;
+}
+
+.g-os-network-back {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
