@@ -1,4 +1,5 @@
 import {CleanupManager} from '../core/cleanupManager.js';
+import type {GOSCache} from '../core/cache.js';
 
 export const STATUS_NOTIFIER_NAME = 'org.kde.StatusNotifierWatcher';
 export const STATUS_NOTIFIER_PATH = '/StatusNotifierWatcher';
@@ -56,7 +57,21 @@ export function parseStatusNotifierAddress(address: string, sender: string) {
     return bus && path.startsWith('/') ? {bus, path} : null;
 }
 
-export function createStatusNotifierPixbuf(pixmaps: unknown, GdkPixbuf: any, GLib: any) {
+function pixmapFingerprint(width: number, height: number, data: ArrayLike<number>): string {
+    // Two independent 32-bit hashes make collisions exceptionally unlikely while
+    // avoiding a large string copy of the raw pixel buffer.
+    let first = 0x811c9dc5;
+    let second = 0x9e3779b9;
+    for (let index = 0; index < data.length; index++) {
+        const value = Number(data[index]) & 0xff;
+        first = Math.imul(first ^ value, 0x01000193);
+        second = Math.imul(second ^ (value + index), 0x85ebca6b);
+    }
+    return `status-notifier-pixbuf:${width}x${height}:${data.length}:${first >>> 0}:${second >>> 0}`;
+}
+
+export function createStatusNotifierPixbuf(pixmaps: unknown, GdkPixbuf: any, GLib: any,
+    cache: GOSCache | null = null) {
     if (!Array.isArray(pixmaps))
         return null;
     const candidates = pixmaps.filter(pixmap => Array.isArray(pixmap) &&
@@ -68,6 +83,10 @@ export function createStatusNotifierPixbuf(pixmaps: unknown, GdkPixbuf: any, GLi
     const [width, height, data] = candidates[0] ?? [];
     if (!data)
         return null;
+    const key = pixmapFingerprint(width, height, data);
+    const cached = cache?.get(key);
+    if (cached)
+        return cached;
     const rgba = new Uint8Array(data.length);
     for (let offset = 0; offset < data.length; offset += 4) {
         rgba[offset] = data[offset + 1];
@@ -75,8 +94,10 @@ export function createStatusNotifierPixbuf(pixmaps: unknown, GdkPixbuf: any, GLi
         rgba[offset + 2] = data[offset + 3];
         rgba[offset + 3] = data[offset];
     }
-    return GdkPixbuf.Pixbuf.new_from_bytes(new GLib.Bytes(rgba), GdkPixbuf.Colorspace.RGB, true,
+    const pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(new GLib.Bytes(rgba), GdkPixbuf.Colorspace.RGB, true,
         8, width, height, width * 4);
+    cache?.set(key, pixbuf);
+    return pixbuf;
 }
 
 export class StatusNotifierHost {
