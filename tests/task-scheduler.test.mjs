@@ -184,3 +184,44 @@ test('contains callback and backend removal failures when the host logger throws
         globalThis.logError = previousLogError;
     }
 });
+
+test('preserves a task rescheduled reentrantly while removing its predecessor', () => {
+    const backend = new FakeBackend();
+    const removed = [];
+    let scheduler;
+    backend.remove = id => {
+        removed.push(id);
+        backend.tasks.delete(id);
+        if (id === 1)
+            scheduler.timeout('refresh', 2, () => {});
+    };
+    scheduler = new TaskScheduler(backend);
+    scheduler.timeout('refresh', 1, () => {});
+    scheduler.timeout('refresh', 3, () => {});
+
+    assert.deepEqual(removed, [1]);
+    assert.deepEqual([...backend.tasks.keys()], [2]);
+    assert.equal(scheduler.size, 1);
+    backend.run(2);
+    assert.equal(scheduler.size, 0);
+    assert.equal(backend.tasks.size, 0);
+});
+
+test('does not register an outer task after cancellation re-enters scheduling', () => {
+    const backend = new FakeBackend();
+    const removed = [];
+    let scheduler;
+    backend.remove = id => {
+        removed.push(id);
+        backend.tasks.delete(id);
+        if (id === 1)
+            scheduler.timeout('refresh', 2, () => {});
+    };
+    scheduler = new TaskScheduler(backend);
+    scheduler.timeout('refresh', 1, () => {});
+    scheduler.cancel('refresh');
+
+    assert.deepEqual(removed, [1]);
+    assert.deepEqual([...backend.tasks.keys()], [2]);
+    assert.equal(scheduler.size, 1);
+});
