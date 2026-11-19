@@ -1,14 +1,16 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
+import {CleanupManager} from '../core/cleanupManager.js';
 
 export function withDockActivity(Base) {
     return class extends Base {
         _watchNotificationSource(source) {
             if (!this._notificationSources.has(source)) {
-                const signals = ['notify::count', 'notify::unseen-count'].map(signal =>
-                    source.connect(signal, () => this._updateNotificationCounts()));
-                this._notificationSources.set(source, signals);
+                const cleanup = new CleanupManager();
+                for (const signal of ['notify::count', 'notify::unseen-count'])
+                    cleanup.addSignal(source, source.connect(signal, () => this._updateNotificationCounts()));
+                this._notificationSources.set(source, cleanup);
             }
             this._updateNotificationCounts();
         }
@@ -142,11 +144,10 @@ export function withDockActivity(Base) {
         }
 
         _unwatchNotificationSource(source) {
-            const signals = this._notificationSources.get(source);
-            if (signals !== undefined) {
-                for (const id of signals)
-                    source.disconnect(id);
+            const cleanup = this._notificationSources.get(source);
+            if (cleanup) {
                 this._notificationSources.delete(source);
+                cleanup.clear();
             }
         }
 
@@ -188,33 +189,30 @@ export function withDockActivity(Base) {
         _syncWorkspaceSignals(workspace) {
             if (this._observedWorkspace === workspace)
                 return;
-            if (this._observedWorkspace) {
-                for (const id of this._workspaceSignals)
-                    this._observedWorkspace.disconnect(id);
-            }
+            this._workspaceCleanup?.clear();
+            this._workspaceCleanup = null;
             this._observedWorkspace = workspace;
-            this._workspaceSignals = [];
             if (workspace) {
-                for (const signal of ['window-added', 'window-removed']) {
-                    this._workspaceSignals.push(workspace.connect(signal, () => {
-                        this._queueDockRebuild();
-                    }));
-                }
+                const cleanup = new CleanupManager();
+                for (const signal of ['window-added', 'window-removed'])
+                    cleanup.addSignal(workspace, workspace.connect(signal, () => this._queueDockRebuild()));
+                this._workspaceCleanup = cleanup;
             }
         }
 
         _syncRunningAppSignals(apps) {
             const active = new Set(apps);
-            for (const [app, id] of this._runningAppSignals) {
+            for (const [app, cleanup] of this._runningAppSignals) {
                 if (!active.has(app)) {
-                    app.disconnect(id);
                     this._runningAppSignals.delete(app);
+                    cleanup.clear();
                 }
             }
             for (const app of apps) {
                 if (!this._runningAppSignals.has(app)) {
-                    const id = app.connect('windows-changed', () => this._queueDockRebuild());
-                    this._runningAppSignals.set(app, id);
+                    const cleanup = new CleanupManager();
+                    cleanup.addSignal(app, app.connect('windows-changed', () => this._queueDockRebuild()));
+                    this._runningAppSignals.set(app, cleanup);
                 }
             }
         }
@@ -231,13 +229,12 @@ export function withDockActivity(Base) {
                     if (window.has_focus() || (!window.demands_attention && !window.urgent))
                         this._forgetAttentionWindow(window);
                 };
-                const ids = [
-                    window.connect('notify::demands-attention', sync),
-                    window.connect('notify::urgent', sync),
-                    window.connect('focus', () => this._forgetAttentionWindow(window)),
-                    window.connect('unmanaged', () => this._forgetAttentionWindow(window)),
-                ];
-                this._attentionWindows.set(window, {app, ids});
+                const cleanup = new CleanupManager();
+                cleanup.addSignal(window, window.connect('notify::demands-attention', sync));
+                cleanup.addSignal(window, window.connect('notify::urgent', sync));
+                cleanup.addSignal(window, window.connect('focus', () => this._forgetAttentionWindow(window)));
+                cleanup.addSignal(window, window.connect('unmanaged', () => this._forgetAttentionWindow(window)));
+                this._attentionWindows.set(window, {app, cleanup});
             }
             this._updateAttentionIndicators();
         }
@@ -246,9 +243,8 @@ export function withDockActivity(Base) {
             const entry = this._attentionWindows.get(window);
             if (!entry)
                 return;
-            for (const id of entry.ids)
-                window.disconnect(id);
             this._attentionWindows.delete(window);
+            entry.cleanup.clear();
             this._updateAttentionIndicators();
         }
 
