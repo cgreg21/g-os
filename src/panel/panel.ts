@@ -514,7 +514,13 @@ export function withPanel(Base) {
                 screen.panel.add_style_class_name('g-os-panel');
             screen.menuButton = monitor.index === Main.layoutManager.primaryIndex
                 ? this._menu : createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
-                    iconName: 'view-app-grid-symbolic', accessibleName: 'Applications',
+                    icon: new St.Icon({
+                        gicon: this._launcherIcon('panel'),
+                        fallback_gicon: this._gnomeLogo,
+                        style_class: 'system-status-icon',
+                    }),
+                    accessibleName: 'Applications',
+                    styleClass: 'g-os-panel-menu',
                 });
             screen.menuButton.add_style_class_name('g-os-panel-menu');
             if (screen.menuButton !== this._menu) {
