@@ -145,7 +145,7 @@ test('network overview avoids duplicate status and keeps Wi-Fi scanning in its d
     assert.ok(overview.includes('PopupMenuItem'));
     assert.ok(overview.includes("button.label.set_x_expand(true)"));
     assert.ok(overview.includes("button.connect('activate'"));
-    assert.ok(overview.includes('PopupMenuSeparatorMenuItem'));
+    assert.ok(overview.includes('PopupSeparatorMenuItem'));
     assert.ok(!overview.includes('emblem-system-symbolic'));
     assert.ok(!overview.includes('g-os-network-popup'));
     assert.ok(!overview.includes('g-os-network-row-button'));
