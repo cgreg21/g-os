@@ -24,6 +24,7 @@ interface ActiveAnimation {
 /** Owns keyed actor transitions, replacing stale animations and guarding callbacks. */
 export class AnimationManager {
     private readonly active = new Map<string, ActiveAnimation>();
+    private readonly requests = new Map<string, symbol>();
     private destroyed = false;
 
     animate(
@@ -35,7 +36,13 @@ export class AnimationManager {
         if (this.destroyed)
             return;
 
-        this.cancel(key);
+        const request = Symbol(`animation:${key}`);
+        this.requests.set(key, request);
+        this.cancelActive(key);
+        // remove_transition() may synchronously re-enter animate() or cancel().
+        // The nested operation is newer and must retain ownership of this key.
+        if (this.destroyed || this.requests.get(key) !== request)
+            return;
         const animation: ActiveAnimation = {
             actor,
             properties: Object.keys(properties).map(property => property.replace(/_/g, '-')),
@@ -46,9 +53,11 @@ export class AnimationManager {
             duration: Math.max(0, options.durationMs),
             mode: options.mode,
             onComplete: () => {
-                if (this.destroyed || this.active.get(key) !== animation)
+                if (this.destroyed || this.active.get(key) !== animation ||
+                    this.requests.get(key) !== request)
                     return;
                 this.active.delete(key);
+                this.requests.delete(key);
                 options.onComplete?.();
             },
         };
@@ -58,11 +67,18 @@ export class AnimationManager {
         } catch (error) {
             if (this.active.get(key) === animation)
                 this.active.delete(key);
+            if (this.requests.get(key) === request)
+                this.requests.delete(key);
             throw error;
         }
     }
 
     cancel(key: string): void {
+        this.requests.delete(key);
+        this.cancelActive(key);
+    }
+
+    private cancelActive(key: string): void {
         const animation = this.active.get(key);
         if (!animation)
             return;
