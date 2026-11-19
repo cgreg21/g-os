@@ -73,7 +73,7 @@ export function registerShadowDragSource({
             // GNOME Shell asks for getDragActor after drag-begin. Capture the
             // clone before feature behavior replaces the source actor.
             dragActor = createDragActor();
-            callbacks.onBegin?.();
+            callbacks.onBegin?.(dragActor);
         },
         onEnd: success => finish(() => callbacks.onEnd?.(success)),
         onCancelled: () => finish(() => callbacks.onCancelled?.()),
