@@ -220,7 +220,7 @@ export class WidgetRuntime {
         let disposed = false;
         const registerCleanup = callback => {
             if (!disposed) {
-                registerCleanup(callback);
+                cleanup.push(callback);
                 return;
             }
             try { callback(); } catch (error) { this.report(instance.id, error); }
