@@ -362,3 +362,39 @@ test('Flux session does not retain subscriptions created after disposal', () => 
     assert.doesNotThrow(() => session.notify());
     assert.equal(updates, 0);
 });
+
+
+test('Flux refresh prevents a listener from recursively starting the same request', () => {
+    let requests = 0;
+    const environment = {
+        Gio: {Cancellable: class { cancel() {} }},
+        GLib: {
+            PRIORITY_DEFAULT: 0,
+            SOURCE_REMOVE: false,
+            timeout_add: () => 1,
+            source_remove: () => {},
+            UriFlags: {NONE: 0},
+            Uri: {parse: () => ({get_scheme: () => 'https', get_host: () => 'weather.example.test',
+                get_userinfo: () => null})},
+        },
+        Soup: {
+            MessageFlags: {NO_REDIRECT: 0},
+            Message: {new: () => ({set_flags() {}})},
+            Session: class {
+                constructor() { requests++; }
+                send_async() {}
+                abort() {}
+            },
+        },
+    };
+    const session = new FluxSession({sources: {
+        weather: {url: 'https://weather.example.test/current', timeout: 5, refresh: 120},
+    }}, environment);
+    session.subscribe(() => session.refresh('weather'));
+
+    session.refresh('weather');
+
+    assert.equal(requests, 1);
+    assert.equal(session.requests.size, 1);
+    session.destroy();
+});
