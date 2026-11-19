@@ -23,6 +23,9 @@ export class ChromeActorManager<T extends object> {
             this.addActor(actor, options);
         } catch (error) {
             this.actors.delete(actor);
+            // Host registration may fail after partially registering the actor.
+            // Roll back defensively while preserving the original error.
+            this.release(actor);
             throw error;
         }
     }
