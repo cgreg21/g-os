@@ -1,15 +1,16 @@
 import {DbusMenuClient} from './dbusMenu.js';
 import {alignMenuRows} from './panelStatusMenus.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {createPanelButton} from './panelButton.js';
+import {applyPanelButtonMetrics, createPanelButton} from './panelButton.js';
 
 export class GtkGlobalMenu {
     [key: string]: any;
 
     constructor(container, {Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar = null,
-        timestamp = () => 0, stylePrefix = 'g-os', textPadding = 0, getMenuBounds = () => null}) {
+        timestamp = () => 0, stylePrefix = 'g-os', textPadding = 0, getMenuBounds = () => null,
+        getButtonMetrics = () => null}) {
         Object.assign(this, {container, Gio, GLib, St, Clutter, PopupMenu, menuManager, uiGroup, registrar,
-            timestamp, stylePrefix, textPadding, getMenuBounds});
+            timestamp, stylePrefix, textPadding, getMenuBounds, getButtonMetrics});
         this.window = null;
         this.windowCleanup = new CleanupManager();
         this.registrarCleanup = new CleanupManager();
@@ -244,6 +245,9 @@ export class GtkGlobalMenu {
             accessibleName: label, canFocus: enabled, reactive: enabled,
         });
         button.opacity = enabled ? 255 : 100;
+        const metrics = this.getButtonMetrics();
+        if (metrics)
+            applyPanelButtonMetrics(button, metrics);
         const menu = new this.PopupMenu.PopupMenu(button, 0, this.St.Side.TOP);
         const scrollView = new this.St.ScrollView({
             hscrollbar_policy: this.St.PolicyType.AUTOMATIC,
