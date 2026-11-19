@@ -140,6 +140,10 @@ test('network popup is a dedicated floating panel with a connection card and com
     assert.ok(source.includes('orientation: Clutter.Orientation.HORIZONTAL'));
     assert.ok(!source.includes('vertical:'));
     assert.ok(source.includes('g-os-network-connection-card'));
+    assert.ok(!source.includes('État des connexions'));
+    assert.ok(!source.includes('Gérez vos connexions depuis ce panneau'));
+    assert.ok(!source.includes('CONNEXIONS'));
+    assert.ok(!source.includes('g-os-network-section-title'));
     assert.ok(source.includes('g-os-network-rows'));
     assert.ok(source.includes('g-os-network-actions'));
     assert.ok(source.includes('showDetail(toggle)'));
