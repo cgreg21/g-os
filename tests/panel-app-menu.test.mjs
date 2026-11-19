@@ -23,10 +23,10 @@ test('first topbar menu groups launcher actions and exposes GNOME Extensions', a
         previousIndex = index;
     }
 
-    assert.equal((panelMenu.match(/new PopupMenu\\.PopupSeparatorMenuItem\\(\\)/g) ?? []).length, 4);
-    assert.match(panelMenu, /lookup_app\\('org\\.gnome\\.Extensions\\.desktop'\\)/);
-    assert.match(panelMenu, /lookup_app\\('gnome-extensions-app\\.desktop'\\)/);
-    assert.match(panelMenu, /updateExtensions\\(\\)/);
-    assert.match(panelMenu, /Main\\.overview\\.hide\\(\\);[\\s\\S]*?app\\.activate\\(\\)/);
+    assert.equal((panelMenu.match(/new PopupMenu\.PopupSeparatorMenuItem\(\)/g) ?? []).length, 4);
+    assert.match(panelMenu, /lookup_app\('org\.gnome\.Extensions\.desktop'\)/);
+    assert.match(panelMenu, /lookup_app\('gnome-extensions-app\.desktop'\)/);
+    assert.match(panelMenu, /updateExtensions\(\)/);
+    assert.match(panelMenu, /Main\.overview\.hide\(\);[\s\S]*?app\.activate\(\)/);
     assert.doesNotMatch(appMenu, /Gérer les extensions/);
 });
