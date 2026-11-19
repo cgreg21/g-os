@@ -170,3 +170,55 @@ test('destroys owned animations before releasing chrome actors', () => {
     assert.equal(scope.animations.size, 0);
     assert.equal(scope.animations.isDestroyed, true);
 });
+
+test('continues destroying every resource when disposers and the host logger fail', () => {
+    const released = [];
+    const previousLogError = globalThis.logError;
+    globalThis.logError = () => { throw new Error('logger failure'); };
+    try {
+        const tasks = new TaskScheduler({
+            timeout() { return 1; },
+            idle() { return 2; },
+            remove(id) {
+                released.push(`task:${id}`);
+                throw new Error('task source already removed');
+            },
+        });
+        const actor = {};
+        const chrome = new ChromeActorManager(
+            () => {},
+            () => {
+                released.push('chrome');
+                throw new Error('chrome actor already destroyed');
+            },
+        );
+        chrome.add(actor);
+        const scope = new LifecycleScope(tasks, chrome);
+        scope.animations.animate('broken', {
+            ease() {},
+            remove_transition(property) {
+                released.push(`animation:${property}`);
+                throw new Error('transition already removed');
+            },
+        }, {opacity: 0}, {durationMs: 10, mode: 1});
+        scope.add(() => {
+            released.push('cleanup');
+            throw new Error('resource already released');
+        });
+        tasks.timeout('pending', 10, () => {});
+
+        assert.doesNotThrow(() => scope.destroy());
+        assert.deepEqual(released, [
+            'task:1',
+            'animation:opacity',
+            'cleanup',
+            'chrome',
+        ]);
+        assert.equal(scope.isDestroyed, true);
+        assert.equal(tasks.size, 0);
+        assert.equal(scope.animations.size, 0);
+        assert.equal(chrome.size, 0);
+    } finally {
+        globalThis.logError = previousLogError;
+    }
+});
