@@ -23,16 +23,16 @@ test('dock-level drop target uses shared lifecycle ownership', () => {
 });
 
 test('folder application drags use shared source registration when a screen exists', () => {
-    assert.match(dockFoldersSource, /screen\.interactionDnd\.registerSource\(item, delegate/);
+    assert.match(dockFoldersSource, /registerShadowDragSource\(\{/);
     assert.match(dockFoldersSource, /onBegin: \(\) => menu\.close\(\)/);
-    assert.match(dockFoldersSource, /\}, \{\}, screen\.lifecycle\)/);
+    assert.match(dockFoldersSource, /lifecycle: screen\.lifecycle/);
     assert.doesNotMatch(dockFoldersSource, /this\._makeDraggable\(/);
 });
 
 const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
 
 test('dock reorder uses shared source registration and generic pointer motion', () => {
-    assert.match(dockOrderSource, /screen\.interactionDnd\.registerSource\(button, \{\}, \{/);
+    assert.match(dockOrderSource, /registerShadowDragSource\(\{[\s\S]*?actor: button[\s\S]*?callbacks: \{/);
     assert.match(dockOrderSource, /onMotion: event => \{/);
     assert.match(dockOrderSource, /onCancelled: \(\) => \{ cancelled = true; \}/);
     assert.match(dockOrderSource, /onEnd: \(\) => finish\(cancelled\)/);
@@ -53,14 +53,14 @@ const desktopWidgetsSource = await readFile(new URL('../src/desktop/desktopWidge
 const desktopIconsSource = await readFile(new URL('../src/desktop/desktopIcons.ts', import.meta.url), 'utf8');
 
 test('desktop widgets use the per-screen shared DND controller', () => {
-    assert.match(desktopWidgetsSource, /screen\.interactionDnd\.registerSource\(widget\.dragHandle \?\? widget/);
+    assert.match(desktopWidgetsSource, /registerShadowDragSource\(\{[\s\S]*?actor: widget\.dragHandle \?\? widget[\s\S]*?visualActor: widget/);
     assert.match(desktopWidgetsSource, /onMotion: event => \{/);
     assert.match(desktopWidgetsSource, /screen\.lifecycle\.add\(restore\)/);
     assert.doesNotMatch(desktopWidgetsSource, /DND\.makeDraggable|_makeDraggable\(/);
 });
 
 test('desktop icons use the per-screen shared DND controller', () => {
-    assert.match(desktopIconsSource, /screen\.interactionDnd\.registerSource\(button/);
+    assert.match(desktopIconsSource, /registerShadowDragSource\(\{[\s\S]*?actor: button/);
     assert.match(desktopIconsSource, /onCancelled: \(\) => finish\(true\)/);
     assert.match(desktopIconsSource, /onEnd: \(\) => finish\(false\)/);
     assert.match(desktopIconsSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
