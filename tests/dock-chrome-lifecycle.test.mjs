@@ -82,3 +82,35 @@ test('magnification background is registered through the chrome manager', () => 
     assert.match(dockAppearanceSource, /screen\.lifecycle\.chrome\?\.add\(screen\.magnificationBackground, \{trackFullscreen: true\}\)/);
     assert.doesNotMatch(dockAppearanceSource, /Main\.layoutManager\.addChrome\(screen\.magnificationBackground/);
 });
+
+
+const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+const globalMenuSource = await readFile(new URL('../src/panel/globalMenu.ts', import.meta.url), 'utf8');
+const desktopIconsSource = await readFile(new URL('../src/desktop/desktopIcons.ts', import.meta.url), 'utf8');
+const widgetRuntimeSource = await readFile(new URL('../src/widgets/widgetRuntime.ts', import.meta.url), 'utf8');
+const windowPreviewsSource = await readFile(new URL('../src/dock/windowPreviews.ts', import.meta.url), 'utf8');
+
+test('panel notification scroll view is parented before its content is attached', () => {
+    assert.match(panelSource, /menu\._boxPointer\.bin\.set_child\(scroll\);[\s\S]*?scroll\.set_child\(menu\.box\)/);
+});
+
+test('calendar scroll view is parented into the staged menu before its content is attached', () => {
+    assert.match(panelSource, /content\.add_child\(scroll\);[\s\S]*?menu\.box\.add_child\(content\);[\s\S]*?scroll\.set_child\(screen\.calendarEventList\)/);
+});
+
+test('global menu scroll view is staged before its content is attached', () => {
+    assert.match(globalMenuSource, /this\.uiGroup\.add_child\(menu\.actor\);[\s\S]*?menu\._boxPointer\.bin\.set_child\(scrollView\);[\s\S]*?scrollView\.set_child\(menu\.box\)/);
+});
+
+test('desktop icon scroll view is parented before its content is attached', () => {
+    assert.match(desktopIconsSource, /parent\.add_child\(scroll\);[\s\S]*?scroll\.set_child\(content\)/);
+});
+
+test('widget list scroll view waits until it is mapped before attaching content', () => {
+    assert.match(widgetRuntimeSource, /actor\.connect\('notify::mapped', attachContent\)/);
+    assert.match(widgetRuntimeSource, /if \(!actor\.is_mapped\(\)\)[\s\S]*?actor\.set_child\(content\)/);
+});
+
+test('window preview scroll view is inserted into the staged menu before attaching content', () => {
+    assert.match(windowPreviewsSource, /item\.add_child\(scroll\);[\s\S]*?this\.menu\.addMenuItem\(item\);[\s\S]*?scroll\.set_child\(box\)/);
+});
