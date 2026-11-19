@@ -235,3 +235,23 @@ test('button padding cannot consume the entire topbar height', () => {
     assert.ok(metrics.iconSize > 0);
     assert.ok(metrics.fontSize > 0);
 });
+
+
+test('shared button factory does not expose a custom-child escape hatch', async () => {
+    const source = await readFile(new URL('../src/panel/panelButton.ts', import.meta.url), 'utf8');
+    assert.doesNotMatch(source, /child\s*=\s*null/);
+    assert.doesNotMatch(source, /if \(!child\)/);
+    const button = createPanelButton(fakeSt, fakeClutter, {
+        iconName: 'search', text: 'Search',
+    });
+    assert.equal(button.panelContent.children.length, 2);
+    assert.equal(button.panelIcon, button.panelContent.children[0]);
+    assert.equal(button.panelLabel, button.panelContent.children[1]);
+});
+
+test('global menu does not retain an independent text padding setting', async () => {
+    const globalMenu = await readFile(new URL('../src/panel/globalMenu.ts', import.meta.url), 'utf8');
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    assert.doesNotMatch(globalMenu, /textPadding/);
+    assert.doesNotMatch(panel, /textPadding: this\._settings\.get_int\('panel-icon-padding'\)/);
+});
