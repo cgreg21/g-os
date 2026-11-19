@@ -625,8 +625,10 @@ export default class GOsExtension extends ExtensionComponents {
                         screen.dockViewport.add_child(screen.dock);
                         dockContent = screen.dockViewport;
                     }
+                    // Attach the scroll view to the stage before parenting its content.
+                    // St.ScrollView may allocate its child while set_child() runs; doing
+                    // that in the constructor happens before addChrome() can stage the actor.
                     screen.dockContainer = new St.ScrollView({
-                        child: dockContent,
                         clip_to_allocation: true,
                         reactive: false,
                         track_hover: true,
@@ -634,6 +636,7 @@ export default class GOsExtension extends ExtensionComponents {
                         vscrollbar_policy: position === 0 ? St.PolicyType.NEVER : St.PolicyType.EXTERNAL,
                     });
                     screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
+                    screen.dockContainer.set_child(dockContent);
                     screen.lifecycle.addSignal(screen.dockContainer,
                         screen.dockContainer.connect('notify::hover', () => {
                             for (const update of screen.hoverAnimationUpdates)
