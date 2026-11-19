@@ -10,10 +10,14 @@ export function withDockActivity(Base) {
             if (!this._notificationSources.has(source)) {
                 const cleanup = new CleanupManager();
                 for (const signal of ['notify::count', 'notify::unseen-count'])
-                    cleanup.addSignal(source, source.connect(signal, () => this._updateNotificationCounts()));
+                    cleanup.addSignal(source, source.connect(signal, () => {
+                        this._updateNotificationCounts();
+                        this._updatePanelNotifications();
+                    }));
                 this._notificationSources.set(source, cleanup);
             }
             this._updateNotificationCounts();
+            this._updatePanelNotifications();
         }
 
         _startLauncherTracking() {
@@ -144,6 +148,7 @@ export function withDockActivity(Base) {
                 this._notificationSources.delete(source);
                 cleanup.clear();
             }
+            this._updatePanelNotifications();
         }
 
         _updateNotificationCounts(appsNeedingAttention = null) {
