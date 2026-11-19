@@ -232,3 +232,15 @@ test('all status menus share one compact theme-native popup width', async () => 
         assert.ok(panel.includes(`button.statusKind === '${kind}'`));
     assert.ok(panel.includes('new BatteryStatusMenu'));
 });
+
+
+test('sound and display menus use compact icon-led controls', async () => {
+    const source = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const sound = source.slice(source.indexOf('export class SoundStatusMenu'), source.indexOf('export class DisplayStatusMenu'));
+    const display = source.slice(source.indexOf('export class DisplayStatusMenu'), source.indexOf('class NativeMenuContent'));
+    assert.ok(sound.includes('g-os-status-device-grid'));
+    assert.ok(sound.includes('audio-headphones-symbolic'));
+    assert.ok(display.includes('Paramètres d’affichage'));
+    assert.ok(display.includes('this.temperatureRow.visible = enabled'));
+    assert.ok(!display.includes('Luminosité :'));
+});
