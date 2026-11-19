@@ -272,3 +272,14 @@ test('default metrics use the shared topbar spacing', () => {
     const metrics = calculatePanelButtonMetrics({panelHeight: 32});
     assert.equal(metrics.spacing, 6);
 });
+
+test('obsolete per-text topbar padding is absent from configuration and schema', async () => {
+    const config = await readFile(new URL('../config.json', import.meta.url), 'utf8');
+    const schema = await readFile(new URL('../schemas/org.gnome.shell.extensions.g-os.gschema.xml', import.meta.url), 'utf8');
+    const preferences = await readFile(new URL('../src/prefs.ts', import.meta.url), 'utf8');
+    const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
+    assert.doesNotMatch(config, /panel-text-padding/);
+    assert.doesNotMatch(schema, /panel-text-padding/);
+    assert.doesNotMatch(preferences, /panel-text-padding/);
+    assert.doesNotMatch(extension, /panel-text-padding/);
+});
