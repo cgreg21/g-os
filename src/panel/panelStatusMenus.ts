@@ -1,5 +1,10 @@
 import {CleanupManager} from '../core/cleanupManager.js';
 
+function expandHorizontally(actor) {
+    actor.set_x_expand(true);
+    return actor;
+}
+
 function getActorParent(actor) {
     try {
         return actor?.get_parent?.() ?? null;
@@ -71,7 +76,7 @@ export class SoundStatusMenu {
         this.inputs = new St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL,
             style_class: 'g-os-status-input-row'});
         this.inputIcon = new St.Icon({icon_name: 'audio-input-microphone-symbolic', icon_size: 18});
-        this.inputName = new St.Label({text: '', style_class: 'g-os-status-device-label', x_expand: true});
+        this.inputName = expandHorizontally(new St.Label({text: '', style_class: 'g-os-status-device-label'}));
         this.inputs.add_child(this.inputIcon);
         this.inputs.add_child(this.inputName);
         this.inputItem.add_child(this.inputs);
@@ -207,8 +212,7 @@ export class SoundStatusMenu {
                 style_class: 'g-os-status-grid-row'});
             for (const entry of available.slice(index, index + 2)) {
                 const active = entry.stream === this.stream;
-                const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-                    x_expand: true, style_class: 'g-os-status-device-tile', accessible_name: entry.label});
+                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'g-os-status-device-tile', accessible_name: entry.label}));
                 const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
                     style_class: 'g-os-status-device-content'});
                 content.add_child(new this.St.Icon({icon_name: /headphone|casque/i.test(entry.label)
@@ -224,7 +228,7 @@ export class SoundStatusMenu {
                 row.add_child(button);
             }
             if (available.length % 2 && index + 1 >= available.length)
-                row.add_child(new this.St.Widget({x_expand: true}));
+                row.add_child(expandHorizontally(new this.St.Widget()));
             this.devices.add_child(row);
         }
         if (!available.length)
@@ -527,8 +531,8 @@ export class NetworkStatusMenu {
     }
 
     _button(label, styleClass, callback, iconName = null) {
-        const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-            style_class: styleClass, accessible_name: label});
+        const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
+            style_class: styleClass, accessible_name: label}));
         button.set_x_expand(true);
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-button-content'});
         if (iconName)
@@ -566,8 +570,7 @@ export class NetworkStatusMenu {
             for (const entry of visible.slice(index, index + 3)) {
                 const {toggle, title} = entry;
                 const active = Boolean(toggle.checked);
-                const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-                    x_expand: true, style_class: 'g-os-status-device-tile', accessible_name: title});
+                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'g-os-status-device-tile', accessible_name: title}));
                 const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
                     style_class: 'g-os-status-device-content'});
                 const icon = new this.St.Icon({icon_name: toggle.icon_name || this._iconFor(title), icon_size: 22});
@@ -601,7 +604,7 @@ export class NetworkStatusMenu {
                 }
             }
             while (row.get_n_children() < 3)
-                row.add_child(new this.St.Widget({x_expand: true}));
+                row.add_child(expandHorizontally(new this.St.Widget()));
             this.rowsBox.add_child(row);
         }
         this._buildTrafficGraph();
@@ -984,9 +987,9 @@ export class RadioStatusMenu {
         this.refresh();
     }
     _tile(device) {
-        const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true, x_expand: true,
+        const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
             style_class: 'g-os-status-device-tile',
-            accessible_name: device.connected ? `Déconnecter ${device.alias}` : `Connecter ${device.alias}`});
+            accessible_name: device.connected ? `Déconnecter ${device.alias}` : `Connecter ${device.alias}`}));
         const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-content'});
         content.add_child(new this.St.Icon({icon_name: device.icon || 'bluetooth-symbolic', icon_size: 22}));
         content.add_child(new this.St.Label({text: device.alias || 'Périphérique', style_class: 'g-os-status-device-label'}));
@@ -1005,7 +1008,7 @@ export class RadioStatusMenu {
         for (let index = 0; index < devices.length; index += 2) {
             const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-grid-row'});
             for (const device of devices.slice(index, index + 2)) row.add_child(this._tile(device));
-            if (devices.length % 2 && index + 1 >= devices.length) row.add_child(new this.St.Widget({x_expand: true}));
+            if (devices.length % 2 && index + 1 >= devices.length) row.add_child(expandHorizontally(new this.St.Widget()));
             container.add_child(row);
         }
     }
@@ -1088,8 +1091,7 @@ export class BatteryStatusMenu {
         for (let index = 0; index < entries.length; index += 3) {
             const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-grid-row'});
             for (const [profile, item] of entries.slice(index, index + 3)) {
-                const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
-                    x_expand: true, style_class: 'g-os-status-device-tile', accessible_name: item.label?.text || profile});
+                const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'g-os-status-device-tile', accessible_name: item.label?.text || profile}));
                 const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-content'});
                 content.add_child(new this.St.Icon({icon_name: item.icon?.icon_name || 'power-profile-balanced-symbolic', icon_size: 22}));
                 content.add_child(new this.St.Label({text: item.label?.text || profile, style_class: 'g-os-status-device-label'}));
@@ -1119,8 +1121,8 @@ export class BatteryStatusMenu {
         for (const device of batteries) {
             const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-battery-device'});
             row.add_child(new this.St.Icon({icon_name: device.icon_name || 'battery-good-symbolic', icon_size: 18}));
-            row.add_child(new this.St.Label({text: [device.vendor, device.model].filter(Boolean).join(' ') || 'Périphérique', x_expand: true}));
-            row.add_child(new this.St.Label({text: `${Math.round(Number(device.percentage) || 0)} %`}));
+            row.add_child(expandHorizontally(new this.St.Label({text: [device.vendor, device.model].filter(Boolean).join(' ') || 'Périphérique'})));
+            row.add_child(expandHorizontally(new this.St.Label({text: `${Math.round(Number(device.percentage) || 0)} %`})));
             this.deviceItems.add_child(row);
         }
         if (!proxy?.IsPresent) {
