@@ -670,7 +670,7 @@ export function withPanel(Base) {
             this._syncStatusNotifierItems(screen);
             screen.statusButtons = [];
             for (const [name, iconName, accessibleName] of [
-                ['wifi', 'network-wireless-signal-excellent-symbolic', 'Réseau Wi-Fi'],
+                ['wifi', 'network-wired-symbolic', 'Réseau'],
                 ['bluetooth', 'bluetooth-active-symbolic', 'Bluetooth'],
                 ['sound', 'audio-volume-high-symbolic', 'Son'],
                 ['brightness', 'display-brightness-symbolic', 'Luminosité de l’écran'],
@@ -1249,13 +1249,25 @@ export function withPanel(Base) {
                 });
                 button.connect('scroll-event', (actor, event) =>
                     button.statusController.adjustVolume(event.get_scroll_direction()));
-            } else if (['wifi', 'bluetooth'].includes(button.statusKind)) {
-                const toggle = button.statusKind === 'wifi' ? quick?._network?._wirelessToggle
-                    : quick?._bluetooth?.quickSettingsItems?.[0];
+            } else if (button.statusKind === 'wifi') {
+                const network = quick?._network;
+                const networkToggles = [
+                    ['Wi-Fi', network?._wirelessToggle],
+                    ['Ethernet', network?._wiredToggle],
+                    ['VPN', network?._vpnToggle],
+                    ['Réseau mobile', network?._mobileToggle],
+                    ...(network?.quickSettingsItems ?? []).map(toggle => [
+                        toggle.title ?? toggle.accessible_name ?? 'Réseau', toggle]),
+                ].filter(([, toggle]) => Boolean(toggle));
+                button.statusController = new NetworkStatusMenu(menu, button.statusIcon, {
+                    toggles: networkToggles.map(([title, toggle]) => ({title, toggle})),
+                    St, Clutter, PopupMenu, openSettings: settings('network'),
+                });
+            } else if (button.statusKind === 'bluetooth') {
+                const toggle = quick?._bluetooth?.quickSettingsItems?.[0];
                 button.statusController = new RadioStatusMenu(menu, button.statusIcon, {toggle,
-                    title: button.statusKind === 'wifi' ? 'Wi-Fi' : 'Bluetooth', St, Clutter, PopupMenu,
-                    deviceChangeSignal: button.statusKind === 'bluetooth' ? 'devices-changed' : null,
-                    openSettings: settings(button.statusKind === 'wifi' ? 'wifi' : 'bluetooth')});
+                    title: 'Bluetooth', St, Clutter, PopupMenu, deviceChangeSignal: 'devices-changed',
+                    openSettings: settings('bluetooth')});
             } else if (button.statusKind === 'brightness') {
                 button.statusController = new DisplayStatusMenu(menu, button.statusIcon, {
                     Gio, GLib, St, Slider, PopupMenu, Clutter, openSettings: settings('display'),
