@@ -14,7 +14,7 @@ import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
 import GdkPixbuf from 'gi://GdkPixbuf?version=2.0';
-import {SoundStatusMenu, RadioStatusMenu, BatteryStatusMenu, DisplayStatusMenu,
+import {SoundStatusMenu, RadioStatusMenu, NetworkStatusMenu, BatteryStatusMenu, DisplayStatusMenu,
     createPowerDeviceClient, alignMenuRows} from './panelStatusMenus.js';
 import {GtkGlobalMenu} from './globalMenu.js';
 import {applyNativeMenuTheme} from './menuTheme.js';
@@ -1257,7 +1257,7 @@ export function withPanel(Base) {
                     ['VPN', network?._vpnToggle],
                     ['Réseau mobile', network?._mobileToggle],
                     ...(network?.quickSettingsItems ?? []).map(toggle => [
-                        toggle.title ?? toggle.accessible_name ?? 'Réseau', toggle]),
+                        toggle.accessible_name ?? 'Réseau', toggle]),
                 ].filter(([, toggle]) => Boolean(toggle));
                 button.statusController = new NetworkStatusMenu(menu, button.statusIcon, {
                     toggles: networkToggles.map(([title, toggle]) => ({title, toggle})),
