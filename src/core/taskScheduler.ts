@@ -58,7 +58,11 @@ export class TaskScheduler {
             try {
                 callback();
             } catch (error) {
+                try {
                 logError(error as Error, `g-os scheduled task failed: ${key}`);
+            } catch {
+                // A failing host logger must not leak a completed task callback.
+            }
             }
         };
         const done = (): boolean => {
