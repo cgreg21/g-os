@@ -474,7 +474,6 @@ export function withPanel(Base) {
             updateQuit();
             button.menu.connect('open-state-changed', (menu, open) => {
                 if (open) {
-                    updateExtensions();
                     updateQuit();
                     alignMenuRows(button.menu.box, Clutter);
                 }
