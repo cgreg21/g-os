@@ -187,7 +187,7 @@ export class DbusMenuRegistrar extends MenuSignals {
                     }
                     this.external = proxy;
                     this.externalSignal = proxy.connect('g-signal', (_proxy, _sender, name, parameters) => {
-                        if (this.disposed || this.ownsName)
+                        if (this.disposed || this.ownsName || this.external !== proxy)
                             return;
                         const values = parameters.deep_unpack();
                         try {
@@ -204,7 +204,7 @@ export class DbusMenuRegistrar extends MenuSignals {
                     proxy.call('GetMenus', null, Gio.DBusCallFlags.NONE, 3000, this.token, (source, reply) => {
                         try {
                             const [entries] = source.call_finish(reply).deep_unpack();
-                            if (!this.disposed && !this.ownsName) {
+                            if (!this.disposed && !this.ownsName && this.external === proxy) {
                                 for (const [windowId, bus, path] of entries.slice(0, 512))
                                     this.register(windowId, bus, path, true);
                             }
