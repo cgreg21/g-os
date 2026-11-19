@@ -1756,6 +1756,7 @@ async function checkPanelControls() {
         await Scripting.sleep(300);
         await Scripting.waitLeisure();
         const screen = extension._screens[0];
+        await capture(`g-os-panel-${height}-desktop.png`);
         for (const button of screen.statusButtons) {
             const controller = button.statusController;
             if (button.statusKind === 'sound') controller.syncOutput();
