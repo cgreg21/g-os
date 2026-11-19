@@ -28,7 +28,7 @@ for (const name of required) {
         failures.push(`Invalid or incomplete source map: ${mapPath}`);
     if (!map.sources.some(source => source.endsWith('.ts')))
         failures.push(`Source map does not point to TypeScript: ${mapPath}`);
-    if (!map.sourcesContent.some(source => typeof source === 'string' && source.length > 0))
+    if (!Array.isArray(map.sourcesContent) || !map.sourcesContent.some(source => typeof source === 'string' && source.length > 0))
         failures.push(`Source map does not embed source content: ${mapPath}`);
 }
 
