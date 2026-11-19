@@ -530,7 +530,7 @@ export class NetworkStatusMenu {
         this.scroll = new St.ScrollView({hscrollbar_policy: St.PolicyType.NEVER,
             vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
             style_class: 'g-os-network-scroll'});
-        this.body = new St.BoxLayout({vertical: true, style_class: 'g-os-network-panel'});
+        this.body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-network-panel'});
         this.scroll.set_child(this.body);
         this.rootItem.add_child(this.scroll);
         menu.addMenuItem(this.rootItem);
@@ -555,7 +555,7 @@ export class NetworkStatusMenu {
     _button(label, styleClass, callback, iconName = null) {
         const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
             style_class: styleClass, x_expand: true, accessible_name: label});
-        const content = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-button-content'});
+        const content = new this.St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-button-content'});
         if (iconName)
             content.add_child(new this.St.Icon({icon_name: iconName, icon_size: 20,
                 y_align: this.Clutter.ActorAlign.CENTER}));
@@ -568,17 +568,17 @@ export class NetworkStatusMenu {
     _buildOverview() {
         const previousContents = this.contents;
         this.contents = new Map();
-        const header = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-header'});
+        const header = new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-network-header'});
         header.add_child(this._label('Réseau', 'g-os-network-title'));
         header.add_child(this._label('État des connexions', 'g-os-network-subtitle'));
         this.body.add_child(header);
 
-        this.connectionCard = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-connection-card'});
-        const cardTop = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-card-top'});
+        this.connectionCard = new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-network-connection-card'});
+        const cardTop = new this.St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-card-top'});
         this.connectionIcon = new this.St.Icon({icon_name: 'network-wired-symbolic', icon_size: 28,
             y_align: this.Clutter.ActorAlign.CENTER});
         cardTop.add_child(this.connectionIcon);
-        const cardText = new this.St.BoxLayout({vertical: true, x_expand: true,
+        const cardText = new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true,
             style_class: 'g-os-network-card-text'});
         cardText.add_child(this._label('État du réseau', 'g-os-network-card-title'));
         this.connectionSummary = this._label('Recherche des connexions…', 'g-os-network-card-summary');
@@ -590,16 +590,16 @@ export class NetworkStatusMenu {
         this.body.add_child(this.connectionCard);
 
         this.body.add_child(this._label('CONNEXIONS', 'g-os-network-section-title'));
-        this.rowsBox = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-rows'});
+        this.rowsBox = new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-network-rows'});
         this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
             const {toggle, title} = entry;
-            const row = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-row'});
+            const row = new this.St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-row'});
             const iconName = this._iconFor(title);
             const icon = new this.St.Icon({icon_name: iconName, icon_size: 20,
                 y_align: this.Clutter.ActorAlign.CENTER});
             row.add_child(icon);
-            const labels = new this.St.BoxLayout({vertical: true, x_expand: true,
+            const labels = new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true,
                 style_class: 'g-os-network-row-labels'});
             labels.add_child(this._label(title, 'g-os-network-row-title'));
             const state = this._label('', 'g-os-network-row-state');
@@ -614,7 +614,7 @@ export class NetworkStatusMenu {
             button.connect('clicked', () => this.showDetail(toggle));
             this.rowsBox.add_child(button);
             const content = previousContents.get(toggle)?.content ?? new NativeMenuContent(this.menu,
-                new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-native-content'}), {
+                new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-network-native-content'}), {
                     Clutter: this.Clutter,
                     onOpen: () => {
                         if (!this.destroyed) {
@@ -632,7 +632,7 @@ export class NetworkStatusMenu {
         if (!this.toggles.length)
             this.rowsBox.add_child(this._label('Aucun service réseau disponible', 'g-os-network-empty'));
 
-        const actions = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-actions'});
+        const actions = new this.St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-actions'});
         this.refreshButton = this._button('Actualiser', 'g-os-network-action',
             () => this._refreshNetworks(), 'view-refresh-symbolic');
         actions.add_child(this.refreshButton);
@@ -698,7 +698,7 @@ export class NetworkStatusMenu {
         this.body.add_child(back);
         this.body.add_child(this._label(state.entry.title, 'g-os-network-title'));
 
-        const status = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-detail-status'});
+        const status = new this.St.BoxLayout({orientation: Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-detail-status'});
         status.add_child(new this.St.Icon({icon_name: this._iconFor(state.entry.title), icon_size: 24,
             y_align: this.Clutter.ActorAlign.CENTER}));
         status.add_child(this._label(toggle.checked ? 'Service activé' : 'Service désactivé',
@@ -717,7 +717,7 @@ export class NetworkStatusMenu {
         }));
         this.body.add_child(this.detailSwitch);
 
-        const nativeHolder = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-native-content'});
+        const nativeHolder = new this.St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-network-native-content'});
         this.body.add_child(nativeHolder);
         if (!state.content)
             state.content = new NativeMenuContent(this.menu, nativeHolder, {
