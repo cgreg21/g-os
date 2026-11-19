@@ -218,13 +218,20 @@ export class WidgetRuntime {
         const config = widgetConfiguration(entry.description, instance.config);
         const appearance = config['background-style'];
         let disposed = false;
+        const registerCleanup = callback => {
+            if (!disposed) {
+                registerCleanup(callback);
+                return;
+            }
+            try { callback(); } catch (error) { this.report(instance.id, error); }
+        };
         const guarded = callback => (...args) => {
             if (disposed)
                 return;
             try { return callback(...args); } catch (error) { this.report(instance.id, error); }
         };
         const pending = new Set<() => void>();
-        cleanup.push(() => {
+        registerCleanup(() => {
             for (const cancel of pending)
                 cancel();
             pending.clear();
@@ -235,7 +242,7 @@ export class WidgetRuntime {
                 const tooltip = new St.Label({style_class: 'dash-label g-os-dock-tooltip', visible: false});
                 this.env.Main.layoutManager.addTopChrome(tooltip);
                 tooltipScreen = {position: 0, monitor, tooltip};
-                cleanup.push(() => tooltip.destroy());
+                registerCleanup(() => tooltip.destroy());
             }
             host._attachTooltip(tooltipScreen, button, title, {magnify: false, scroll: false});
         };
@@ -427,12 +434,12 @@ export class WidgetRuntime {
             watchClock: callback => {
                 const clock = host._wallClock;
                 const id = clock.connect('notify::clock', guarded(callback));
-                cleanup.push(() => clock.disconnect(id));
+                registerCleanup(() => clock.disconnect(id));
             },
-            onCleanup: callback => cleanup.push(callback),
+            onCleanup: callback => registerCleanup(callback),
             connect: (object, signal, callback) => {
                 const id = object.connect(signal, guarded(callback));
-                cleanup.push(() => object.disconnect(id));
+                registerCleanup(() => object.disconnect(id));
                 return id;
             },
             every: (milliseconds, callback) => {
@@ -450,7 +457,7 @@ export class WidgetRuntime {
                     }
                     return GLib.SOURCE_CONTINUE;
                 });
-                cleanup.push(() => {
+                registerCleanup(() => {
                     if (active) {
                         active = false;
                         GLib.source_remove(id);
@@ -477,12 +484,12 @@ export class WidgetRuntime {
             watchState: callback => {
                 const settings = host._settings;
                 const id = settings.connect('changed::widget-state', guarded(() => callback(readWidgetState(settings.get_string('widget-state'), instance.id))));
-                cleanup.push(() => settings.disconnect(id));
+                registerCleanup(() => settings.disconnect(id));
             },
             openConfiguration: () => host._openWidgetManager(instance.target, instance.monitor),
             createMediaView: properties => {
                 host._mediaServiceUsers = (host._mediaServiceUsers ?? 0) + 1;
-                cleanup.push(() => {
+                registerCleanup(() => {
                     host._mediaServiceUsers--;
                     if (!this.destroying && host._settings)
                         host._syncMediaPlayers();
