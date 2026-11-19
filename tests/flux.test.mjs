@@ -363,6 +363,25 @@ test('Flux session does not retain subscriptions created after disposal', () => 
     assert.equal(updates, 0);
 });
 
+test('Flux notifications defer new listeners and skip listeners removed mid-dispatch', () => {
+    const session = new FluxSession({sources: {}}, {GLib: {}});
+    const calls = [];
+    let removePending;
+    session.subscribe(() => {
+        calls.push('first');
+        session.subscribe(() => calls.push('late'));
+        removePending();
+    });
+    removePending = session.subscribe(() => calls.push('removed'));
+
+    session.notify();
+    assert.deepEqual(calls, ['first']);
+
+    session.notify();
+    assert.deepEqual(calls, ['first', 'first', 'late']);
+    session.destroy();
+});
+
 
 test('Flux refresh prevents a listener from recursively starting the same request', () => {
     let requests = 0;
