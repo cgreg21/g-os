@@ -1,0 +1,44 @@
+name: GNOME Shell 51 visual tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  panel-visual:
+    name: Panel menus and screenshots (GNOME 51)
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:45
+    env:
+      XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+      CI: "true"
+    steps:
+      - name: Install GNOME Shell 51 runtime
+        run: |
+          dnf install -y dbus-daemon glib2 gnome-shell git mutter-devkit nodejs npm
+          gnome-shell --version
+          gnome-shell --version | grep -E 'GNOME Shell 51([. ]|$)'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Run native panel tests and capture screenshots
+        run: npm run test:ui -- --run panel
+      - name: Upload GNOME screenshots, reports and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gnome-51-panel-visual-results
+          path: .cache/g-os-extension/test-runs/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
