@@ -134,7 +134,7 @@ test('icon-only, text-only and combined controls share the same St.Button compon
     assert.ok(combined.panelLabel);
 });
 
-test('icon-only, text-only and combined buttons receive exactly the same padding', () => {
+test('text buttons receive a slight horizontal padding increase while icon-only padding stays unchanged', () => {
     const iconOnly = createPanelButton(fakeSt, fakeClutter, {iconName: 'wifi'});
     const textOnly = createPanelButton(fakeSt, fakeClutter, {text: 'Wi-Fi'});
     const combined = createPanelButton(fakeSt, fakeClutter, {iconName: 'wifi', text: 'Wi-Fi'});
@@ -143,9 +143,9 @@ test('icon-only, text-only and combined buttons receive exactly the same padding
     });
     for (const button of [iconOnly, textOnly, combined])
         applyPanelButtonMetrics(button, metrics);
-    assert.equal(iconOnly.styles[0], 'padding: 2px; margin: 0; min-height: 0;');
-    assert.equal(textOnly.styles[0], iconOnly.styles[0]);
-    assert.equal(combined.styles[0], iconOnly.styles[0]);
+    assert.equal(iconOnly.styles[0], 'padding: 2px 2px; margin: 0; min-height: 0;');
+    assert.equal(textOnly.styles[0], 'padding: 2px 3px; margin: 0; min-height: 0;');
+    assert.equal(combined.styles[0], textOnly.styles[0]);
     assert.ok(iconOnly.panelIcon.styles.some(style => style.includes('icon-size: 32px')));
     assert.ok(textOnly.panelLabel.styles.some(style => style.includes('font-size: 23px')));
     assert.ok(combined.panelContent.styles.some(style => style.includes('spacing: 4px')));
