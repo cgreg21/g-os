@@ -194,9 +194,15 @@ export class DragAndDropController {
             this.targets.delete(actor);
         };
 
-        actorDestroySignal = actor.connect('destroy', dispose);
-        this.targets.set(actor, dispose);
-        lifecycle?.add(dispose);
+        try {
+            actorDestroySignal = actor.connect('destroy', dispose);
+            this.targets.set(actor, dispose);
+            lifecycle?.add(dispose);
+        } catch (error) {
+            // Restore the previous delegate if target setup fails part-way through.
+            dispose();
+            throw error;
+        }
         return dispose;
     }
 
