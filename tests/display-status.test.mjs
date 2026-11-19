@@ -367,6 +367,18 @@ test('UPower client ignores queued device events after disposal', () => {
     assert.deepEqual(client.get_devices2(), []);
 });
 
+test('radio menu destruction permanently disposes native menu content', () => {
+    const controller = Object.create(RadioStatusMenu.prototype);
+    let destroyed = 0;
+    controller.destroyed = false;
+    controller.content = {destroy() { destroyed++; }};
+    controller.cleanup = {clear() {}};
+    controller.destroy();
+    controller.destroy();
+    assert.equal(destroyed, 1);
+    assert.equal(controller.destroyed, true);
+});
+
 test('destroyed radio menus ignore queued refreshes', () => {
     const controller = Object.create(RadioStatusMenu.prototype);
     controller.destroyed = true;
