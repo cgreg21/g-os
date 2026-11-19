@@ -611,7 +611,7 @@ export class BatteryStatusMenu {
                 this.settingsSeparator.visible = !mounted;
                 this.refresh();
             } else
-                this.content.restore();
+                this.content.destroy();
         }));
         this.refresh();
     }
