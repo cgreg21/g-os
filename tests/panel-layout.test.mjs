@@ -132,7 +132,7 @@ test('network popup is a dedicated floating panel with a connection card and com
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
-    assert.ok(source.includes('new this.St.ScrollView'));
+    assert.ok(source.includes('new St.ScrollView'));
     assert.ok(source.includes('g-os-network-connection-card'));
     assert.ok(source.includes('g-os-network-rows'));
     assert.ok(source.includes('g-os-network-actions'));
