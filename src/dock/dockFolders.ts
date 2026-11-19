@@ -7,6 +7,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders, folderViewOptions} from '../shared/appFolders.js';
 import {CleanupManager} from '../core/cleanupManager.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 
 type DockFolderButton = St.Button & {
     dockFocusKey: string;
@@ -278,9 +279,14 @@ export function withDockFolders(Base) {
                         getDragActor: () => file.app.create_icon_texture(this._settings.get_int('icon-size')),
                         getDragActorSource: () => icon,
                     };
-                    screen.interactionDnd.registerSource(item, delegate, {
-                        onBegin: () => menu.close(),
-                    }, {}, screen.lifecycle);
+                    registerShadowDragSource({
+                        controller: screen.interactionDnd,
+                        actor: item,
+                        St,
+                        delegate,
+                        callbacks: {onBegin: () => menu.close()},
+                        lifecycle: screen.lifecycle,
+                    });
                 }
                 return item;
             };
