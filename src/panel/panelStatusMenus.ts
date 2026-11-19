@@ -582,7 +582,8 @@ export class NetworkStatusMenu {
             this._addOverview(empty);
         }
         this._addOverview(new this.PopupMenu.PopupSeparatorMenuItem());
-        this.settingsItem = this._addOverview(this.menu.addAction('Paramètres réseau', this.openSettings));
+        this.settingsItem = this.menu.addAction('Paramètres réseau', this.openSettings);
+        this.overviewItems.push(this.settingsItem);
     }
 
     _addOverview(item) {
