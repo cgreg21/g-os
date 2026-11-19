@@ -1,3 +1,4 @@
+import {setChildWhenMapped} from '../core/actorUtils.js';
 import {WidgetRegistry, effectiveWidgetInstances, readWidgetInstances, readWidgetState, writeWidgetState, widgetAssetPath, widgetConfiguration, widgetGridPlacement, widgetMinimumSize, widgetMonitorId} from './widgetRegistry.js';
 import {formatDuration, formatBytes, parseSystemStats} from './widgetUtilities.js';
 import {errorMessage} from '../shared/errorMessage.js';
@@ -274,18 +275,7 @@ export class WidgetRuntime {
                 const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-utility-body'});
                 const actor = new St.ScrollView({clip_to_allocation: true, x_expand: true, y_expand: true,
                     hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
-                let mappedSignal = 0;
-                const attachContent = () => {
-                    if (!actor.is_mapped())
-                        return;
-                    if (mappedSignal) {
-                        actor.disconnect(mappedSignal);
-                        mappedSignal = 0;
-                    }
-                    actor.set_child(content);
-                };
-                mappedSignal = actor.connect('notify::mapped', attachContent);
-                attachContent();
+                setChildWhenMapped(actor, content);
                 return {actor, content};
             },
             label: (text, properties = {}) => {
