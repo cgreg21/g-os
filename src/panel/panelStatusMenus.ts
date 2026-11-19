@@ -565,6 +565,8 @@ export class NetworkStatusMenu {
     }
 
     _buildOverview() {
+        const previousContents = this.contents;
+        this.contents = new Map();
         const header = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-header'});
         header.add_child(this._label('Réseau', 'g-os-network-title'));
         header.add_child(this._label('État des connexions', 'g-os-network-subtitle'));
@@ -610,7 +612,18 @@ export class NetworkStatusMenu {
                 accessible_name: title});
             button.connect('clicked', () => this.showDetail(toggle));
             this.rowsBox.add_child(button);
-            this.contents.set(toggle, {entry, button, state, icon});
+            const content = previousContents.get(toggle)?.content ?? new NativeMenuContent(this.menu,
+                new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-native-content'}), {
+                    Clutter: this.Clutter,
+                    onOpen: () => {
+                        if (!this.destroyed) {
+                            toggle._startScanning?.();
+                            toggle._reorderDeviceItems?.();
+                        }
+                    },
+                    onClose: () => toggle._stopScanning?.(),
+                });
+            this.contents.set(toggle, {entry, button, state, icon, content});
             this.cleanup.addSignal(toggle, toggle.connect('notify::checked', () => this.refresh()));
             this.cleanup.addSignal(toggle, toggle.connect('notify::visible', () => this.refresh()));
             this.cleanup.addSignal(toggle, toggle.connect('notify::reactive', () => this.refresh()));
@@ -725,6 +738,11 @@ export class NetworkStatusMenu {
     refresh() {
         if (this.destroyed)
             return;
+        if (this.activeView) {
+            if (this.detailSwitch)
+                this.detailSwitch.setToggleState(Boolean(this.activeView.checked));
+            return;
+        }
         let activeEntry = null;
         for (const {entry, state, button, icon} of this.contents.values()) {
             const toggle = entry.toggle;
