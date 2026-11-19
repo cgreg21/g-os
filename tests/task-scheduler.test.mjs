@@ -162,3 +162,25 @@ test('synchronous task completion preserves a task rescheduled by its callback',
     assert.equal(scheduler.size, 1);
     assert.equal(nextId, 2);
 });
+
+test('contains callback and backend removal failures when the host logger throws', () => {
+    const removed = [];
+    const previousLogError = globalThis.logError;
+    globalThis.logError = () => { throw new Error('logger failure'); };
+    try {
+        const backend = new FakeBackend();
+        backend.remove = id => {
+            removed.push(id);
+            throw new Error('backend removal failed');
+        };
+        const scheduler = new TaskScheduler(backend);
+        scheduler.timeout('first', 1, () => { throw new Error('task callback failed'); });
+        scheduler.timeout('second', 1, () => {});
+        assert.doesNotThrow(() => backend.run(1));
+        assert.doesNotThrow(() => scheduler.destroy());
+        assert.deepEqual(removed, [2]);
+        assert.equal(scheduler.size, 0);
+    } finally {
+        globalThis.logError = previousLogError;
+    }
+});
