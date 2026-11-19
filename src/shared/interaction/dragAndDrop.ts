@@ -151,6 +151,9 @@ export class DragAndDropController {
             actorDestroySignal = actor.connect('destroy', () => {
                 if (disposed)
                     return;
+                // The actor is already emitting destroy; do not disconnect this
+                // handler from the object while GNOME is disposing it.
+                actorDestroySignal = 0;
                 try {
                     callbacks.onDestroy?.();
                 } finally {
@@ -197,7 +200,12 @@ export class DragAndDropController {
         };
 
         try {
-            actorDestroySignal = actor.connect('destroy', dispose);
+            actorDestroySignal = actor.connect('destroy', () => {
+                // The destroy signal is already being delivered; disposal will
+                // release the delegate without disconnecting from a dying actor.
+                actorDestroySignal = 0;
+                dispose();
+            });
             this.targets.set(actor, dispose);
             lifecycle?.add(dispose);
         } catch (error) {
