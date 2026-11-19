@@ -529,7 +529,7 @@ test('widget runtime rejects new system operations after disposal', async () => 
     let processRequests = 0;
     const runtime = Object.create(WidgetRuntime.prototype);
     runtime.env = {
-        St: {}, GLib: {},
+        St: {}, GLib: {}, Clutter: {Orientation: {}},
         Gio: {
             File: {new_for_path: () => {
                 fileRequests++;
