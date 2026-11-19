@@ -1781,8 +1781,9 @@ async function checkPanelControls() {
             const result = {height, kind: button.statusKind, bounds: [x, y, width, extent],
                 mapped: button.statusMenu.actor.mapped, audioAvailable: Boolean(before), rowPadding, issues: []};
             if (button.statusKind === 'brightness' &&
-                (!controller.brightnessSlider.mapped || !controller.temperatureSlider.mapped))
-                result.issues.push('brightness-or-night-light-slider-not-visible');
+                (!controller.brightnessSlider.mapped ||
+                    (controller.temperatureRow.visible && !controller.temperatureSlider.mapped)))
+                result.issues.push('brightness-or-enabled-night-light-slider-not-visible');
             if (nightLight) {
                 try {
                     controller.temperatureSlider.value = 0.5;
@@ -4845,8 +4846,9 @@ export async function run() {
                 if (statusButton.statusKind === 'sound' && (!controller.slider.mapped || !controller.muteButton.mapped))
                     throw new Error('Sound menu mute button or volume slider is missing');
                 if (statusButton.statusKind === 'brightness' &&
-                    (!controller.brightnessSlider.mapped || !controller.nightLightToggle || !controller.temperatureSlider.mapped))
-                    throw new Error('Brightness or night-light controls are missing');
+                    (!controller.brightnessSlider.mapped || !controller.nightLightToggle ||
+                        (controller.temperatureRow.visible && !controller.temperatureSlider.mapped)))
+                    throw new Error('Brightness or enabled night-light controls are missing');
                 const audioSnapshot = statusButton.statusKind === 'sound' && controller.stream
                     ? {stream: controller.stream, volume: controller.stream.volume, muted: controller.stream.is_muted} : null;
                 if (statusButton.statusKind === 'sound' && GLib.getenv('MACOS_AUDIO_REQUIRED') === '1' && !audioSnapshot)
