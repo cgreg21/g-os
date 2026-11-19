@@ -618,6 +618,9 @@ export class NetworkStatusMenu {
         }
         if (!this.toggles.length)
             this.rowsBox.add_child(this._label('Aucun service réseau disponible', 'g-os-network-empty'));
+        this.body.add_child(this._button('Paramètres', 'g-os-network-settings',
+            this.openSettings, 'emblem-system-symbolic'));
+    }
 
     _iconFor(title) {
         const value = title.toLowerCase();
