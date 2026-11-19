@@ -19,7 +19,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
+import {PANEL_BUTTON_SPACING, calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -865,7 +865,7 @@ export function withPanel(Base) {
                 panelHeight: height,
                 panelVerticalPadding: verticalPadding,
                 buttonPadding,
-                spacing: 6,
+                spacing: PANEL_BUTTON_SPACING,
             });
             const availableLabelWidth = Math.max(48, screen.monitor.width - 360 - horizontalPadding * 2);
             const labelLength = screen.appLabel.text?.length ?? 0;
@@ -873,7 +873,7 @@ export function withPanel(Base) {
             screen.appFontSize = calculatePanelLabelFontSize(metrics.fontSize, labelLength, availableLabelWidth);
             screen.iconSize = metrics.iconSize;
             screen.panelButtonMetrics = metrics;
-            screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px;`);
+            screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px; spacing: ${metrics.spacing}px;`);
 
             screen.appLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             screen.appLabel.y_align = Clutter.ActorAlign.CENTER;
