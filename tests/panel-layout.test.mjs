@@ -215,15 +215,14 @@ test('Bluetooth popup uses connected and available device grids in one view', as
 });
 
 
-test('all status menus share one compact theme-native popup width', async () => {
+test('status menu dimensions and spacing are delegated to the active GNOME theme', async () => {
     const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
     const css = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
-    assert.ok(panel.includes("menu.actor.add_style_class_name('g-os-compact-status-popup')"));
-    assert.ok(panel.includes("menu.box.add_style_class_name('g-os-compact-status-popup')"));
-    assert.match(css, /\.g-os-compact-status-popup\s*\{[^}]*width:\s*380px;[^}]*max-width:\s*380px;/);
-    assert.match(menus, /for \(let index = 0; index < visible\.length; index \+= 2\)/);
-    assert.match(menus, /visible\.slice\(index, index \+ 2\)/);
+    assert.doesNotMatch(panel, /g-os-compact-status-popup/);
+    assert.doesNotMatch(css, /g-os-compact-status-popup|g-os-status-device-tile\s*\{[^}]*min-height|g-os-network-scroll\s*\{[^}]*max-height/);
+    assert.match(menus, /for \(let index = 0; index < visible\.length; index \+= 3\)/);
+    assert.match(menus, /visible\.slice\(index, index \+ 3\)/);
     assert.ok(!css.includes('g-os-bluetooth-popup'));
     assert.ok(!menus.includes('g-os-bluetooth-popup'));
     for (const kind of ['sound', 'wifi', 'bluetooth', 'brightness'])
