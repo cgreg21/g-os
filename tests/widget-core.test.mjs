@@ -18,6 +18,7 @@ import {
 } from '../dist/widgets/widgetRegistry.js';
 import {formatBytes, formatDuration, parseSystemStats} from '../dist/widgets/widgetUtilities.js';
 import {createSimpleWidget, validateSimpleWidget} from '../dist/widgets/simpleWidget.js';
+import {WidgetRuntime} from '../dist/widgets/widgetRuntime.js';
 
 const manifest = {
     apiVersion: 1,
@@ -447,4 +448,63 @@ test('simple widget templates and surface fallbacks handle missing or non-scalar
     assert.equal(labels.at(-1).text, 'Dock');
     assert.equal(dockFallback.title, 'Dock fallback');
     assert.equal(squareFallback.title, 'Square fallback');
+});
+
+
+test('widget runtime ignores signal and timer callbacks after instance disposal', () => {
+    let signalCallback;
+    let timerCallback;
+    let disconnected = false;
+    let removed = false;
+    let calls = 0;
+    const runtime = Object.create(WidgetRuntime.prototype);
+    runtime.env = {
+        GLib: {
+            PRIORITY_DEFAULT: 0,
+            SOURCE_REMOVE: false,
+            SOURCE_CONTINUE: true,
+            timeout_add: (_priority, _interval, callback) => {
+                timerCallback = callback;
+                return 7;
+            },
+            source_remove: id => { assert.equal(id, 7); removed = true; },
+        },
+        St: {},
+        Gio: {},
+        Clutter: {},
+    };
+    runtime.host = {};
+    runtime.registry = {entries: new Map([['test', {description: {configuration: []}}]])};
+    const instance = {id: 'instance', widget: 'test', config: {}};
+    const context = runtime.context(instance, {}, {}, []);
+    const emitter = {
+        connect: (_signal, callback) => { signalCallback = callback; return 3; },
+        disconnect: id => { assert.equal(id, 3); disconnected = true; },
+    };
+
+    context.api.connect(emitter, 'changed', () => calls++);
+    context.api.every(1000, () => calls++);
+    signalCallback();
+    timerCallback();
+    assert.equal(calls, 2);
+
+    const cleanup = [];
+    // Build a fresh context so its lifetime can be disposed deterministically.
+    const disposable = runtime.context(instance, {}, {}, cleanup);
+    let lateSignal;
+    const lateEmitter = {
+        connect: (_signal, callback) => { lateSignal = callback; return 4; },
+        disconnect: () => {},
+    };
+    disposable.api.connect(lateEmitter, 'changed', () => calls++);
+    disposable.api.every(1000, () => calls++);
+    for (const dispose of cleanup.reverse())
+        dispose();
+
+    assert.equal(disconnected, false);
+    assert.equal(removed, false);
+    lateSignal();
+    assert.equal(timerCallback(), false);
+    assert.equal(calls, 2);
+    assert.equal(removed, true);
 });
