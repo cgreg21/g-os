@@ -206,7 +206,7 @@ test('display controls read and write screen brightness and night-light settings
         new MockVariant('(sa{sv}as)', ['org.gnome.SettingsDaemon.Power.Screen',
             {Brightness: new MockVariant('i', 90)}, []]));
     assert.equal(controller.brightness, 80);
-    assert.equal(controller.brightnessInfo.label.text, 'Luminosité : 80 %');
+    assert.equal(controller.brightnessValue.text, '80 %');
 });
 
 test('display menu does not write brightness when a queued debounce fires after destruction', () => {
@@ -322,7 +322,7 @@ test('sound slider reaches amplified volume only while the system allows it', ()
     };
     const PopupMenu = {PopupBaseMenuItem, PopupMenuItem, PopupMenuSection,
         PopupSeparatorMenuItem: class {}, Ornament: {DOT: 1, NONE: 0}};
-    const Clutter = {ActorAlign: {CENTER: 0}, ScrollDirection: {UP: 1, DOWN: 2},
+    const Clutter = {ActorAlign: {CENTER: 0}, Orientation: {VERTICAL: 0, HORIZONTAL: 1}, ScrollDirection: {UP: 1, DOWN: 2},
         EVENT_STOP: -1};
     const controller = new SoundStatusMenu(menu, {icon_name: ''},
         {control, Gio: settings, St, Slider: slider, PopupMenu, Clutter, openSettings() {}});
