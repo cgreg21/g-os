@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {isGlobalMenuActionEnabled} from '../dist/panel/globalMenu.js';
+import {isGlobalMenuActionEnabled, removeGlobalMenuActor} from '../dist/panel/globalMenu.js';
 
 function createActionGroup({enabled = true, parameter = null} = {}) {
     return {
@@ -29,4 +29,27 @@ test('global menu rejects unexpected targets and unavailable actions', () => {
     assert.equal(isGlobalMenuActionEnabled(group, 'missing', null), false);
     assert.equal(isGlobalMenuActionEnabled(createActionGroup({enabled: false}), 'open', null), false);
     assert.equal(isGlobalMenuActionEnabled(null, 'open', null), false);
+});
+
+
+test('global menu cleanup removes an actor only from its current expected parent', () => {
+    const firstParent = {
+        children: [],
+        remove_child(actor) {
+            this.children = this.children.filter(child => child !== actor);
+            actor.parent = null;
+        },
+    };
+    const otherParent = {remove_child() { throw new Error('wrong parent'); }};
+    const actor = {
+        parent: firstParent,
+        get_parent() { return this.parent; },
+    };
+    firstParent.children.push(actor);
+
+    assert.equal(removeGlobalMenuActor(actor, otherParent), false);
+    assert.equal(actor.get_parent(), firstParent);
+    assert.equal(removeGlobalMenuActor(actor, firstParent), true);
+    assert.equal(actor.get_parent(), null);
+    assert.equal(removeGlobalMenuActor(actor, firstParent), false);
 });
