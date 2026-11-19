@@ -647,26 +647,89 @@ export class NetworkStatusMenu {
         this.body.add_child(graphBox);
     }
 
+    _readProcFile(path) {
+        try {
+            const [ok, contents] = this.GLib.file_get_contents(path);
+            return ok ? new TextDecoder().decode(contents) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    _getActiveTrafficInterfaces() {
+        const interfaces = new Set();
+        const ipv4 = this._readProcFile('/proc/net/route');
+        if (ipv4) {
+            const routes = ipv4.split('\n').slice(1).map(line => line.trim().split(/\s+/));
+            const defaults = routes.filter(fields => fields.length >= 8 &&
+                fields[1] === '00000000' && (parseInt(fields[3], 16) & 1));
+            if (defaults.length) {
+                const bestMetric = Math.min(...defaults.map(fields => Number(fields[6]) || 0));
+                for (const fields of defaults) {
+                    if ((Number(fields[6]) || 0) === bestMetric)
+                        interfaces.add(fields[0]);
+                }
+            }
+        }
+
+        const ipv6 = this._readProcFile('/proc/net/ipv6_route');
+        if (ipv6) {
+            const routes = ipv6.split('\n').map(line => line.trim().split(/\s+/));
+            const defaults = routes.filter(fields => fields.length >= 10 &&
+                fields[0] === '00000000000000000000000000000000' && fields[1] === '00');
+            if (defaults.length) {
+                const bestMetric = Math.min(...defaults.map(fields => parseInt(fields[5], 16) || 0));
+                for (const fields of defaults) {
+                    if ((parseInt(fields[5], 16) || 0) === bestMetric)
+                        interfaces.add(fields[9]);
+                }
+            }
+        }
+
+        if (interfaces.size)
+            return interfaces;
+
+        // Without a default route, only consider physical interfaces whose
+        // carrier is up. This avoids adding dormant and virtual interfaces.
+        const devices = this._readProcFile('/proc/net/dev');
+        if (!devices)
+            return interfaces;
+        for (const line of devices.split('\n').slice(2)) {
+            const separator = line.indexOf(':');
+            if (separator < 0)
+                continue;
+            const iface = line.slice(0, separator).trim();
+            if (!iface || /^(lo|veth|docker|br-|virbr|tun|tap|wg|vnet)/.test(iface))
+                continue;
+            const state = this._readProcFile(`/sys/class/net/${iface}/operstate`);
+            if (state?.trim() === 'up')
+                interfaces.add(iface);
+        }
+        return interfaces;
+    }
+
     _readTrafficCounters() {
         try {
-            const [ok, contents] = this.GLib.file_get_contents('/proc/net/dev');
-            if (!ok)
+            const activeInterfaces = this._getActiveTrafficInterfaces();
+            if (!activeInterfaces.size)
                 return null;
-            const source = new TextDecoder().decode(contents);
+            const source = this._readProcFile('/proc/net/dev');
+            if (!source)
+                return null;
             let rx = 0;
             let tx = 0;
-            for (const line of source.split('\\n').slice(2)) {
+            for (const line of source.split('\n').slice(2)) {
                 const separator = line.indexOf(':');
                 if (separator < 0)
                     continue;
                 const iface = line.slice(0, separator).trim();
-                if (!iface || /^(lo|veth|docker|br-|virbr|tun|tap|wg)/.test(iface))
+                if (!activeInterfaces.has(iface))
                     continue;
-                const values = line.slice(separator + 1).trim().split(/\\s+/).map(Number);
+                const values = line.slice(separator + 1).trim().split(/\s+/).map(Number);
                 rx += values[0] || 0;
                 tx += values[8] || 0;
             }
-            return {rx, tx};
+            return {rx, tx, interfaces: [...activeInterfaces].sort().join(',')};
         } catch (error) {
             console.error('G-OS network traffic counters:', error);
             return null;
@@ -677,11 +740,14 @@ export class NetworkStatusMenu {
         const counters = this._readTrafficCounters();
         if (!counters)
             return;
-        if (this.lastTraffic) {
+        if (this.lastTraffic && this.lastTraffic.interfaces === counters.interfaces) {
             this.trafficRates = {
                 rx: Math.max(0, counters.rx - this.lastTraffic.rx),
                 tx: Math.max(0, counters.tx - this.lastTraffic.tx),
             };
+        } else {
+            this.trafficRates = {rx: 0, tx: 0};
+            this.trafficSamples = [];
         }
         this.lastTraffic = counters;
         this.trafficSamples.push(this.trafficRates);
