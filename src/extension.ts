@@ -1668,10 +1668,7 @@ export default class GOsExtension extends ExtensionComponents {
             button.dockWidgetPrimary = primary;
             button.dockWidgetSecondary = secondary;
             button.mediaView = mediaView;
-            button._delegate = {
-                getDragActor: () => new Clutter.Clone({source: viewport}),
-                getDragActorSource: () => viewport,
-            };
+            button._delegate = {getDragActorSource: () => viewport};
             if (mediaView) {
                 mediaView.ownerButton = button;
                 if (square)
