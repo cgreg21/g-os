@@ -3,6 +3,13 @@ import {alignMenuRows} from './panelStatusMenus.js';
 import {CleanupManager} from '../core/cleanupManager.js';
 import {applyPanelButtonMetrics, createPanelButton} from './panelButton.js';
 
+export function isGlobalMenuActionEnabled(group, action, target) {
+    if (!group?.has_action(action) || !group.get_action_enabled(action))
+        return false;
+    const parameter = group.get_action_parameter_type(action);
+    return parameter ? Boolean(target?.is_of_type(parameter)) : !target;
+}
+
 export class GtkGlobalMenu {
     [key: string]: any;
 
@@ -211,8 +218,8 @@ export class GtkGlobalMenu {
             const prefix = separator > 0 ? detailed.slice(0, separator) : '';
             const action = separator > 0 ? detailed.slice(separator + 1) : '';
             const group = this.groups[prefix];
-            const enabled = group?.has_action(action) && group.get_action_enabled(action);
-            item.setSensitive(Boolean(enabled));
+            const enabled = isGlobalMenuActionEnabled(group, action, target);
+            item.setSensitive(enabled);
             if (enabled) {
                 const state = group.get_action_state(action);
                 if (state?.get_type_string() === 'b' && state.deep_unpack())
@@ -227,10 +234,8 @@ export class GtkGlobalMenu {
                     x_expand: true, x_align: this.Clutter.ActorAlign.END}));
             const generation = this.generation;
             item.connect('activate', () => {
-                if (this.disposed || generation !== this.generation || !group?.has_action(action) || !group.get_action_enabled(action))
-                    return;
-                const parameter = group.get_action_parameter_type(action);
-                if (parameter ? !target?.is_of_type(parameter) : Boolean(target))
+                if (this.disposed || generation !== this.generation ||
+                    !isGlobalMenuActionEnabled(group, action, target))
                     return;
                 group.activate_action(action, target ?? null);
             });
