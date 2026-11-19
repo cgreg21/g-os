@@ -289,6 +289,14 @@ test('sound slider reaches amplified volume only while the system allows it', ()
     controller.destroy();
 });
 
+test('destroyed battery menus ignore late refreshes and device synchronization', () => {
+    const controller = Object.create(BatteryStatusMenu.prototype);
+    controller.destroyed = true;
+    controller.syncDevices = () => assert.fail('destroyed menu must not refresh');
+    assert.equal(controller.refresh(), undefined);
+    assert.deepEqual(controller.syncDevices(), []);
+});
+
 test('battery percentage is shown in the panel only when enabled and a level is available', () => {
     const controller = Object.create(BatteryStatusMenu.prototype);
     const levelLabel = {text: '', visible: false};
