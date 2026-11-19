@@ -793,13 +793,17 @@ export function withPanel(Base) {
                 return;
             const index = parent.get_children().indexOf(actor);
             const [width, height] = actor.get_size();
-            const placeholder = new St.Widget({
-                style_class: 'g-os-panel-dnd-placeholder',
+            // Keep a visual copy in the layout while the dragged item is
+            // represented by the drag actor that GNOME Shell moves with the pointer.
+            // This avoids the empty slot that made the topbar jump visually.
+            const placeholder = new Clutter.Clone({
+                source: actor,
                 width,
                 height,
-                y_expand: true,
                 reactive: false,
             });
+            placeholder.set_size(width, height);
+            placeholder.y_expand = true;
             screen.panelDragState = {id, actor, parent, index, placeholder};
             parent.insert_child_at_index(placeholder, index);
             parent.remove_child(actor);
