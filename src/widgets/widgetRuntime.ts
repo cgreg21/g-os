@@ -3,6 +3,7 @@ import {formatDuration, formatBytes, parseSystemStats} from './widgetUtilities.j
 import {errorMessage} from '../shared/errorMessage.js';
 import {createSimpleWidget} from './simpleWidget.js';
 import {FluxSession, createFluxWidget} from './fluxWidget.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 
 function widgetColor(value, strength = 1) {
     const match = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})([\da-f]{2})?$/i.exec(value ?? '');
@@ -688,30 +689,19 @@ export class WidgetRuntime {
                     this.host._attachDesktopWidgetDrag(actor, monitor, `desktop-widget-${instance.widget}-x`,
                         `desktop-widget-${instance.widget}-y`);
                 else
-                    this.attachGridDrag(result.dragHandle ?? actor, actor, instance, area, grid);
+                    const screen = this.host._screens?.find(candidate => candidate.monitor.index === monitor.index);
+                    if (screen?.interactionDnd)
+                        this.attachGridDrag(screen, result.dragHandle ?? actor, actor, instance, area, grid);
             }
         }
     }
 
-    attachGridDrag(handle, actor, instance, area, grid) {
+    attachGridDrag(screen, handle, actor, instance, area, grid) {
         handle.reactive = true;
-        handle._delegate = {widgetDesktopPlacement: true, widgetInstance: instance,
-            getDragActor: () => new this.env.Clutter.Clone({source: actor}), getDragActorSource: () => actor};
         let origin;
         let pointer;
         let position;
-        this.host._makeDraggable(handle, () => {
-            origin = actor.get_position();
-            pointer = this.env.pointer();
-            position = origin;
-        }, event => {
-            if (!origin)
-                return;
-            const x = Math.max(area.x, Math.min(origin[0] + event.x - pointer[0], area.x + area.width - actor.width));
-            const y = Math.max(area.y, Math.min(origin[1] + event.y - pointer[1], area.y + area.height - actor.height));
-            position = [Math.round(x), Math.round(y)];
-            actor.set_position(...position);
-        }, cancelled => {
+        const finish = cancelled => {
             if (!origin)
                 return;
             const saved = origin;
@@ -722,7 +712,38 @@ export class WidgetRuntime {
             }
             this.updateInstance(instance, {column: Math.max(0, Math.round((position[0] - area.x) / grid)),
                 row: Math.max(0, Math.round((position[1] - area.y) / grid))});
+        };
+        registerShadowDragSource({
+            controller: screen.interactionDnd,
+            actor: handle,
+            visualActor: actor,
+            St: this.env.St,
+            delegate: {
+                widgetDesktopPlacement: true,
+                widgetInstance: instance,
+                getDragActorSource: () => actor,
+            },
+            callbacks: {
+                onBegin: () => {
+                    origin = actor.get_position();
+                    pointer = this.env.pointer();
+                    position = origin;
+                },
+                onMotion: event => {
+                    if (!origin)
+                        return;
+                    const x = Math.max(area.x, Math.min(origin[0] + event.x - pointer[0], area.x + area.width - actor.width));
+                    const y = Math.max(area.y, Math.min(origin[1] + event.y - pointer[1], area.y + area.height - actor.height));
+                    position = [Math.round(x), Math.round(y)];
+                    actor.set_position(...position);
+                },
+                onCancelled: () => finish(true),
+                onEnd: success => finish(!success),
+                onDestroy: () => finish(true),
+            },
+            lifecycle: screen.lifecycle,
         });
+        screen.lifecycle.add(() => finish(true));
     }
 
     _destroyDockWidget(screen, actor) {
