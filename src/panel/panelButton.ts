@@ -91,6 +91,8 @@ export function createPanelMenuButton(St, Clutter, PopupMenu, options = {}) {
     const panelButton = button as any;
     panelButton.container = button;
     panelButton.menu = new PopupMenu.PopupMenu(button, 0.5, St.Side.TOP);
+    button.connect('clicked', () => panelButton.menu.toggle());
+    button.connect('popup-menu', () => panelButton.menu.open());
     button.connect('destroy', () => {
         panelButton.menu.close({animate: false});
         panelButton.menu.destroy();
