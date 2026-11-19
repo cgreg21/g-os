@@ -498,6 +498,32 @@ test('widget cleanup callbacks registered after disposal run immediately', () =>
     assert.equal(calls, 2);
 });
 
+test('widget runtime blocks media creation and host actions after disposal', () => {
+    let mediaCreates = 0;
+    let hostActions = 0;
+    const runtime = Object.create(WidgetRuntime.prototype);
+    runtime.env = {St: {}, Gio: {}, GLib: {}, Clutter: {}, Main: {notify: () => hostActions++}};
+    runtime.host = {
+        _settings: {get_string: () => '{}', is_writable: () => false},
+        _createMediaView: () => { mediaCreates++; return {}; },
+        _syncMediaPlayers() {},
+        _mediaAction: () => hostActions++,
+        _openWidgetManager: () => hostActions++,
+        _addDockWidget: () => { hostActions++; return {}; },
+    };
+    runtime.registry = {entries: new Map([['test', {description: {configuration: []}}]])};
+    const context = runtime.context({id: 'instance', widget: 'test', config: {}}, {}, {}, []);
+    context.dispose();
+
+    assert.equal(context.context.api.createMediaView({}), null);
+    assert.equal(context.context.api.mediaAction('play'), false);
+    assert.equal(context.context.api.openConfiguration(), false);
+    assert.equal(context.context.api.createDockBuiltin('clock', {}), null);
+    assert.equal(context.context.api.notify('title'), false);
+    assert.equal(mediaCreates, 0);
+    assert.equal(hostActions, 0);
+});
+
 test('widget runtime ignores signal and timer callbacks after instance disposal', () => {
     let signalCallback;
     const timerCallbacks = [];
