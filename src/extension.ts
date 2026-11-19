@@ -833,7 +833,7 @@ export default class GOsExtension extends ExtensionComponents {
                 if (screen.appMenuButton)
                     Main.panel.menuManager.removeMenu(screen.appMenuButton.menu);
                 if (screen.appLabel === this._activeAppLabel)
-                    screen.appMenuButton?.remove_child(screen.appLabel);
+                    screen.appLabel.get_parent()?.remove_child(screen.appLabel);
                 if (screen.transferLabel === this._transferLabel)
                     screen.transferLabel.get_parent()?.remove_child(screen.transferLabel);
                 this._cancelDockHide(screen);
