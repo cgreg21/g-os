@@ -88,11 +88,28 @@ export const FOLDER_VIEW_OPTIONS: Record<string, Record<string, FolderViewOption
 };
 
 export function folderViewOptions(settings: FolderSettings, view: string, folderKey: string | null = null): Record<string, number> {
-    const stored = settings.get_value('dock-view-options').deep_unpack();
-    const defaults = stored[view] ?? {};
-    const overrides = folderKey ? stored[`${folderKey}:${view}`] ?? {} : {};
-    return Object.fromEntries(Object.entries(FOLDER_VIEW_OPTIONS[view]).map(([key, spec]) => {
-        const isValid = (value: number) => Number.isInteger(value) && value >= spec.min && value <= spec.max;
+    const options = FOLDER_VIEW_OPTIONS[view];
+    if (!options)
+        return {};
+
+    let raw: unknown;
+    try {
+        raw = settings.get_value('dock-view-options').deep_unpack();
+    } catch {
+        raw = {};
+    }
+    const stored = raw && typeof raw === 'object' && !Array.isArray(raw)
+        ? raw as Record<string, unknown> : {};
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+        Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+    const defaults = isRecord(stored[view]) ? stored[view] : {};
+    const overrideValue = folderKey ? stored[`${folderKey}:${view}`] : null;
+    const overrides = isRecord(overrideValue) ? overrideValue : {};
+
+    return Object.fromEntries(Object.entries(options).map(([key, spec]) => {
+        const isValid = (value: unknown): value is number =>
+            typeof value === 'number' && Number.isInteger(value) &&
+            value >= spec.min && value <= spec.max;
         let value = isValid(defaults[key]) ? defaults[key] : spec.default;
         if (isValid(overrides[key]))
             value = overrides[key];
