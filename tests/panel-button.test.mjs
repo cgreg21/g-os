@@ -20,6 +20,7 @@ test('panel button dimensions account for both panel and button vertical padding
         iconSize: 32,
         fontSize: 23,
         padding: 2,
+        textHorizontalPadding: 3,
         itemSpacing: 5,
         contentSpacing: 4,
     });
