@@ -529,16 +529,15 @@ export class NetworkStatusMenu {
         this.detailSignals = new CleanupManager();
         this.overviewSignals = new CleanupManager();
 
-        menu.actor.add_style_class_name('g-os-network-popup');
         this.rootItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false,
-            style_class: 'g-os-network-shell-item'});
+            });
         this.rootItem.set_x_expand(true);
         this.scroll = new St.ScrollView({hscrollbar_policy: St.PolicyType.NEVER,
             vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
-            style_class: 'g-os-network-scroll'});
+            });
         this.scroll.set_x_expand(true);
         this.body = new St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
-            style_class: 'g-os-network-panel'});
+            });
         this.body.set_x_expand(true);
         this.scroll.set_child(this.body);
         this.rootItem.add_child(this.scroll);
@@ -592,20 +591,16 @@ export class NetworkStatusMenu {
         this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
             const {toggle, title} = entry;
-            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
-                style_class: 'g-os-network-row'});
-            row.add_child(new this.St.Icon({icon_name: this._iconFor(title), icon_size: 20,
-                y_align: this.Clutter.ActorAlign.CENTER}));
-            row.add_child(this._label(title, 'g-os-network-row-title'));
+            const button = new this.PopupMenu.PopupMenuItem(title);
+            const icon = new this.St.Icon({icon_name: this._iconFor(title), icon_size: 20,
+                y_align: this.Clutter.ActorAlign.CENTER});
+            button.add_child(icon);
+            button.label.set_x_expand(true);
             const chevron = new this.St.Icon({icon_name: 'go-next-symbolic', icon_size: 16,
-                y_align: this.Clutter.ActorAlign.CENTER, style_class: 'g-os-network-chevron'});
-            row.add_child(chevron);
-            const button = new this.St.Button({child: row, reactive: true, can_focus: true,
-                track_hover: true, style_class: 'g-os-network-row-button',
-                accessible_name: title});
-            button.set_x_expand(true);
+                y_align: this.Clutter.ActorAlign.CENTER});
+            button.add_child(chevron);
             button.visible = Boolean(toggle.checked && toggle.visible !== false);
-            button.connect('clicked', () => this.showDetail(toggle));
+            button.connect('activate', () => this.showDetail(toggle));
             this.rowsBox.add_child(button);
             const content = previousContents.get(toggle)?.content ?? new NativeMenuContent(this.menu,
                 new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
@@ -619,7 +614,7 @@ export class NetworkStatusMenu {
                     },
                     onClose: () => toggle._stopScanning?.(),
                 });
-            this.contents.set(toggle, {entry, button, icon: row.get_first_child(), content});
+            this.contents.set(toggle, {entry, button, icon, content});
             this.overviewSignals.addSignal(toggle, toggle.connect('notify::checked', () => this.refresh()));
             this.overviewSignals.addSignal(toggle, toggle.connect('notify::visible', () => this.refresh()));
             this.overviewSignals.addSignal(toggle, toggle.connect('notify::reactive', () => this.refresh()));
@@ -631,9 +626,8 @@ export class NetworkStatusMenu {
     }
 
     _appendSettingsItem() {
+        this.body.add_child(new this.PopupMenu.PopupSeparatorMenuItem());
         const item = new this.PopupMenu.PopupMenuItem('Paramètres');
-        item.add_child(new this.St.Icon({icon_name: 'emblem-system-symbolic', icon_size: 16,
-            y_align: this.Clutter.ActorAlign.CENTER}));
         item.connect('activate', () => {
             if (!this.destroyed)
                 this.openSettings();
@@ -881,7 +875,6 @@ export class NetworkStatusMenu {
         for (const state of this.contents.values())
             state.content?.destroy();
         this.cleanup.clear();
-        this.menu.actor.remove_style_class_name('g-os-network-popup');
     }
 }
 export class RadioStatusMenu {
