@@ -28,7 +28,14 @@ export class DelegateManager<T extends DelegateHost> {
 
         const token = Symbol('delegate-layer');
         state.layers.set(token, delegate);
-        this.apply(target, state);
+        try {
+            this.apply(target, state);
+        } catch (error) {
+            state.layers.delete(token);
+            if (state.layers.size === 0)
+                this.states.delete(target);
+            throw error;
+        }
 
         let disposed = false;
         return () => {
