@@ -85,8 +85,13 @@ export class FluxSession {
     }
 
     private notify(): void {
-        for (const listener of this.listeners)
-            listener();
+        for (const listener of this.listeners) {
+            try {
+                listener();
+            } catch {
+                // One broken view must not prevent other views from receiving updates.
+            }
+        }
     }
 
     destroy(): void {
