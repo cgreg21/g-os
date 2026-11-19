@@ -162,7 +162,7 @@ function createDisplayMenu(initialBrightness = 42) {
         Label: class { constructor(properties) { Object.assign(this, properties); } },
         Switch: class extends MockEmitter {
             constructor(properties) { super(); this.state = properties.state; }
-            set state(value) { this._state = value; this.emit('notify::state'); }
+            set state(value) { if (this._state === value) return; this._state = value; this.emit('notify::state'); }
             get state() { return this._state; }
         },
         BoxLayout: class { constructor() { this.children = []; } add_child(child) { this.children.push(child); }
