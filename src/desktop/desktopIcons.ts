@@ -6,6 +6,7 @@ import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
+import {setChildWhenMapped} from '../core/actorUtils.js';
 import {errorMessage} from '../shared/errorMessage.js';
 import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 import {classifyDesktopMount, desktopIconGridPosition, desktopIconLayoutKey, desktopSpecialFolderIcon} from './desktopIconLayout.js';
@@ -242,7 +243,7 @@ export function withDesktopIcons(Base) {
             scroll.set_size(area.width, area.height);
             const parent = Main.layoutManager._backgroundGroup;
             parent.add_child(scroll);
-            scroll.set_child(content);
+            setChildWhenMapped(scroll, content);
             const background = desktopBackgroundManagers()[monitor.index]?.backgroundActor;
             if (background?.get_parent() === parent)
                 parent.set_child_above_sibling(scroll, background);
