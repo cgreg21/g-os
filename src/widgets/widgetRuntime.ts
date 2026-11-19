@@ -70,12 +70,13 @@ export class WidgetRuntime {
         this.dropTargetDisposers = [];
         this.fluxSessions = new Map();
         for (const actor of [environment.Main.layoutManager._backgroundGroup, environment.Main.uiGroup].filter(Boolean)) {
+            const previous = actor._delegate;
             this.dropTargetDisposers.push(this.dropTargetDelegates.add(actor, {
                 handleDragOver: (source, ...args) => source?.widgetDesktopPlacement
                     ? environment.DND.DragMotionResult.MOVE_DROP
-                    : actor._delegate?.handleDragOver?.(source, ...args) ?? environment.DND.DragMotionResult.CONTINUE,
+                    : previous?.handleDragOver?.(source, ...args) ?? environment.DND.DragMotionResult.CONTINUE,
                 acceptDrop: (source, ...args) => source?.widgetDesktopPlacement
-                    ? true : actor._delegate?.acceptDrop?.(source, ...args) ?? false,
+                    ? true : previous?.acceptDrop?.(source, ...args) ?? false,
             }));
         }
         this.reloadCatalog();
