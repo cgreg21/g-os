@@ -69,8 +69,9 @@ test('topbar and dock share the lifecycle-owned per-screen controller', () => {
 
 test('generic DND cleanup continues when Shell teardown rejects signal or monitor removal', () => {
     assert.match(source, /DND\.removeDragMonitor\(monitor\)/);
-    assert.match(source, /try \{\s*draggable\.disconnect\(signalId\);\s*\} catch/);
-    assert.match(source, /try \{\s*actor\.disconnect\(actorDestroySignal\);\s*\} catch/);
+    assert.match(source, /disconnectIfConnected\(draggable, signalId\)/);
+    assert.match(source, /disconnectIfConnected\(actor, actorDestroySignal\)/);
+    assert.match(source, /emitter instanceof GObject\.Object && !GObject\.signal_handler_is_connected\(emitter, id\)/);
 });
 
 test('generic DND source setup rolls back partially acquired resources', () => {
