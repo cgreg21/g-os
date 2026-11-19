@@ -18,7 +18,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {calculatePanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
+import {calculatePanelButtonMetrics, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -885,14 +885,21 @@ export function withPanel(Base) {
                 ...screen.statusNotifierButtons.values(),
                 ...screen.statusButtons, screen.sessionButton.container]) {
                 button.y_align = Clutter.ActorAlign.CENTER;
-                button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
+                if (button.panelContent)
+                    applyPanelButtonMetrics(button, metrics);
+                else
+                    button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
             }
             if (screen.globalMenuBox) {
                 screen.globalMenuBox.y_align = Clutter.ActorAlign.CENTER;
                 screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px; spacing: ${metrics.spacing}px;`);
             }
-            for (const button of screen.globalMenuBox?.get_children() ?? [])
-                button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
+            for (const button of screen.globalMenuBox?.get_children() ?? []) {
+                if (button.panelContent)
+                    applyPanelButtonMetrics(button, metrics);
+                else
+                    button.set_style(`padding: ${buttonPadding}px; margin: 0; min-height: 0;`);
+            }
             for (const icon of [screen.menuIcon, screen.searchIcon, screen.preferencesIcon, screen.notificationIcon,
                 ...[...screen.statusNotifierButtons.values()].map(button => button.statusIcon),
                 ...screen.statusButtons.map(button => button.statusIcon), screen.sessionIcon]) {
