@@ -9,6 +9,7 @@ import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.j
 import * as Volume from 'resource:///org/gnome/shell/ui/status/volume.js';
 import * as Slider from 'resource:///org/gnome/shell/ui/slider.js';
 import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
 import GdkPixbuf from 'gi://GdkPixbuf?version=2.0';
 import {SoundStatusMenu, RadioStatusMenu, BatteryStatusMenu, DisplayStatusMenu,
@@ -550,7 +551,7 @@ export function withPanel(Base) {
                 text: screen.transferLabel, accessibleName: 'Transferts',
                 canFocus: false, reactive: false,
             });
-            screen.transferButton.bind_property('visible', screen.transferLabel, 'visible', Gio.BindingFlags.SYNC_CREATE);
+            screen.transferButton.bind_property('visible', screen.transferLabel, 'visible', GObject.BindingFlags.SYNC_CREATE);
             screen.panel.add_child(screen.transferButton);
             screen.panel.add_child(new St.Widget({x_expand: true}));
             screen.clock = new St.Label({name: 'g-os-panel-clock', y_align: Clutter.ActorAlign.CENTER,
