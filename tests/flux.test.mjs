@@ -5,6 +5,7 @@ const fluxLanguage = process.env.GOS_FLUX_TEST_MODULE
     ? await import(process.env.GOS_FLUX_TEST_MODULE)
     : await import('../dist/widgets/fluxLanguage.js');
 const {parseFluxProgram, renderFluxTemplate, resolveFluxValue, validateFluxTemplate} = fluxLanguage;
+const {FluxSession} = await import('../dist/widgets/fluxWidget.js');
 
 const sources = `version: 1
 sources:
@@ -306,4 +307,34 @@ sources:
     assert.deepEqual(withSource.sources.weather, {
         url: 'http://weather.example.test', refresh: 300, timeout: 10,
     });
+});
+
+
+test('Flux session stops before scheduling work when a listener destroys it during startup', () => {
+    let timers = 0;
+    let requests = 0;
+    const environment = {
+        GLib: {
+            PRIORITY_DEFAULT: 0,
+            SOURCE_REMOVE: false,
+            SOURCE_CONTINUE: true,
+            timeout_add: () => { timers++; return timers; },
+            source_remove: () => {},
+            UriFlags: {NONE: 0},
+            Uri: {parse: () => ({get_scheme: () => 'https', get_host: () => 'weather.example.test',
+                get_userinfo: () => null})},
+        },
+        Gio: {Cancellable: class {}},
+        Soup: {Session: class { constructor() { requests++; } }},
+    };
+    const session = new FluxSession({sources: {
+        weather: {url: 'https://weather.example.test/current', timeout: 5, refresh: 120},
+    }}, environment);
+    session.subscribe(() => session.destroy());
+
+    session.start();
+
+    assert.equal(session.stopped, true);
+    assert.equal(timers, 0);
+    assert.equal(requests, 0);
 });
