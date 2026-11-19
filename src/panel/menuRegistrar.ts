@@ -1,3 +1,4 @@
+import {CleanupManager} from '../core/cleanupManager.js';
 import {MenuSignals} from './dbusMenu.js';
 
 export const REGISTRAR_NAME = 'com.canonical.AppMenu.Registrar';
@@ -18,6 +19,8 @@ export class DbusMenuRegistrar extends MenuSignals {
         this.entries = new Map();
         this.owner = 0;
         this.subscription = 0;
+        this.cleanup = new CleanupManager();
+        this.externalCleanup = new CleanupManager();
         this.exported = null;
         this.external = null;
         this.externalSignal = 0;
@@ -45,6 +48,7 @@ export class DbusMenuRegistrar extends MenuSignals {
                         this._own();
                 }
             });
+        this.cleanup.add(() => Gio.DBus.session.signal_unsubscribe(this.subscription));
         Gio.DBus.session.call('org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus',
             'GetNameOwner', new this.GLib.Variant('(s)', [REGISTRAR_NAME]), null, Gio.DBusCallFlags.NONE,
             3000, this.token, (connection, result) => {
@@ -177,8 +181,10 @@ export class DbusMenuRegistrar extends MenuSignals {
             REGISTRAR_PATH, REGISTRAR_NAME, this.token, (_source, result) => {
                 try {
                     const proxy = Gio.DBusProxy.new_finish(result);
-                    if (this.disposed || this.ownsName)
+                    if (this.disposed || this.ownsName) {
+                        proxy.run_dispose?.();
                         return;
+                    }
                     this.external = proxy;
                     this.externalSignal = proxy.connect('g-signal', (_proxy, _sender, name, parameters) => {
                         if (this.disposed || this.ownsName)
@@ -194,6 +200,7 @@ export class DbusMenuRegistrar extends MenuSignals {
                             }
                         } catch {}
                     });
+                    this.externalCleanup.addSignal(proxy, this.externalSignal);
                     proxy.call('GetMenus', null, Gio.DBusCallFlags.NONE, 3000, this.token, (source, reply) => {
                         try {
                             const [entries] = source.call_finish(reply).deep_unpack();
@@ -208,9 +215,10 @@ export class DbusMenuRegistrar extends MenuSignals {
     }
 
     _stopExternal() {
-        if (this.externalSignal)
-            this.external.disconnect(this.externalSignal);
+        this.externalCleanup.clear();
+        this.externalCleanup = new CleanupManager();
         this.externalSignal = 0;
+        this.external?.run_dispose?.();
         this.external = null;
     }
 
@@ -223,8 +231,7 @@ export class DbusMenuRegistrar extends MenuSignals {
         this._clearEntries();
         this.exported?.unexport();
         this.exported = null;
-        if (this.subscription)
-            this.Gio.DBus.session.signal_unsubscribe(this.subscription);
+        this.cleanup.clear();
         if (this.owner)
             this.Gio.bus_unown_name(this.owner);
         this.subscription = 0;
