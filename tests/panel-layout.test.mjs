@@ -203,3 +203,20 @@ test('network popup delegates its visual styling to the active GNOME theme', asy
     assert.ok(!source.includes('add_style_class_name(\'g-os-network-popup\')'));
     assert.ok(!source.includes('style_class: \'g-os-network-panel\''));
 });
+
+
+test('Bluetooth popup stays compact and removes duplicate native heading', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const css = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class RadioStatusMenu');
+    const end = menus.indexOf('export class BatteryStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.ok(source.includes("add_style_class_name('g-os-bluetooth-popup')"));
+    assert.ok(source.includes('nativeMenu?._header'));
+    assert.ok(source.includes('nativeHeader.hide()'));
+    assert.ok(source.includes('nativeHeader.show()'));
+    assert.ok(source.includes("'Aucun appareil disponible'"));
+    assert.ok(source.includes("'Activez Bluetooth pour connecter un appareil'"));
+    assert.ok(source.includes("remove_style_class_name('g-os-bluetooth-popup')"));
+    assert.match(css, /\.g-os-bluetooth-popup\s*\{[^}]*width:\s*420px;[^}]*max-width:\s*420px;/);
+});
