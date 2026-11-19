@@ -64,7 +64,7 @@ test('widget grid dragging uses the shared shadow source and per-screen lifecycl
     assert.match(widgetRuntimeSource, /registerShadowDragSource\(\{[\s\S]*?controller: screen\.interactionDnd[\s\S]*?visualActor: actor/);
     assert.match(widgetRuntimeSource, /onMotion: event => \{/);
     assert.match(widgetRuntimeSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
-    assert.doesNotMatch(widgetRuntimeSource, /_makeDraggable\(/);
+    assert.doesNotMatch(widgetRuntimeSource, /_makeDraggable\(|DND\.makeDraggable/);
     assert.match(widgetRuntimeSource, /new DelegateManager\(\)/);
     assert.match(widgetRuntimeSource, /dropTargetDelegates\.add\(actor/);
     assert.doesNotMatch(widgetRuntimeSource, /actor\._delegate = delegate/);
