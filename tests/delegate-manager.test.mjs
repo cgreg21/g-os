@@ -87,3 +87,26 @@ test('rolls back a delegate layer when composition throws', () => {
     remove();
     assert.equal(actor._delegate, undefined);
 });
+
+test('preserves an externally replaced delegate when composing another layer', () => {
+    const actor = {};
+    const manager = new DelegateManager();
+    const firstAction = () => 'first';
+    const nextAction = () => 'next';
+    const external = {externalAction: () => 'external'};
+
+    const removeFirst = manager.add(actor, {firstAction});
+    actor._delegate = external;
+    const removeNext = manager.add(actor, {nextAction});
+
+    assert.equal(actor._delegate.externalAction, external.externalAction);
+    assert.equal(actor._delegate.firstAction, firstAction);
+    assert.equal(actor._delegate.nextAction, nextAction);
+
+    removeNext();
+    assert.equal(actor._delegate.externalAction, external.externalAction);
+    assert.equal(actor._delegate.firstAction, firstAction);
+    removeFirst();
+    assert.equal(actor._delegate, external);
+    assert.equal(manager.size, 0);
+});
