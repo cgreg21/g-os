@@ -25,6 +25,6 @@ test('calendar actor is restored before panel screens and their menus are destro
     const screenLoop = extension.indexOf('for (const screen of this._screens)', destroyStart);
     assert.ok(restore > destroyStart);
     assert.ok(screenLoop > restore);
-    assert.match(panel, /calendar\.get_parent\(\)\?\.remove_child\(calendar\);[\s\S]*?parent\.insert_child_at_index\(calendar, this\._panelCalendarOriginalIndex\)/);
+    assert.match(panel, /const currentParent = getActorParent\(calendar\);[\s\S]*?removeActorFromParent\(calendar, currentParent\)[\s\S]*?parent\.insert_child_at_index\(calendar, this\._panelCalendarOriginalIndex\)/);
     assert.match(panel, /this\._panelCalendarCleanup\?\.clear\(\)/);
 });
