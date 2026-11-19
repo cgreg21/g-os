@@ -575,19 +575,6 @@ export class NetworkStatusMenu {
         this.contents = new Map();
         this.body.add_child(this._label('Réseau', 'g-os-network-title'));
 
-        this.connectionCard = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-connection-card'});
-        const cardTop = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-card-top'});
-        this.connectionIcon = new this.St.Icon({icon_name: 'network-wired-symbolic', icon_size: 28,
-            y_align: this.Clutter.ActorAlign.CENTER});
-        cardTop.add_child(this.connectionIcon);
-        const cardText = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, 
-            style_class: 'g-os-network-card-text'});
-        cardText.set_x_expand(true);
-        this.connectionSummary = this._label('Recherche des connexions…', 'g-os-network-card-summary');
-        cardText.add_child(this.connectionSummary);
-        cardTop.add_child(cardText);
-        this.connectionCard.add_child(cardTop);
-        this.body.add_child(this.connectionCard);
         this.rowsBox = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-rows'});
         this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
@@ -632,16 +619,6 @@ export class NetworkStatusMenu {
         if (!this.toggles.length)
             this.rowsBox.add_child(this._label('Aucun service réseau disponible', 'g-os-network-empty'));
 
-        const actions = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-network-actions'});
-        this.refreshButton = this._button('Actualiser', 'g-os-network-action',
-            () => this._refreshNetworks(), 'view-refresh-symbolic');
-        actions.add_child(this.refreshButton);
-        this.settingsButton = this._button('Paramètres', 'g-os-network-action', this.openSettings,
-            'emblem-system-symbolic');
-        actions.add_child(this.settingsButton);
-        this.body.add_child(actions);
-    }
-
     _iconFor(title) {
         const value = title.toLowerCase();
         if (value.includes('wi-fi') || value.includes('wifi'))
@@ -653,16 +630,6 @@ export class NetworkStatusMenu {
         if (value.includes('mobile') || value.includes('cellulaire'))
             return 'network-cellular-signal-good-symbolic';
         return 'network-workgroup-symbolic';
-    }
-
-    _refreshNetworks() {
-        if (this.destroyed)
-            return;
-        for (const {entry} of this.contents.values()) {
-            entry.toggle._startScanning?.();
-            entry.toggle._reorderDeviceItems?.();
-        }
-        this.refresh();
     }
 
     _restoreActiveContent() {
@@ -717,6 +684,15 @@ export class NetworkStatusMenu {
         }));
         this.body.add_child(this.detailSwitch);
 
+        if (/wi-?fi|wifi/i.test(state.entry.title)) {
+            this.body.add_child(this._button('Rechercher les réseaux', 'g-os-network-action', () => {
+                if (this.destroyed || this.activeView !== toggle)
+                    return;
+                toggle._startScanning?.();
+                toggle._reorderDeviceItems?.();
+            }, 'view-refresh-symbolic'));
+        }
+
         const nativeHolder = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-native-content'});
         this.body.add_child(nativeHolder);
         if (!state.content)
@@ -746,26 +722,10 @@ export class NetworkStatusMenu {
                 this.detailSwitch.setToggleState(Boolean(this.activeView.checked));
             return;
         }
-        let activeEntry = null;
-        for (const {entry, state, button, icon} of this.contents.values()) {
-            const toggle = entry.toggle;
-            const available = toggle.visible !== false;
-            button.visible = available;
-            button.reactive = available && toggle.reactive !== false;
-            state.text = toggle.checked ? 'Activé' : 'Désactivé';
-            state.add_style_class_name(toggle.checked ? 'g-os-network-state-on' : 'g-os-network-state-off');
-            if (toggle.checked && !activeEntry)
-                activeEntry = entry;
-        }
-        if (activeEntry) {
-            this.connectionSummary.text = `${activeEntry.title} activé`;
-            this.connectionIcon.icon_name = this._iconFor(activeEntry.title);
-            const activeToggle = activeEntry.toggle;
-            if (activeToggle.icon_name)
-                this.icon.icon_name = activeToggle.icon_name;
-        } else {
-            this.connectionSummary.text = 'Aucun service réseau activé';
-            this.connectionIcon.icon_name = 'network-wired-symbolic';
+        const activeEntry = this.toggles.find(({toggle}) => toggle.checked);
+        if (activeEntry?.toggle.icon_name)
+            this.icon.icon_name = activeEntry.toggle.icon_name;
+        else {
             const fallback = this.toggles.find(({toggle}) => toggle.icon_name);
             if (fallback)
                 this.icon.icon_name = fallback.toggle.icon_name;
