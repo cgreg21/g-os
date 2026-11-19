@@ -24,17 +24,19 @@ test('panel drop zones retain drag-and-drop handlers', () => {
 test('the GNOME launcher participates in the same panel DND source registry', () => {
     assert.match(panelSource, /\['launcher', screen\.menuButton\.container\]/);
     assert.match(layoutSource, /for \(const \[id, actor\] of screen\.panelLayoutItems\)[\s\S]*?this\._attachPanelItemDraggable\(screen, id, actor\)/);
-    assert.match(panelSource, /_attachPanelItemDraggable\(screen, id, actor\)[\s\S]*?onBegin: \(\) => \{[\s\S]*?dragActor = createDragActor\(\);[\s\S]*?_beginPanelShadowDrag\(screen, id, actor\)/);
+    assert.match(panelSource, /_attachPanelItemDraggable\(screen, id, actor\)[\s\S]*?registerShadowDragSource\(\{/);
 });
 
 test('topbar shadow drag uses a clone and a movable insertion placeholder', async () => {
     const dragStart = panelSource.indexOf('        _attachPanelItemDraggable(screen, id, actor) {');
     const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
     const dragSource = panelSource.slice(dragStart, dragEnd);
-    assert.match(dragSource, /let dragActor: St\.Widget \| null = null/);
-    assert.match(dragSource, /const createDragActor = \(\) => \{[\s\S]*?new St\.Widget\([\s\S]*?g-os-panel-dnd-actor[\s\S]*?new Clutter\.Clone\(\{source: actor, reactive: false\}\)/);
-    assert.match(dragSource, /getDragActor: \(\) => dragActor \?\? createDragActor\(\)/);
-    assert.match(dragSource, /dragActor = null/);
+    assert.match(dragSource, /registerShadowDragSource\(\{/);
+    const sharedDnd = await readFile(new URL('../src/shared/interaction/shadowDragSource.ts', import.meta.url), 'utf8');
+    assert.match(sharedDnd, /g-os-dnd-drag-actor/);
+    assert.match(sharedDnd, /new Clutter\.Clone\(\{source: actor, reactive: false\}\)/);
+    assert.match(sharedDnd, /getDragActor: \(\) => dragActor \?\? createDragActor\(\)/);
+    assert.match(sharedDnd, /dragActor = null/);
     assert.match(dragSource, /_finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
     assert.match(panelSource, /g-os-panel-dnd-placeholder/);
