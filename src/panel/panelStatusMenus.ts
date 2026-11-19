@@ -48,6 +48,8 @@ export class SoundStatusMenu {
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         menu.addAction('Parametres du son', openSettings);
         this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
+            if (this.destroyed)
+                return;
             if (open)
                 this.syncOutput();
         }));
@@ -447,6 +449,7 @@ export class RadioStatusMenu {
         this.menu = menu;
         this.icon = icon;
         this.toggle = toggle;
+        this.destroyed = false;
         this.cleanup = new CleanupManager();
         this.header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle?.checked));
         this.header.setSensitive(Boolean(toggle) && toggle.visible !== false && toggle.reactive !== false);
@@ -462,6 +465,8 @@ export class RadioStatusMenu {
         menu.addMenuItem(item);
         this.content = new NativeMenuContent(menu, this.holder, {Clutter,
             onOpen: () => {
+                if (this.destroyed)
+                    return;
                 toggle?._startScanning?.();
                 toggle?._reorderDeviceItems?.();
             },
@@ -476,7 +481,10 @@ export class RadioStatusMenu {
         this.settingsItem = menu.addAction(`Parametres ${title}`, openSettings);
         if (deviceChangeSignal && toggle?._client)
             this.cleanup.addSignal(toggle._client,
-                toggle._client.connect(deviceChangeSignal, () => this.content.alignDeviceRows()));
+                toggle._client.connect(deviceChangeSignal, () => {
+                    if (!this.destroyed)
+                        this.content.alignDeviceRows();
+                }));
         if (toggle) {
             for (const signal of ['notify::checked', 'notify::icon-name', 'notify::visible', 'notify::reactive'])
                 this.cleanup.addSignal(toggle, toggle.connect(signal, () => this.refresh()));
@@ -494,6 +502,8 @@ export class RadioStatusMenu {
     }
 
     refresh() {
+        if (this.destroyed)
+            return;
         this.header.setToggleState(Boolean(this.toggle?.checked));
         this.header.setSensitive(Boolean(this.toggle) && this.toggle.visible !== false && this.toggle.reactive !== false);
         if (this.toggle?.icon_name)
@@ -501,6 +511,9 @@ export class RadioStatusMenu {
     }
 
     destroy() {
+        if (this.destroyed)
+            return;
+        this.destroyed = true;
         this.content.restore();
         this.cleanup.clear();
     }
