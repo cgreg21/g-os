@@ -19,6 +19,9 @@ type DockFolderButton = St.Button & {
 type DockFolderEntry = {name: string; uri: string; isDirectory: boolean; icon: Gio.Icon;
     size: number; modified: number};
 
+// Folder listings change outside the extension, so keep this cache deliberately short-lived.
+const DOCK_FOLDER_CACHE_TTL_MS = 2000;
+
 export function withDockFolders(Base) {
     return class extends Base {
         _addDockFolder(screen, uri, iconSize, iconPadding) {
@@ -398,6 +401,11 @@ export function withDockFolders(Base) {
         }
 
         async _readDockFolderContents(folder, cancellable): Promise<DockFolderEntry[]> {
+            const cacheKey = `dock-folder-contents:${folder.get_uri()}`;
+            const cached = this._cache?.get<DockFolderEntry[]>(cacheKey);
+            if (cached !== undefined)
+                return cached;
+
             const enumerator = await new Promise<Gio.FileEnumerator>((resolve, reject) => {
                 folder.enumerate_children_async(
                     'standard::name,standard::display-name,standard::type,standard::is-hidden,standard::icon,' +
@@ -433,6 +441,8 @@ export function withDockFolders(Base) {
                         });
                     }
                 }
+                if (!cancellable.is_cancelled())
+                    this._cache?.set(cacheKey, files, DOCK_FOLDER_CACHE_TTL_MS);
                 return files;
             } finally {
                 await new Promise<void>(resolve => {
