@@ -520,12 +520,21 @@ export class NetworkStatusMenu {
         this.destroyed = false;
         this.cleanup = new CleanupManager();
         this.contents = new Map();
-        this.transientItems = [];
-        this.overviewItems = [];
         this.activeView = null;
+        this.detailSignals = new CleanupManager();
+
         menu.actor.add_style_class_name('g-os-network-popup');
+        this.rootItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false,
+            style_class: 'g-os-network-shell-item'});
+        this.scroll = new St.ScrollView({hscrollbar_policy: St.PolicyType.NEVER,
+            vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
+            style_class: 'g-os-network-scroll'});
+        this.body = new St.BoxLayout({vertical: true, style_class: 'g-os-network-panel'});
+        this.scroll.set_child(this.body);
+        this.rootItem.add_child(this.scroll);
+        menu.addMenuItem(this.rootItem);
         this._buildOverview();
-        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (_actor, open) => {
             if (this.destroyed)
                 return;
             if (open) {
@@ -538,74 +547,114 @@ export class NetworkStatusMenu {
         this.refresh();
     }
 
+    _label(text, styleClass = '') {
+        return new this.St.Label({text, style_class: styleClass, y_align: this.Clutter.ActorAlign.CENTER});
+    }
+
+    _button(label, styleClass, callback, iconName = null) {
+        const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
+            style_class: styleClass, x_expand: true, accessible_name: label});
+        const content = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-button-content'});
+        if (iconName)
+            content.add_child(new this.St.Icon({icon_name: iconName, icon_size: 20,
+                y_align: this.Clutter.ActorAlign.CENTER}));
+        content.add_child(this._label(label, 'g-os-network-button-label'));
+        button.set_child(content);
+        button.connect('clicked', callback);
+        return button;
+    }
+
     _buildOverview() {
-        const heading = new this.PopupMenu.PopupMenuItem('Réseau',
-            {reactive: false, can_focus: false});
-        heading.add_style_class_name('g-os-network-heading');
-        this._addOverview(heading);
-        const summary = new this.PopupMenu.PopupMenuItem('Connexions disponibles',
-            {reactive: false, can_focus: false});
-        summary.add_style_class_name('g-os-status-info');
-        this._addOverview(summary);
+        const header = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-header'});
+        header.add_child(this._label('Réseau', 'g-os-network-title'));
+        header.add_child(this._label('État des connexions', 'g-os-network-subtitle'));
+        this.body.add_child(header);
+
+        this.connectionCard = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-connection-card'});
+        const cardTop = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-card-top'});
+        this.connectionIcon = new this.St.Icon({icon_name: 'network-wired-symbolic', icon_size: 28,
+            y_align: this.Clutter.ActorAlign.CENTER});
+        cardTop.add_child(this.connectionIcon);
+        const cardText = new this.St.BoxLayout({vertical: true, x_expand: true,
+            style_class: 'g-os-network-card-text'});
+        cardText.add_child(this._label('État du réseau', 'g-os-network-card-title'));
+        this.connectionSummary = this._label('Recherche des connexions…', 'g-os-network-card-summary');
+        cardText.add_child(this.connectionSummary);
+        cardTop.add_child(cardText);
+        this.connectionCard.add_child(cardTop);
+        this.connectionHint = this._label('Gérez vos connexions depuis ce panneau', 'g-os-network-card-hint');
+        this.connectionCard.add_child(this.connectionHint);
+        this.body.add_child(this.connectionCard);
+
+        this.body.add_child(this._label('CONNEXIONS', 'g-os-network-section-title'));
+        this.rowsBox = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-rows'});
+        this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
             const {toggle, title} = entry;
-            const row = new this.PopupMenu.PopupMenuItem('', {reactive: true, can_focus: true});
-            row.connect('activate', () => this.showDetail(toggle));
-            this._addOverview(row);
-            const holderItem = new this.PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-            const holder = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
-                style_class: 'g-os-network-native-content'});
-            holderItem.add_child(holder);
-            this.contents.set(toggle, {
-                entry,
-                row,
-                holderItem,
-                content: new NativeMenuContent(this.menu, holder, {
-                    Clutter: this.Clutter,
-                    onOpen: () => {
-                        if (!this.destroyed) {
-                            toggle._startScanning?.();
-                            toggle._reorderDeviceItems?.();
-                        }
-                    },
-                    onClose: () => toggle._stopScanning?.(),
-                }),
-            });
+            const row = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-row'});
+            const iconName = this._iconFor(title);
+            const icon = new this.St.Icon({icon_name: iconName, icon_size: 20,
+                y_align: this.Clutter.ActorAlign.CENTER});
+            row.add_child(icon);
+            const labels = new this.St.BoxLayout({vertical: true, x_expand: true,
+                style_class: 'g-os-network-row-labels'});
+            labels.add_child(this._label(title, 'g-os-network-row-title'));
+            const state = this._label('', 'g-os-network-row-state');
+            labels.add_child(state);
+            row.add_child(labels);
+            const chevron = new this.St.Icon({icon_name: 'go-next-symbolic', icon_size: 16,
+                y_align: this.Clutter.ActorAlign.CENTER, style_class: 'g-os-network-chevron'});
+            row.add_child(chevron);
+            const button = new this.St.Button({child: row, reactive: true, can_focus: true,
+                track_hover: true, x_expand: true, style_class: 'g-os-network-row-button',
+                accessible_name: title});
+            button.connect('clicked', () => this.showDetail(toggle));
+            this.rowsBox.add_child(button);
+            this.contents.set(toggle, {entry, button, state, icon});
             this.cleanup.addSignal(toggle, toggle.connect('notify::checked', () => this.refresh()));
             this.cleanup.addSignal(toggle, toggle.connect('notify::visible', () => this.refresh()));
             this.cleanup.addSignal(toggle, toggle.connect('notify::reactive', () => this.refresh()));
         }
-        if (!this.toggles.length) {
-            const empty = new this.PopupMenu.PopupMenuItem('Aucun service réseau disponible',
-                {reactive: false, can_focus: false});
-            empty.add_style_class_name('g-os-status-info');
-            this._addOverview(empty);
-        }
-        this._addOverview(new this.PopupMenu.PopupSeparatorMenuItem());
-        this.settingsItem = this.menu.addAction('Paramètres réseau', this.openSettings);
-        this.overviewItems.push(this.settingsItem);
+        if (!this.toggles.length)
+            this.rowsBox.add_child(this._label('Aucun service réseau disponible', 'g-os-network-empty'));
+
+        const actions = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-actions'});
+        this.refreshButton = this._button('Actualiser', 'g-os-network-action',
+            () => this._refreshNetworks(), 'view-refresh-symbolic');
+        actions.add_child(this.refreshButton);
+        this.settingsButton = this._button('Paramètres', 'g-os-network-action', this.openSettings,
+            'emblem-system-symbolic');
+        actions.add_child(this.settingsButton);
+        this.body.add_child(actions);
     }
 
-    _addOverview(item) {
-        this.overviewItems.push(item);
-        this.menu.addMenuItem(item);
-        return item;
+    _iconFor(title) {
+        const value = title.toLowerCase();
+        if (value.includes('wi-fi') || value.includes('wifi'))
+            return 'network-wireless-signal-good-symbolic';
+        if (value.includes('ethernet') || value.includes('filaire'))
+            return 'network-wired-symbolic';
+        if (value.includes('vpn'))
+            return 'network-vpn-symbolic';
+        if (value.includes('mobile') || value.includes('cellulaire'))
+            return 'network-cellular-signal-good-symbolic';
+        return 'network-workgroup-symbolic';
     }
 
-    _syncRows() {
-        for (const {entry, row} of this.contents.values()) {
-            const {toggle, title} = entry;
-            const available = toggle.visible !== false;
-            row.visible = available && !this.activeView;
-            row.setSensitive(available && toggle.reactive !== false);
-            row.label.text = `${title}  ·  ${toggle.checked ? 'Activé' : 'Désactivé'}`;
+    _refreshNetworks() {
+        if (this.destroyed)
+            return;
+        for (const {entry} of this.contents.values()) {
+            entry.toggle._startScanning?.();
+            entry.toggle._reorderDeviceItems?.();
         }
+        this.refresh();
     }
 
     _restoreActiveContent() {
         if (!this.activeView)
             return;
-        this.contents.get(this.activeView)?.content.restore();
+        this.contents.get(this.activeView)?.content?.restore();
         this.activeView = null;
     }
 
@@ -613,69 +662,87 @@ export class NetworkStatusMenu {
         if (this.destroyed)
             return;
         this._restoreActiveContent();
-        this._removeDetailItems();
-        for (const item of this.overviewItems)
-            item.visible = true;
-        this._syncRows();
+        this.detailSignals.clear();
+        this.body.destroy_all_children();
+        this._buildOverview();
+        this.refresh();
     }
 
     showDetail(toggle) {
         if (this.destroyed || !this.contents.has(toggle) || toggle.visible === false)
             return;
         this._restoreActiveContent();
-        this._removeDetailItems();
-        const state = this.contents.get(toggle);
+        this.detailSignals.clear();
         this.activeView = toggle;
-        for (const item of this.overviewItems)
-            item.visible = false;
+        const state = this.contents.get(toggle);
+        this.body.destroy_all_children();
 
-        const back = new this.PopupMenu.PopupMenuItem('‹  Tous les réseaux');
-        back.add_style_class_name('g-os-network-back');
-        back.connect('activate', () => this.showOverview());
-        this._addTransient(back);
+        const back = this._button('Tous les réseaux', 'g-os-network-back',
+            () => this.showOverview(), 'go-previous-symbolic');
+        this.body.add_child(back);
+        this.body.add_child(this._label(state.entry.title, 'g-os-network-title'));
 
-        const heading = new this.PopupMenu.PopupMenuItem(state.entry.title,
-            {reactive: false, can_focus: false});
-        heading.add_style_class_name('g-os-network-heading');
-        this._addTransient(heading);
+        const status = new this.St.BoxLayout({vertical: false, style_class: 'g-os-network-detail-status'});
+        status.add_child(new this.St.Icon({icon_name: this._iconFor(state.entry.title), icon_size: 24,
+            y_align: this.Clutter.ActorAlign.CENTER}));
+        status.add_child(this._label(toggle.checked ? 'Service activé' : 'Service désactivé',
+            'g-os-network-card-title'));
+        this.body.add_child(status);
 
-        this.detailSwitch = new this.PopupMenu.PopupSwitchMenuItem(
-            state.entry.title, Boolean(toggle.checked));
+        this.detailSwitch = new this.PopupMenu.PopupSwitchMenuItem(state.entry.title, Boolean(toggle.checked));
         this.detailSwitch.setSensitive(toggle.visible !== false && toggle.reactive !== false);
-        this.detailSwitch.connect('toggled', (actor, checked) => {
+        this.detailSignals.addSignal(this.detailSwitch, this.detailSwitch.connect('toggled', (_item, checked) => {
             if (!this.destroyed && checked !== Boolean(toggle.checked))
                 toggle.emit('clicked', 1);
-        });
-        this._addTransient(this.detailSwitch);
-        this._addTransient(state.holderItem);
+        }));
+        this.detailSignals.addSignal(toggle, toggle.connect('notify::checked', () => {
+            if (!this.destroyed && this.detailSwitch)
+                this.detailSwitch.setToggleState(Boolean(toggle.checked));
+        }));
+        this.body.add_child(this.detailSwitch);
+
+        const nativeHolder = new this.St.BoxLayout({vertical: true, style_class: 'g-os-network-native-content'});
+        this.body.add_child(nativeHolder);
+        if (!state.content)
+            state.content = new NativeMenuContent(this.menu, nativeHolder, {
+                Clutter: this.Clutter,
+                onOpen: () => {
+                    if (!this.destroyed) {
+                        toggle._startScanning?.();
+                        toggle._reorderDeviceItems?.();
+                    }
+                },
+                onClose: () => toggle._stopScanning?.(),
+            });
+        else
+            state.content.holder = nativeHolder;
         state.content.mount(toggle.menu, true);
-        this.detailSettingsItem = this.menu.addAction('Paramètres réseau', this.openSettings);
-        this._addTransient(this.detailSettingsItem);
+        this.body.add_child(this._button('Paramètres réseau', 'g-os-network-settings',
+            this.openSettings, 'emblem-system-symbolic'));
         this.refresh();
-    }
-
-    _addTransient(item) {
-        this.transientItems.push(item);
-        this.menu.addMenuItem(item);
-        return item;
-    }
-
-    _removeDetailItems() {
-        for (const item of this.transientItems.splice(0))
-            this.menu.removeMenuItem(item);
-        this.detailSwitch = null;
-        this.detailSettingsItem = null;
     }
 
     refresh() {
         if (this.destroyed)
             return;
-        this._syncRows();
-        const active = this.toggles.find(({toggle}) => toggle.checked && toggle.icon_name);
-        const fallback = this.toggles.find(({toggle}) => toggle.icon_name);
-        const iconName = active?.toggle.icon_name ?? fallback?.toggle.icon_name;
-        if (iconName)
-            this.icon.icon_name = iconName;
+        let activeEntry = null;
+        for (const {entry, state, button, icon} of this.contents.values()) {
+            const toggle = entry.toggle;
+            const available = toggle.visible !== false;
+            button.visible = available;
+            button.reactive = available && toggle.reactive !== false;
+            state.text = toggle.checked ? 'Activé' : 'Désactivé';
+            state.add_style_class_name(toggle.checked ? 'g-os-network-state-on' : 'g-os-network-state-off');
+            if (toggle.checked && !activeEntry)
+                activeEntry = entry;
+        }
+        if (activeEntry) {
+            this.connectionSummary.text = `${activeEntry.title} actif`;
+            this.connectionIcon.icon_name = this._iconFor(activeEntry.title);
+        } else {
+            this.connectionSummary.text = 'Aucune connexion active détectée';
+            this.connectionIcon.icon_name = 'network-wired-symbolic';
+        }
         if (this.detailSwitch && this.activeView)
             this.detailSwitch.setToggleState(Boolean(this.activeView.checked));
     }
@@ -685,9 +752,9 @@ export class NetworkStatusMenu {
             return;
         this.destroyed = true;
         this._restoreActiveContent();
-        this._removeDetailItems();
-        for (const {content} of this.contents.values())
-            content.destroy();
+        this.detailSignals.clear();
+        for (const state of this.contents.values())
+            state.content?.destroy();
         this.cleanup.clear();
         this.menu.actor.remove_style_class_name('g-os-network-popup');
     }

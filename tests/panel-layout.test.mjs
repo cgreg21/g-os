@@ -143,3 +143,20 @@ test('network menu uses a compact overview and one focused native detail view', 
     assert.match(source, /for \(const item of this\.overviewItems\)\s+item\.visible = true/);
     assert.match(source, /for \(const item of this\.transientItems\.splice\(0\)\)/);
 });
+
+
+test('network popup is a dedicated floating panel with a connection card and compact actions', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class NetworkStatusMenu');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.match(source, /new this\.St\.ScrollView/);
+    assert.match(source, /g-os-network-connection-card/);
+    assert.match(source, /g-os-network-rows/);
+    assert.match(source, /g-os-network-actions/);
+    assert.match(source, /showDetail\(toggle\)/);
+    assert.match(source, /Tous les réseaux/);
+    assert.match(source, /state\.content\.mount\(toggle\.menu, true\)/);
+    assert.match(source, /this\.connectionSummary\.text = .*actif/);
+    assert.match(source, /_refreshNetworks\(\)/);
+});

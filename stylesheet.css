@@ -83,22 +83,81 @@
 }
 
 
-/* Network popup: keep the overview compact and constrain wide native lists. */
+
+
+/* Floating network panel */
 .g-os-network-popup {
-    min-width: 320px;
-    max-width: 380px;
+    min-width: 360px;
+    max-width: 390px;
+    border-radius: 18px;
+    background-color: rgba(28, 31, 38, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    -st-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
 }
 
-.g-os-network-native-content {
-    spacing: 4px;
-    padding: 4px 0;
+.g-os-network-shell-item {
+    padding: 0;
+    border-radius: 18px;
+    background-color: transparent;
 }
 
-.g-os-network-heading {
+.g-os-network-scroll {
+    max-height: 560px;
+    min-height: 120px;
+    border-radius: 18px;
+}
+
+.g-os-network-panel {
+    spacing: 12px;
+    padding: 16px;
+}
+
+.g-os-network-header { spacing: 3px; }
+.g-os-network-title { font-size: 16px; font-weight: bold; }
+.g-os-network-subtitle, .g-os-network-card-hint, .g-os-network-row-state {
+    color: rgba(235, 238, 245, 0.62);
+    font-size: 11px;
+}
+
+.g-os-network-connection-card {
+    spacing: 8px;
+    padding: 14px;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.075);
+}
+
+.g-os-network-card-top, .g-os-network-detail-status { spacing: 12px; }
+.g-os-network-card-text { spacing: 3px; }
+.g-os-network-card-title { font-size: 13px; font-weight: bold; }
+.g-os-network-card-summary { font-size: 12px; }
+.g-os-network-section-title {
+    font-size: 10px;
     font-weight: bold;
+    letter-spacing: 1px;
+    color: rgba(235, 238, 245, 0.58);
 }
-
-.g-os-network-back {
-    padding-top: 6px;
-    padding-bottom: 6px;
+.g-os-network-rows { spacing: 3px; }
+.g-os-network-row-button {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.035);
 }
+.g-os-network-row-button:hover, .g-os-network-action:hover, .g-os-network-back:hover {
+    background-color: rgba(255, 255, 255, 0.11);
+}
+.g-os-network-row { spacing: 12px; }
+.g-os-network-row-labels { spacing: 2px; }
+.g-os-network-row-title { font-size: 12px; font-weight: bold; }
+.g-os-network-chevron { color: rgba(235, 238, 245, 0.45); }
+.g-os-network-state-on { color: #8bd5a6; }
+.g-os-network-state-off { color: rgba(235, 238, 245, 0.55); }
+.g-os-network-actions { spacing: 8px; }
+.g-os-network-action, .g-os-network-settings, .g-os-network-back {
+    padding: 9px 11px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.065);
+}
+.g-os-network-button-content { spacing: 8px; }
+.g-os-network-button-label { font-size: 11px; }
+.g-os-network-empty { padding: 12px 4px; color: rgba(235, 238, 245, 0.62); }
+.g-os-network-native-content { spacing: 6px; padding: 8px 0; }
