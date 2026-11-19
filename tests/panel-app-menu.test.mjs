@@ -2,15 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFile} from 'node:fs/promises';
 
-test('application menu exposes the GNOME Extensions manager when installed', async () => {
+test('first topbar menu exposes the GNOME Extensions manager when installed', async () => {
     const source = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
-    const start = source.indexOf('_populateAppMenu(button)');
-    const end = source.indexOf('_syncPanelGlobalMenu(screen)', start);
-    const menu = source.slice(start, end);
-    assert.match(menu, /addAction\('Gérer les extensions'/);
-    assert.match(menu, /lookup_app\('org\.gnome\.Extensions\.desktop'\)/);
-    assert.match(menu, /lookup_app\('gnome-extensions-app\.desktop'\)/);
-    assert.match(menu, /extensions\.setSensitive\(Boolean\(lookupExtensionsApp\(\)\)\)/);
-    assert.match(menu, /Main\.overview\.hide\(\);[\s\S]*?app\.activate\(\)/);
-    assert.match(menu, /open\)[\s\S]*?updateExtensions\(\)/);
+    const panelStart = source.indexOf('_populatePanelMenu(button)');
+    const appStart = source.indexOf('_populateAppMenu(button)', panelStart);
+    const panelMenu = source.slice(panelStart, appStart);
+    const appMenu = source.slice(appStart, source.indexOf('_syncPanelGlobalMenu(screen)', appStart));
+    assert.match(panelMenu, /addAction\('Gérer les extensions'/);
+    assert.match(panelMenu, /lookup_app\('org\.gnome\.Extensions\.desktop'\)/);
+    assert.match(panelMenu, /lookup_app\('gnome-extensions-app\.desktop'\)/);
+    assert.match(panelMenu, /extensions\.setSensitive\(Boolean\(lookupExtensionsApp\(\)\)\)/);
+    assert.match(panelMenu, /Main\.overview\.hide\(\);[\s\S]*?app\.activate\(\)/);
+    assert.doesNotMatch(appMenu, /Gérer les extensions/);
 });
