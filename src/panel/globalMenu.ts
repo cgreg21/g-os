@@ -1,6 +1,7 @@
 import {DbusMenuClient} from './dbusMenu.js';
 import {alignMenuRows} from './panelStatusMenus.js';
 import {CleanupManager} from '../core/cleanupManager.js';
+import {createPanelButton} from './panelButton.js';
 
 export class GtkGlobalMenu {
     [key: string]: any;
@@ -238,10 +239,11 @@ export class GtkGlobalMenu {
     }
 
     _addButton(label, model, enabled = true) {
-        const button = new this.St.Button({style_class: `panel-button ${this.stylePrefix}-global-menu-button`,
-            style: `padding: 0 ${this.textPadding}px; margin: 0; min-height: 0;`,
-            accessible_name: label, can_focus: enabled, reactive: enabled, opacity: enabled ? 255 : 100,
-            child: new this.St.Label({text: label, y_align: this.Clutter.ActorAlign.CENTER})});
+        const button = createPanelButton(this.St, this.Clutter, {
+            text: label, styleClass: `${this.stylePrefix}-global-menu-button`,
+            accessibleName: label, canFocus: enabled, reactive: enabled,
+        });
+        button.opacity = enabled ? 255 : 100;
         const menu = new this.PopupMenu.PopupMenu(button, 0, this.St.Side.TOP);
         const scrollView = new this.St.ScrollView({
             hscrollbar_policy: this.St.PolicyType.AUTOMATIC,
