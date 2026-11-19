@@ -42,7 +42,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     assert.match(sharedDnd, /dragActor = null/);
     assert.match(dragSource, /_finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
-    assert.match(panelSource, /g-os-panel-dnd-placeholder/);
+    assert.match(panelSource, /source: dragActor\.get_child_at_index\(0\) \?\? dragActor/);
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     assert.doesNotMatch(stylesheet, /\.g-os-panel-dnd-placeholder\s*\{[^}]*?(?:background-color|border|shadow)/s);
     assert.match(panelSource, /if \(currentIndex === index\)\s*return;/);
