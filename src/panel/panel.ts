@@ -766,6 +766,7 @@ export function withPanel(Base) {
                 controller: screen.interactionDnd,
                 actor,
                 St,
+                Clutter,
                 delegate: {
                     panelLayoutItem: {screen, id},
                     getDragActorSource: () => screen.panelDragState?.actor === actor
