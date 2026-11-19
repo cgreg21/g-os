@@ -15,6 +15,7 @@ export function removeGlobalMenuActor(actor, expectedParent) {
     }
 }
 
+import {setChildWhenMapped} from '../core/actorUtils.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {alignMenuRows} from './panelStatusMenus.js';
 import {CleanupManager} from '../core/cleanupManager.js';
@@ -299,7 +300,7 @@ export class GtkGlobalMenu {
         menu.actor.hide();
         menu._boxPointer.bin.set_child(null);
         menu._boxPointer.bin.set_child(scrollView);
-        scrollView.set_child(menu.box);
+        setChildWhenMapped(scrollView, menu.box);
         applyNativeMenuTheme(menu, `${this.stylePrefix}-popup`);
         this.menuManager.addMenu(menu);
         this._fill(menu, model);
