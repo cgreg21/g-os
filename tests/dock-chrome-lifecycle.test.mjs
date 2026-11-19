@@ -10,6 +10,17 @@ test('dock chrome actors are registered with the per-screen chrome manager', () 
     assert.match(extensionSource, /screen\.lifecycle\.chrome\?\.add\(screen\.tooltip\)/);
 });
 
+test('dock scroll view is staged before its content is attached', () => {
+    const construction = extensionSource.indexOf('screen.dockContainer = new St.ScrollView({');
+    const registration = extensionSource.indexOf('screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});', construction);
+    const attachContent = extensionSource.indexOf('screen.dockContainer.set_child(dockContent);', registration);
+
+    assert.ok(construction >= 0);
+    assert.ok(registration > construction);
+    assert.ok(attachContent > registration);
+    assert.doesNotMatch(extensionSource.slice(construction, registration), /child:\s*dockContent/);
+});
+
 test('monitor changes defer screen teardown until Mutter finishes its layout pass', () => {
     assert.match(extensionSource, /monitors-changed', \(\) => this\._queueSettingsApply\(\)\)/);
 });
