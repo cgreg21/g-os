@@ -1,5 +1,24 @@
 import {CleanupManager} from '../core/cleanupManager.js';
 
+function getActorParent(actor) {
+    try {
+        return actor?.get_parent?.() ?? null;
+    } catch {
+        return null;
+    }
+}
+
+function removeActorFromParent(actor, parent = getActorParent(actor)) {
+    if (!actor || !parent || getActorParent(actor) !== parent)
+        return false;
+    try {
+        parent.remove_child(actor);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export function alignMenuRows(actor, Clutter) {
     if (!actor)
         return;
@@ -418,11 +437,28 @@ class NativeMenuContent {
         const parent = actor?.get_parent();
         if (!parent)
             return false;
-        const index = parent.get_children().indexOf(actor);
+        let index;
+        try {
+            index = parent.get_children().indexOf(actor);
+        } catch {
+            return false;
+        }
+        if (index < 0 || !removeActorFromParent(actor, parent))
+            return false;
         this.saved = {actor, parent, index, nativeMenu, notifyOpen, wasOpen: Boolean(nativeMenu.isOpen)};
-        parent.remove_child(actor);
         actor.add_style_class_name('g-os-status-native-content');
-        this.holder.add_child(actor);
+        try {
+            this.holder.add_child(actor);
+        } catch {
+            this.saved = null;
+            try {
+                parent.insert_child_at_index(actor, index);
+            } catch {
+                // The original menu parent may have been disposed.
+            }
+            actor.remove_style_class_name('g-os-status-native-content');
+            return false;
+        }
         actor.show();
         this.alignDeviceRows(actor);
         this.mountCleanup = new CleanupManager();
@@ -445,13 +481,25 @@ class NativeMenuContent {
         if (!this.saved)
             return;
         const {actor, parent, index, nativeMenu, notifyOpen, wasOpen} = this.saved;
+        this.saved = null;
         this.mountCleanup?.clear();
         this.mountCleanup = null;
-        actor.get_parent()?.remove_child(actor);
+        const currentParent = getActorParent(actor);
+        if (currentParent && currentParent !== parent)
+            removeActorFromParent(actor, currentParent);
         actor.remove_style_class_name('g-os-status-native-content');
-        parent.insert_child_at_index(actor, index);
-        this.saved = null;
-        nativeMenu.isOpen = wasOpen;
+        if (!getActorParent(actor)) {
+            try {
+                parent.insert_child_at_index(actor, index);
+            } catch {
+                // GNOME may have disposed the original native menu parent.
+            }
+        }
+        try {
+            nativeMenu.isOpen = wasOpen;
+        } catch {
+            // Ignore a native menu disposed during Shell teardown.
+        }
         if (notifyOpen)
             this.onClose();
     }
