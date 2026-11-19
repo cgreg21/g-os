@@ -4,7 +4,7 @@ import type {DragAndDropController, DragSourceCallbacks, DragSourceOptions} from
 
 type ShadowDragSourceOptions = {
     controller: DragAndDropController;
-    actor: Clutter.Actor;
+    actor: Clutter.Actor & {_delegate?: Record<string, unknown> | null};
     St: any;
     delegate?: Record<string, unknown>;
     callbacks?: DragSourceCallbacks;
