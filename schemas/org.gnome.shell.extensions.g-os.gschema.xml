@@ -422,11 +422,6 @@
       <default>8</default>
       <summary>Padding horizontal des icônes de la barre supérieure en pixels</summary>
     </key>
-    <key name="panel-text-padding" type="i">
-      <range min="0" max="24"/>
-      <default>4</default>
-      <summary>Padding horizontal des textes de la barre supérieure en pixels</summary>
-    </key>
     <key name="show-active-app" type="b">
       <default>true</default>
       <summary>Afficher le nom de l&apos;application active</summary>
