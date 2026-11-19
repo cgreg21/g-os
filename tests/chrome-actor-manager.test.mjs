@@ -113,3 +113,30 @@ test('does not retain an actor when host registration throws', () => {
     assert.throws(() => manager.add(actor), /registration failed/);
     assert.equal(manager.size, 0);
 });
+
+test('rolls back a partially registered actor when host registration throws', () => {
+    const actor = {};
+    const registered = [];
+    const removed = [];
+    const originalLogError = globalThis.logError;
+    globalThis.logError = () => {};
+    try {
+        const manager = new ChromeActorManager(
+            value => {
+                registered.push(value);
+                throw new Error('registration failed after side effect');
+            },
+            value => removed.push(value),
+        );
+
+        assert.throws(() => manager.add(actor), /registration failed after side effect/);
+        assert.deepEqual(registered, [actor]);
+        assert.deepEqual(removed, [actor]);
+        assert.equal(manager.size, 0);
+    } finally {
+        if (originalLogError === undefined)
+            delete globalThis.logError;
+        else
+            globalThis.logError = originalLogError;
+    }
+});
