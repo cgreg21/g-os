@@ -139,7 +139,6 @@ export default class GOsExtension extends ExtensionComponents {
                 icon: this._menuIcon, accessibleName: 'Applications',
                 styleClass: 'g-os-panel-menu',
             });
-            this._menuBox.add_child(this._menuIcon);
             this._activeAppLabel = new St.Label({
                 text: 'Finder',
                 y_align: Clutter.ActorAlign.CENTER,
