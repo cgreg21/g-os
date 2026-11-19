@@ -203,6 +203,16 @@ test('display controls read and write screen brightness and night-light settings
     assert.equal(controller.brightnessInfo.label.text, 'Luminosité : 80 %');
 });
 
+test('display menu does not write brightness when a queued debounce fires after destruction', () => {
+    const {controller, state} = createDisplayMenu();
+    controller.brightnessSlider.value = 0.65;
+    assert.equal(state.calls.filter(call => call.method === 'Set').length, 0);
+    controller.destroy();
+    assert.equal(state.removedSource, 9);
+    assert.equal(state.timeout(), 0);
+    assert.equal(state.calls.filter(call => call.method === 'Set').length, 0);
+});
+
 test('brightness controls report unsupported hardware instead of accepting adjustments', () => {
     const {controller} = createDisplayMenu(Number.NaN);
     assert.equal(controller.brightnessSlider.reactive, false);
