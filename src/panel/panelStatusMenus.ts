@@ -75,7 +75,7 @@ export class SoundStatusMenu {
             if (open)
                 this.syncOutput();
         }));
-        for (const signal of ['state-changed', 'default-sink-changed', 'stream-added', 'stream-removed', 'output-added', 'output-removed'])
+        for (const signal of ['state-changed', 'default-sink-changed', 'default-source-changed', 'stream-added', 'stream-removed', 'output-added', 'output-removed', 'input-added', 'input-removed'])
             this.cleanup.addSignal(control, control.connect(signal, () => this.syncOutput()));
         this.cleanup.addSignal(this.soundSettings, this.soundSettings.connect(
             'changed::allow-volume-above-100-percent', () => this._syncAmplification()));
@@ -96,6 +96,7 @@ export class SoundStatusMenu {
         }
         this.refresh();
         this.refreshDevices();
+        this.refreshInput();
     }
 
     refresh() {
@@ -221,6 +222,20 @@ export class SoundStatusMenu {
                 style_class: 'g-os-status-empty'}));
     }
 
+    refreshInput() {
+        if (this.destroyed || !this.inputItem)
+            return;
+        const sources = this.control.get_sources?.() ?? [];
+        const source = this.control.get_default_source?.();
+        this.inputItem.visible = sources.length > 0;
+        if (!source) {
+            this.inputName.text = sources.length ? 'Entrée audio disponible' : '';
+            return;
+        }
+        const device = this.control.lookup_input_id?.(source.get_id?.());
+        this.inputName.text = source.get_description?.() || source.get_name?.() || device?.get_description?.() || 'Microphone';
+    }
+
     destroy() {
         if (this.destroyed)
             return;
@@ -289,7 +304,7 @@ export class DisplayStatusMenu {
         const enabled = this.nightLight.get_boolean('night-light-enabled');
         const temperature = this.nightLight.get_uint('night-light-temperature');
         this.syncingNightLight = true;
-        this.nightLightToggle.setToggleState(enabled);
+        this.nightLightSwitch.state = enabled;
         this.temperatureSlider.value = Math.max(0, Math.min(1, (temperature - 1000) / 9000));
         this.syncingNightLight = false;
         this.temperatureValue.text = `${temperature.toLocaleString()} K`;
