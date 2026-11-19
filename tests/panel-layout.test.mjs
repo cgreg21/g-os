@@ -143,6 +143,12 @@ test('network overview avoids duplicate status and keeps Wi-Fi scanning in its d
     assert.ok(!overview.includes('_refreshNetworks'));
     assert.ok(overview.includes('g-os-network-rows'));
     assert.ok(overview.includes('PopupMenuItem'));
+    assert.ok(overview.includes("button.label.set_x_expand(true)"));
+    assert.ok(overview.includes("button.connect('activate'"));
+    assert.ok(overview.includes('PopupMenuSeparatorMenuItem'));
+    assert.ok(!overview.includes('emblem-system-symbolic'));
+    assert.ok(!overview.includes('g-os-network-popup'));
+    assert.ok(!overview.includes('g-os-network-row-button'));
     assert.ok(overview.includes('_buildTrafficGraph'));
     assert.ok(overview.includes('_updateOverviewVisibility'));
     assert.ok(overview.includes('button.visible = active'));
@@ -153,4 +159,15 @@ test('network overview avoids duplicate status and keeps Wi-Fi scanning in its d
     assert.ok(detail.includes('state.content.mount(toggle.menu, true)'));
     assert.ok(detail.includes('Tous les réseaux'));
     assert.ok(detail.includes('_appendSettingsItem'));
+});
+
+test('network popup delegates its visual styling to the active GNOME theme', async () => {
+    const css = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class NetworkStatusMenu');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.ok(!css.includes('.g-os-network-'));
+    assert.ok(!source.includes('add_style_class_name(\'g-os-network-popup\')'));
+    assert.ok(!source.includes('style_class: \'g-os-network-panel\''));
 });
