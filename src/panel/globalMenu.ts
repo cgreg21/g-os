@@ -2,6 +2,7 @@ import {DbusMenuClient} from './dbusMenu.js';
 import {alignMenuRows} from './panelStatusMenus.js';
 import {CleanupManager} from '../core/cleanupManager.js';
 import {applyPanelButtonMetrics, createPanelButton} from './panelButton.js';
+import {applyNativeMenuTheme} from './menuTheme.js';
 
 export function isGlobalMenuActionEnabled(group, action, target) {
     if (!group?.has_action(action) || !group.get_action_enabled(action))
@@ -194,6 +195,7 @@ export class GtkGlobalMenu {
             const submenu = model.get_item_link(index, 'submenu');
             if (submenu) {
                 const item = new this.PopupMenu.PopupSubMenuMenuItem(label);
+                applyNativeMenuTheme(item.menu, `${this.stylePrefix}-popup-submenu`);
                 item.setSensitive(this._attribute(model, index, 'x-dbusmenu-enabled')?.deep_unpack() !== false);
                 const open = item.menu.open.bind(item.menu);
                 item.menu.open = (...args) => {
@@ -262,7 +264,7 @@ export class GtkGlobalMenu {
         menu._boxPointer.bin.set_child(null);
         scrollView.set_child(menu.box);
         menu._boxPointer.bin.set_child(scrollView);
-        menu.actor.add_style_class_name(`${this.stylePrefix}-popup`);
+        applyNativeMenuTheme(menu, `${this.stylePrefix}-popup`);
         this.uiGroup.add_child(menu.actor);
         menu.actor.hide();
         this.menuManager.addMenu(menu);
