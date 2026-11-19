@@ -762,6 +762,7 @@ export function withPanel(Base) {
             if (!actor || screen.interactionDnd.hasSource(actor))
                 return;
             actor._panelLayoutItemId = id;
+            actor._panelLayoutItem = {screen, id};
             registerShadowDragSource({
                 controller: screen.interactionDnd,
                 actor,
@@ -800,7 +801,7 @@ export function withPanel(Base) {
             // GNOME Shell changes the source opacity as the drag starts, which
             // can make a clone of the source render as an empty slot.
             const placeholder = new Clutter.Clone({
-                source: dragActor,
+                source: dragActor.get_child_at_index(0) ?? dragActor,
                 width,
                 height,
                 reactive: false,
@@ -848,7 +849,8 @@ export function withPanel(Base) {
         }
 
         _getPanelLayoutItem(screen, source) {
-            const item = source?.panelLayoutItem ?? source?._delegate?.panelLayoutItem ??
+            const item = source?._panelLayoutItem ?? source?.panelLayoutItem ??
+                source?._delegate?.panelLayoutItem ?? source?.actor?._panelLayoutItem ??
                 source?.actor?._delegate?.panelLayoutItem;
             return item?.screen === screen && screen.panelLayoutItems?.has(item.id) ? item.id : null;
         }
