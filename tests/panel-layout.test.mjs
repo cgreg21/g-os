@@ -31,8 +31,10 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     const dragStart = panelSource.indexOf('        _attachPanelItemDraggable(screen, id, actor) {');
     const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
     const dragSource = panelSource.slice(dragStart, dragEnd);
-    assert.match(dragSource, /getDragActor: \(\) => new Clutter\.Clone\(\{source: actor\}\)/);
-    assert.match(dragSource, /_beginPanelShadowDrag\(screen, id, actor\)/);
+    assert.match(dragSource, /let dragActor: Clutter\.Clone \| null = null/);
+    assert.match(dragSource, /dragActor = new Clutter\.Clone\(\{source: actor\}\);[\s\S]*?_beginPanelShadowDrag\(screen, id, actor\)/);
+    assert.match(dragSource, /getDragActor: \(\) => dragActor \?\? new Clutter\.Clone\(\{source: actor\}\)/);
+    assert.match(dragSource, /dragActor = null/);
     assert.match(dragSource, /_finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
     assert.match(panelSource, /g-os-panel-dnd-placeholder/);
