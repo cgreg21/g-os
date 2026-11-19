@@ -127,3 +127,47 @@ test('continues cancelling transitions when the host logger also throws', () => 
     assert.deepEqual(removed, ['translation-x', 'opacity']);
     assert.equal(manager.size, 0);
 });
+
+test('preserves a reentrant replacement created while cancelling an animation', () => {
+    const manager = new AnimationManager();
+    const nestedActor = new FakeActor();
+    let nested = false;
+    const originalActor = {
+        ease() {},
+        remove_transition() {
+            if (nested)
+                return;
+            nested = true;
+            manager.animate('slide', nestedActor, {opacity: 0}, options);
+        },
+    };
+    const outerActor = new FakeActor();
+    manager.animate('slide', originalActor, {translation_x: 10}, options);
+    manager.animate('slide', outerActor, {opacity: 1}, options);
+
+    assert.equal(outerActor.animations.length, 0);
+    assert.equal(nestedActor.animations.length, 1);
+    assert.equal(manager.size, 1);
+    nestedActor.complete();
+    assert.equal(manager.size, 0);
+});
+
+test('does not start an animation when cancellation re-enters with cancel', () => {
+    const manager = new AnimationManager();
+    const outerActor = new FakeActor();
+    let cancelled = false;
+    const originalActor = {
+        ease() {},
+        remove_transition() {
+            if (cancelled)
+                return;
+            cancelled = true;
+            manager.cancel('slide');
+        },
+    };
+    manager.animate('slide', originalActor, {translation_x: 10}, options);
+    manager.animate('slide', outerActor, {opacity: 1}, options);
+
+    assert.equal(outerActor.animations.length, 0);
+    assert.equal(manager.size, 0);
+});
