@@ -2,6 +2,10 @@ import type Clutter from 'gi://Clutter';
 import type {LifecycleScope} from '../../core/lifecycleScope.js';
 import type {DragAndDropController, DragSourceCallbacks, DragSourceOptions} from './dragAndDrop.js';
 
+type ShadowDragSourceCallbacks = Omit<DragSourceCallbacks, 'onBegin'> & {
+    onBegin?: (dragActor: Clutter.Actor) => void;
+};
+
 type ShadowDragSourceOptions = {
     controller: DragAndDropController;
     actor: Clutter.Actor & {_delegate?: Record<string, unknown> | null};
@@ -9,7 +13,7 @@ type ShadowDragSourceOptions = {
     St: any;
     Clutter: any;
     delegate?: Record<string, unknown>;
-    callbacks?: DragSourceCallbacks;
+    callbacks?: ShadowDragSourceCallbacks;
     options?: DragSourceOptions;
     lifecycle?: LifecycleScope | null;
 };
