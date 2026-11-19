@@ -27,7 +27,7 @@ test('the GNOME launcher participates in the same panel DND source registry', ()
     assert.match(panelSource, /_attachPanelItemDraggable\(screen, id, actor\)[\s\S]*?onBegin: \(\) => this\._beginPanelShadowDrag\(screen, id, actor\)/);
 });
 
-test('topbar shadow drag uses a clone and a movable insertion placeholder', () => {
+test('topbar shadow drag uses a clone and a movable insertion placeholder', async () => {
     const dragStart = panelSource.indexOf('        _attachPanelItemDraggable(screen, id, actor) {');
     const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
     const dragSource = panelSource.slice(dragStart, dragEnd);
