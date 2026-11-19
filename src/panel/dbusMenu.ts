@@ -1,3 +1,5 @@
+import {CleanupManager} from '../core/cleanupManager.js';
+
 export const DBUS_MENU_XML = `<node><interface name="com.canonical.dbusmenu">
 <method name="GetLayout"><arg type="i" direction="in"/><arg type="i" direction="in"/><arg type="as" direction="in"/><arg type="u" direction="out"/><arg type="(ia{sv}av)" direction="out"/></method>
 <method name="AboutToShow"><arg type="i" direction="in"/><arg type="b" direction="out"/></method>
@@ -96,19 +98,23 @@ export class DbusMenuClient {
         this.dirty = false;
         this.proxy = null;
         this.signal = 0;
+        this.cleanup = new CleanupManager();
         this.signature = '';
         const info = Gio.DBusNodeInfo.new_for_xml(DBUS_MENU_XML).interfaces[0];
         Gio.DBusProxy.new(Gio.DBus.session, Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES, info,
             bus, path, 'com.canonical.dbusmenu', this.token, (_source, result) => {
                 try {
                     const proxy = Gio.DBusProxy.new_finish(result);
-                    if (this.disposed)
+                    if (this.disposed) {
+                        proxy.run_dispose?.();
                         return;
+                    }
                     this.proxy = proxy;
                     this.signal = proxy.connect('g-signal', (_proxy, _sender, name) => {
                         if (['LayoutUpdated', 'ItemsPropertiesUpdated'].includes(name))
                             this.refresh();
                     });
+                    this.cleanup.addSignal(proxy, this.signal);
                     this.refresh();
                 } catch (error) {
                     if (!this.disposed)
@@ -201,9 +207,9 @@ export class DbusMenuClient {
             return;
         this.disposed = true;
         this.token.cancel();
-        if (this.signal)
-            this.proxy.disconnect(this.signal);
+        this.cleanup.clear();
         this.signal = 0;
+        this.proxy?.run_dispose?.();
         this.proxy = null;
         this.nodes.clear();
         this.model.items = [];
