@@ -807,6 +807,26 @@ export class NetworkStatusMenu {
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB/s`;
     }
 
+    _buildTrafficGraph() {
+        this.trafficGraph = new this.St.BoxLayout({
+            orientation: this.Clutter.Orientation.VERTICAL,
+            style_class: 'g-os-network-traffic',
+        });
+        this.trafficArea = new this.St.DrawingArea({
+            style_class: 'g-os-network-traffic-graph',
+        });
+        this.trafficArea.set_x_expand(true);
+        this.trafficArea.set_height(64);
+        this.trafficArea.connect('repaint', area => {
+            if (!this.destroyed)
+                this._drawTrafficGraph(area);
+        });
+        this.trafficLegend = this._label('↓ 0 B/s     ↑ 0 B/s', 'g-os-network-traffic-legend');
+        this.trafficGraph.add_child(this.trafficArea);
+        this.trafficGraph.add_child(this.trafficLegend);
+        this.body.add_child(this.trafficGraph);
+    }
+
     _drawTrafficGraph(area) {
         const cr = area.get_context();
         const [width, height] = area.get_surface_size();
