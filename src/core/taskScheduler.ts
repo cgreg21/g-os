@@ -8,6 +8,7 @@ export interface TaskSchedulerBackend {
 /** Owns keyed one-shot tasks and prevents callbacks after disposal. */
 export class TaskScheduler {
     private readonly sources = new Map<string, number>();
+    private readonly generations = new Map<string, symbol>();
     private destroyed = false;
 
     constructor(private readonly backend: TaskSchedulerBackend) {}
@@ -21,15 +22,13 @@ export class TaskScheduler {
     }
 
     cancel(key: string): void {
-        const sourceId = this.sources.get(key);
-        if (sourceId === undefined)
-            return;
-        this.sources.delete(key);
-        this.removeSource(sourceId);
+        // Invalidate a schedule that may still be registering its backend source.
+        this.generations.delete(key);
+        this.removeKeyedSource(key);
     }
 
     cancelAll(): void {
-        for (const key of [...this.sources.keys()])
+        for (const key of new Set([...this.sources.keys(), ...this.generations.keys()]))
             this.cancel(key);
     }
 
@@ -51,7 +50,13 @@ export class TaskScheduler {
     ): void {
         if (this.destroyed)
             return;
-        this.cancel(key);
+        const generation = Symbol(`task:${key}`);
+        this.generations.set(key, generation);
+        this.removeKeyedSource(key);
+        // Removing the previous backend source can synchronously re-enter the
+        // scheduler. The nested request is newer and must retain ownership.
+        if (this.destroyed || this.generations.get(key) !== generation)
+            return;
         let sourceId: number | undefined;
         let completedBeforeRegistration = false;
         const run = (): void => {
@@ -70,24 +75,42 @@ export class TaskScheduler {
                 completedBeforeRegistration = true;
                 return false;
             }
-            if (this.destroyed || this.sources.get(key) !== sourceId)
+            if (this.destroyed || this.generations.get(key) !== generation ||
+                this.sources.get(key) !== sourceId)
                 return false;
             this.sources.delete(key);
+            this.generations.delete(key);
             run();
             return false;
         };
-        sourceId = createSource(done);
+        try {
+            sourceId = createSource(done);
+        } catch (error) {
+            if (this.generations.get(key) === generation)
+                this.generations.delete(key);
+            throw error;
+        }
         // Injectable backends may complete synchronously, before their source ID
         // can be registered. Defer the callback until registration has returned.
         if (completedBeforeRegistration) {
-            if (!this.destroyed)
+            if (!this.destroyed && this.generations.get(key) === generation) {
+                this.generations.delete(key);
                 run();
+            }
             return;
         }
-        if (this.destroyed)
+        if (this.destroyed || this.generations.get(key) !== generation)
             this.removeSource(sourceId);
         else
             this.sources.set(key, sourceId);
+    }
+
+    private removeKeyedSource(key: string): void {
+        const sourceId = this.sources.get(key);
+        if (sourceId === undefined)
+            return;
+        this.sources.delete(key);
+        this.removeSource(sourceId);
     }
 
     private removeSource(sourceId: number): void {
