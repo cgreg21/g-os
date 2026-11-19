@@ -28,6 +28,7 @@ export class FluxSession {
     readonly errors: Record<string, string> = Object.create(null);
     private listeners = new Set<() => void>();
     private requests = new Map<string, FluxHttpRequest>();
+    private refreshing = new Set<string>();
     private timers: number[] = [];
     private stopped = false;
     private started = false;
@@ -67,15 +68,28 @@ export class FluxSession {
 
     refresh(name: string): void {
         const source = this.program.sources[name];
-        if (this.stopped || !source || this.requests.has(name))
+        if (this.stopped || !source || this.requests.has(name) || this.refreshing.has(name))
             return;
-        this.status[name] = 'loading';
-        this.errors[name] = '';
-        this.notify();
-        if (this.stopped)
+        this.refreshing.add(name);
+        let request: FluxHttpRequest;
+        try {
+            this.status[name] = 'loading';
+            this.errors[name] = '';
+            this.notify();
+            if (this.stopped)
+                return;
+            request = requestFluxJson(this.environment, source.url, source.timeout);
+            this.requests.set(name, request);
+        } catch (error) {
+            if (!this.stopped) {
+                this.status[name] = 'error';
+                this.errors[name] = 'Connexion HTTP impossible';
+                this.notify();
+            }
             return;
-        const request = requestFluxJson(this.environment, source.url, source.timeout);
-        this.requests.set(name, request);
+        } finally {
+            this.refreshing.delete(name);
+        }
         request.promise.then(value => {
             if (this.stopped) return;
             this.data[name] = value;
@@ -112,6 +126,7 @@ export class FluxSession {
         for (const request of this.requests.values())
             request.cancel();
         this.requests.clear();
+        this.refreshing.clear();
         this.listeners.clear();
     }
 }
