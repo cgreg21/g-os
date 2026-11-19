@@ -95,7 +95,11 @@ export class TaskScheduler {
             this.backend.remove(sourceId);
         } catch (error) {
             // The source may already have completed or been removed by GLib.
-            logError(error as Error, 'Unable to cancel g-os scheduled task');
+            try {
+                logError(error as Error, 'Unable to cancel g-os scheduled task');
+            } catch {
+                // Cancellation of other sources must continue despite logger failure.
+            }
         }
     }
 }
