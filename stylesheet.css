@@ -13,18 +13,6 @@
 	spacing: 6px;
 }
 
-.g-os-panel-menu-box {
-	spacing: 7px;
-}
-
-.g-os-global-menu {
-	spacing: 0px;
-}
-
-.g-os-global-menu-button {
-	padding: 0 6px;
-}
-
 .macos-global-menu {
 	spacing: 0px;
 }
@@ -43,16 +31,20 @@
 	padding: 0;
 }
 
-.g-os-battery-status {
-	spacing: 3px;
-}
-
 .g-os-battery-level {
 	font-size: 0.9em;
 }
 
 .g-os-status-notifier-items {
-	spacing: 2px;
+	spacing: 6px;
+}
+
+.g-os-panel-button-content {
+	spacing: 6px;
+}
+
+.g-os-global-menu {
+	spacing: 6px;
 }
 
 .g-os-status-notifier-button {
