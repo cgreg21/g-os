@@ -723,6 +723,12 @@ export function withPanel(Base) {
                 return;
 
             const statusArea = Main.panel.statusArea as Record<string, any>;
+            const sessionPanel = Main.sessionMode.panel;
+            const availableRoles = new Set([
+                ...(sessionPanel.left ?? []),
+                ...(sessionPanel.center ?? []),
+                ...(sessionPanel.right ?? []),
+            ]);
             const roles = [
                 ['activities', 'activities'],
                 ['quick-settings', 'quickSettings'],
@@ -734,6 +740,8 @@ export function withPanel(Base) {
             ];
             screen.nativePanelItems = new Map();
             for (const [id, role] of roles) {
+                if (!availableRoles.has(role))
+                    continue;
                 const indicator = statusArea[role];
                 const actor = indicator?.container ?? indicator;
                 const parent = getActorParent(actor);
@@ -762,6 +770,20 @@ export function withPanel(Base) {
             }
             screen.nativePanelItems?.clear();
             screen.nativePanelItems = null;
+        }
+
+        _syncNativePanelItems(screen) {
+            this._restoreNativePanelItems(screen);
+            this._adoptNativePanelItems(screen);
+            if (!screen.panelLayoutItems)
+                return;
+
+            for (const id of ['activities', 'quick-settings', 'accessibility', 'keyboard',
+                'dwell-click', 'screen-recording', 'screen-sharing'])
+                screen.panelLayoutItems.delete(id);
+            for (const [id, state] of screen.nativePanelItems ?? [])
+                screen.panelLayoutItems.set(id, state.actor);
+            this._applyPanelLayout(screen);
         }
 
         _initializePanelLayout(screen) {

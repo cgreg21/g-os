@@ -66,6 +66,9 @@ test('topbar lifecycle scope owns DND signals and chrome registration', () => {
 test('the topbar adopts native GNOME panel controls and restores their original parents', () => {
     assert.match(panelSource, /_adoptNativePanelItems\(screen\)[\s\S]*?\['activities', 'activities'\][\s\S]*?\['quick-settings', 'quickSettings'\][\s\S]*?\['accessibility', 'a11y'\][\s\S]*?\['keyboard', 'keyboard'\][\s\S]*?\['dwell-click', 'dwellClick'\][\s\S]*?\['screen-recording', 'screenRecording'\][\s\S]*?\['screen-sharing', 'screenSharing'\]/);
     assert.match(panelSource, /Main\.sessionMode\.currentMode !== 'user'/);
+    assert.match(panelSource, /const availableRoles = new Set\([\s\S]*?sessionPanel\.left[\s\S]*?sessionPanel\.right[\s\S]*?if \(!availableRoles\.has\(role\)\)/);
+    assert.match(panelSource, /_syncNativePanelItems\(screen\)[\s\S]*?this\._restoreNativePanelItems\(screen\)[\s\S]*?this\._adoptNativePanelItems\(screen\)[\s\S]*?this\._applyPanelLayout\(screen\)/);
+    assert.match(extensionSource, /this\._connect\(Main\.sessionMode, 'updated'/);
     assert.match(panelSource, /_restoreNativePanelItems\(screen\)[\s\S]*?parent\.insert_child_at_index\(actor, Math\.min\(index, parent\.get_n_children\(\)\)\)/);
     assert.match(panelSource, /\.\.\.\[\.\.\.\(screen\.nativePanelItems \?\? new Map\(\)\)\]\.map\(\(\[id, state\]\) => \[id, state\.actor\]\)/);
     assert.match(extensionSource, /this\._restoreNativePanelItems\?\.\(screen\)/);

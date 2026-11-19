@@ -259,6 +259,10 @@ export default class GOsExtension extends ExtensionComponents {
                 else if (key !== 'window-button-layout-backup')
                     this._queueSettingsApply(key);
             });
+            this._connect(Main.sessionMode, 'updated', () => {
+                for (const screen of this._screens ?? [])
+                    this._syncNativePanelItems?.(screen);
+            });
             this._connectOverviewDash();
             this._setupDesktopWidgetMenu();
             // Build chrome actors after GNOME Shell completes the enable/startup layout pass.
