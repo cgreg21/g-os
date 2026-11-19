@@ -102,7 +102,7 @@ export class SoundStatusMenu {
     }
 
     changeVolume() {
-        if (this.syncing || !this.stream)
+        if (this.destroyed || this.syncing || !this.stream)
             return;
         const volume = Math.round(Math.max(0, Math.min(1, this.slider.value)) * this._maximumVolume());
         this.stream.set_volume(volume);
@@ -119,6 +119,8 @@ export class SoundStatusMenu {
     }
 
     _syncAmplification() {
+        if (this.destroyed)
+            return;
         const normal = this.control.get_vol_max_norm() || 1;
         if (!this.soundSettings.get_boolean('allow-volume-above-100-percent') &&
             this.stream && this.stream.volume > normal) {
@@ -129,7 +131,7 @@ export class SoundStatusMenu {
     }
 
     adjustVolume(direction) {
-        if (!this.stream)
+        if (this.destroyed || !this.stream)
             return this.Clutter.EVENT_STOP;
         const change = direction === this.Clutter.ScrollDirection.UP ? 1
             : direction === this.Clutter.ScrollDirection.DOWN ? -1 : 0;
@@ -146,7 +148,7 @@ export class SoundStatusMenu {
     }
 
     toggleMute() {
-        if (!this.stream)
+        if (this.destroyed || !this.stream)
             return;
         const muted = this.stream.is_muted || this.stream.volume === 0;
         if (muted && this.stream.volume === 0) {
