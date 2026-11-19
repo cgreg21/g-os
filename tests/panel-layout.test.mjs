@@ -40,3 +40,13 @@ test('topbar lifecycle scope owns DND signals and chrome registration', () => {
     assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
     assert.match(panelSource, /screen\.lifecycle\.add\(\(\) => this\._finishPanelShadowDrag\(screen, false\)\)/);
 });
+
+
+test('topbar opts into the native GNOME Shell panel theme when styling is enabled', () => {
+    const createPanelStart = panelSource.indexOf('        _createPanel(screen) {');
+    const createPanelEnd = panelSource.indexOf('        _initializePanelLayout(screen) {', createPanelStart);
+    const createPanelSource = panelSource.slice(createPanelStart, createPanelEnd);
+    assert.match(createPanelSource, /if \(this\._settings\.get_boolean\('panel-style'\)\) \{[\s\S]*?add_style_class_name\('panel'\)[\s\S]*?add_style_class_name\('g-os-panel'\)/);
+    assert.match(createPanelSource, /St automatically when the Shell theme or color scheme changes/);
+    assert.match(panelSource, /style_class: 'g-os-secondary-panel'/);
+});
