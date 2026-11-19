@@ -38,7 +38,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     assert.match(sharedDnd, /new Clutter\.Clone\(\{source: visualActor, reactive: false\}\)/);
     assert.match(sharedDnd, /getDragActorSource/);
     assert.match(sharedDnd, /originalDelegate\?\.getDragActorSource/);
-    assert.match(sharedDnd, /getDragActor: \(\) => dragActor \?\? createDragActor\(\)/);
+    assert.match(sharedDnd, /getDragActor: \(\) => \{[\s\S]*?dragActor \?\?= createDragActor\(\);[\s\S]*?return dragActor;/);
     assert.match(sharedDnd, /dragActor = null/);
     assert.match(dragSource, /_finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /_movePanelDropPlaceholder\(screen, group, x\)/);
