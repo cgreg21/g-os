@@ -769,8 +769,9 @@ export function withPanel(Base) {
                 Clutter,
                 delegate: {
                     panelLayoutItem: {screen, id},
-                    getDragActorSource: () => screen.panelDragState?.actor === actor
-                        ? screen.panelDragState.placeholder : actor,
+                    // Keep the real item as the snap-back source. The placeholder is
+                    // only a layout spacer and is destroyed at drag completion.
+                    getDragActorSource: () => actor,
                 },
                 callbacks: {
                     onBegin: () => this._beginPanelShadowDrag(screen, id, actor),
@@ -830,7 +831,12 @@ export function withPanel(Base) {
                 return childX + childWidth / 2;
             });
             const index = resolveInsertionIndex(midpoints, dropX) ?? siblings.length;
-            state.placeholder.get_parent()?.remove_child(state.placeholder);
+            const currentParent = state.placeholder.get_parent();
+            const currentIndex = currentParent === target.content
+                ? target.content.get_children().indexOf(state.placeholder) : -1;
+            if (currentIndex === index)
+                return;
+            currentParent?.remove_child(state.placeholder);
             target.content.insert_child_at_index(state.placeholder, index);
         }
 
