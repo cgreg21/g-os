@@ -1,4 +1,16 @@
 import Clutter from 'gi://Clutter';
+import type {LifecycleScope} from '../../core/lifecycleScope.js';
+import type {DragAndDropController, DragSourceCallbacks, DragSourceOptions} from './dragAndDrop.js';
+
+type ShadowDragSourceOptions = {
+    controller: DragAndDropController;
+    actor: Clutter.Actor;
+    St: any;
+    delegate?: Record<string, unknown>;
+    callbacks?: DragSourceCallbacks;
+    options?: DragSourceOptions;
+    lifecycle?: LifecycleScope | null;
+};
 
 /**
  * Register a source using the shared GNOME Shell drag visual.
@@ -15,7 +27,7 @@ export function registerShadowDragSource({
     callbacks = {},
     options = {},
     lifecycle = null,
-}) {
+}: ShadowDragSourceOptions) {
     let dragActor = null;
     const createDragActor = () => {
         const [width, height] = actor.get_size();
