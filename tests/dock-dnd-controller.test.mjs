@@ -105,6 +105,6 @@ test('drag actor visuals are created only by the shared shadow source', async ()
         assert.doesNotMatch(source, /interactionDnd\.registerSource\(/);
     }
     const sharedDndSource = await readFile(new URL('../src/shared/interaction/shadowDragSource.ts', import.meta.url), 'utf8');
-    assert.match(sharedDndSource, /getDragActor: \(\) => dragActor \?\? createDragActor\(\)/);
+    assert.match(sharedDndSource, /getDragActor: \(\) => \{[\s\S]*?dragActor \?\?= createDragActor\(\);[\s\S]*?return dragActor;/);
     assert.match(dragAndDropSource, /DND\.makeDraggable\(actor/);
 });
