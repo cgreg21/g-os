@@ -292,3 +292,10 @@ test('topbar metrics are initialized and refreshed for every monitor', async () 
     assert.match(extension, /monitors-changed', \(\) => this\._applySettings\(\)/);
     assert.match(extension, /this\._applyLiveSettings\(keys\)[\s\S]*?for \(const screen of this\._screens\)/);
 });
+
+
+test('secondary-monitor launcher uses the configured launcher icon and fallback', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    assert.match(panel, /screen\.menuButton = monitor\.index === Main\.layoutManager\.primaryIndex[\s\S]*?icon: new St\.Icon\(\{[\s\S]*?gicon: this\._launcherIcon\('panel'\),[\s\S]*?fallback_gicon: this\._gnomeLogo,[\s\S]*?styleClass: 'g-os-panel-menu'/);
+    assert.doesNotMatch(panel, /iconName: 'view-app-grid-symbolic', accessibleName: 'Applications'/);
+});
