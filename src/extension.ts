@@ -135,7 +135,7 @@ export default class GOsExtension extends ExtensionComponents {
                 fallback_gicon: this._gnomeLogo,
                 style_class: 'system-status-icon',
             });
-            this._menu = createPanelMenuButton(St, Clutter, PopupMenu, {
+            this._menu = createPanelMenuButton(St, Clutter, PopupMenu, Main.uiGroup, {
                 icon: this._menuIcon, accessibleName: 'Applications',
                 styleClass: 'g-os-panel-menu',
             });
