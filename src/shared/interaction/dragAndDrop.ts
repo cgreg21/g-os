@@ -1,4 +1,5 @@
 import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import { LifecycleScope } from '../../core/lifecycleScope.js';
 import { DelegateManager } from './delegateManager.js';
@@ -13,6 +14,12 @@ function logCleanupError(error: unknown, message: string): void {
     } catch {
         // Logging must never interrupt release of the remaining DND resources.
     }
+}
+
+function disconnectIfConnected(emitter: {disconnect(id: number): void}, id: number): void {
+    if (emitter instanceof GObject.Object && !GObject.signal_handler_is_connected(emitter, id))
+        return;
+    emitter.disconnect(id);
 }
 
 export interface DragSourceCallbacks {
@@ -98,14 +105,14 @@ export class DragAndDropController {
             removeDragMonitor();
             for (const signalId of signalIds) {
                 try {
-                    draggable.disconnect(signalId);
+                    disconnectIfConnected(draggable, signalId);
                 } catch (error) {
                     logCleanupError(error, 'Unable to disconnect g-os drag signal');
                 }
             }
             if (actorDestroySignal) {
                 try {
-                    actor.disconnect(actorDestroySignal);
+                    disconnectIfConnected(actor, actorDestroySignal);
                 } catch (error) {
                     logCleanupError(error, 'Unable to disconnect g-os actor destroy signal');
                 }
