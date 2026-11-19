@@ -898,6 +898,8 @@ export function withPanel(Base) {
             // Apply its fit after the shared button metrics so generic sizing
             // does not overwrite the width-aware font size.
             screen.appLabel.set_style(`font-size: ${screen.appFontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
+            for (const {content} of screen.panelLayoutGroups?.values() ?? [])
+                content.set_style(`spacing: ${metrics.spacing}px;`);
             screen.statusNotifierBox?.set_style(`spacing: ${metrics.spacing}px;`);
             if (screen.globalMenuBox) {
                 screen.globalMenuBox.y_align = Clutter.ActorAlign.CENTER;
