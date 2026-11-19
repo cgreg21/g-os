@@ -1117,7 +1117,7 @@ export function withPanel(Base) {
             updateSensitivity();
             const capabilityCleanup = new CleanupManager();
             for (const signal of ['notify::can-restart', 'notify::can-power-off', 'notify::can-logout',
-                'notify::can-lock-screen', 'notify::can-suspend'])
+                'notify::can-lock-screen', 'notify::can-suspend'] as const)
                 capabilityCleanup.addSignal(actions, actions.connect(signal, updateSensitivity));
             button.connect('destroy', () => capabilityCleanup.clear());
             button.menu.connect('open-state-changed', (menu, open) => {
