@@ -21,6 +21,12 @@ test('panel drop zones retain drag-and-drop handlers', () => {
     assert.match(layoutSource, /this\._movePanelItem\(screen, itemId, group, x\)/);
 });
 
+test('the GNOME launcher participates in the same panel DND source registry', () => {
+    assert.match(panelSource, /\['launcher', screen\.menuButton\.container\]/);
+    assert.match(layoutSource, /for \(const \[id, actor\] of screen\.panelLayoutItems\)[\s\S]*?this\._attachPanelItemDraggable\(screen, id, actor\)/);
+    assert.match(panelSource, /_attachPanelItemDraggable\(screen, id, actor\)[\s\S]*?onBegin: \(\) => this\._beginPanelShadowDrag\(screen, id, actor\)/);
+});
+
 test('topbar shadow drag uses a clone and a movable insertion placeholder', () => {
     const dragStart = panelSource.indexOf('        _attachPanelItemDraggable(screen, id, actor) {');
     const dragEnd = panelSource.indexOf('        _getPanelLayoutItem(screen, source) {', dragStart);
