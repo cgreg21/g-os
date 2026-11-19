@@ -655,15 +655,6 @@
           "max": 24
         }
       },
-      "panel-text-padding": {
-        "type": "i",
-        "default": 4,
-        "summary": "Padding horizontal des textes de la barre supérieure en pixels",
-        "range": {
-          "min": 0,
-          "max": 24
-        }
-      },
       "show-active-app": {
         "type": "b",
         "default": true,
