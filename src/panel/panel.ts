@@ -516,8 +516,8 @@ export function withPanel(Base) {
             });
             if (this._settings.get_boolean('panel-style')) {
                 // Reuse GNOME Shell's native panel node so its active theme supplies
-                // background, foreground, borders and state colors. St restyles this
-                // actor automatically when the Shell theme or color scheme changes.
+                // background, foreground, borders and state colors. St automatically restyles the actor
+                // whenever the Shell theme or color scheme changes.
                 screen.panel.add_style_class_name('panel');
                 screen.panel.add_style_class_name('g-os-panel');
             }
