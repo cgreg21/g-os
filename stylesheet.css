@@ -76,14 +76,6 @@
 	padding: 4px;
 }
 
-.g-os-panel-dnd-placeholder {
-	background-color: rgba(128, 128, 128, 0.24);
-	border: 1px dashed rgba(255, 255, 255, 0.7);
-	border-radius: 5px;
-	-st-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
-}
-
-
 /* A real St actor wraps the DND clone so GNOME Shell can render the same
    native St shadow for every topbar item, including the launcher. */
 .g-os-dnd-drag-actor {
