@@ -56,6 +56,7 @@ class FakeActor {
     }
     connect(signal, callback) { this.signals.set(signal, callback); return this.signals.size; }
     destroy() { this.signals.get('destroy')?.(); }
+    emit(signal) { this.signals.get(signal)?.(); }
     add_child(child) { this.children.push(child); }
     set_style(style) { this.styles.push(style); }
 }
@@ -111,6 +112,8 @@ test('menu-capable controls are the same shared St.Button with an attached menu'
                 this.destroyed = false;
             }
             close() { this.closed = true; }
+            toggle() { this.toggled = true; }
+            open() { this.opened = true; }
             destroy() { this.destroyed = true; }
         },
     };
@@ -155,4 +158,20 @@ test('menu lifetime is owned by the shared button', () => {
     button.destroy();
     assert.equal(menu.closed, true);
     assert.equal(menu.destroyed, true);
+});
+
+test('menu buttons toggle on click and open from the popup-menu gesture', () => {
+    const PopupMenu = {
+        PopupMenu: class {
+            close() {}
+            destroy() {}
+            toggle() { this.toggled = true; }
+            open() { this.opened = true; }
+        },
+    };
+    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu);
+    button.emit('clicked');
+    assert.equal(button.menu.toggled, true);
+    button.emit('popup-menu');
+    assert.equal(button.menu.opened, true);
 });
