@@ -1,3 +1,5 @@
+import {CleanupManager} from '../core/cleanupManager.js';
+
 export const STATUS_NOTIFIER_NAME = 'org.kde.StatusNotifierWatcher';
 export const STATUS_NOTIFIER_PATH = '/StatusNotifierWatcher';
 export const STATUS_NOTIFIER_WATCHER_XML = `<node><interface name="org.kde.StatusNotifierWatcher">
@@ -87,8 +89,7 @@ export class StatusNotifierHost {
         this.owner = 0;
         this.exported = null;
         this.external = null;
-        this.externalSignal = 0;
-        this.externalWatcher = 0;
+        this.externalCleanup = new CleanupManager();
         this.token = new Gio.Cancellable();
         this.disposed = false;
         this.ownsName = false;
@@ -163,8 +164,8 @@ export class StatusNotifierHost {
                 invocation.return_value(new this.GLib.Variant('()', []));
                 return;
             }
-            const item = {key, ...parsed, address: `${parsed.bus}${parsed.path}`, proxy: null, signal: 0,
-                watcher: 0, properties: {}};
+            const item = {key, ...parsed, address: `${parsed.bus}${parsed.path}`, proxy: null,
+                cleanup: new CleanupManager(), properties: {}};
             this.items.set(key, item);
             this._watchItem(item);
             this.exported?.emit_signal('StatusNotifierItemRegistered',
@@ -202,14 +203,16 @@ export class StatusNotifierHost {
                     if (this.disposed || this.items.get(item.key) !== item)
                         return;
                     item.proxy = proxy;
-                    item.signal = proxy.connect('g-properties-changed', () => this._refreshItem(item));
+                    item.cleanup.addSignal(proxy,
+                        proxy.connect('g-properties-changed', () => this._refreshItem(item)));
                     this._refreshItem(item);
                 } catch {
                     this._removeItem(item);
                 }
             });
-        item.watcher = this.Gio.bus_watch_name_on_connection(this.Gio.DBus.session, item.bus,
+        const watcher = this.Gio.bus_watch_name_on_connection(this.Gio.DBus.session, item.bus,
             this.Gio.BusNameWatcherFlags.NONE, null, () => this._removeItem(item));
+        item.cleanup.add(() => this.Gio.bus_unwatch_name(watcher));
     }
 
     _refreshItem(item) {
@@ -236,13 +239,8 @@ export class StatusNotifierHost {
         if (!item || this.items.get(item.key) !== item)
             return;
         this.items.delete(item.key);
-        if (item.signal)
-            item.proxy?.disconnect(item.signal);
-        item.signal = 0;
+        item.cleanup.clear();
         item.proxy = null;
-        if (item.watcher)
-            this.Gio.bus_unwatch_name(item.watcher);
-        item.watcher = 0;
         if (this.ownsName)
             this.exported?.emit_signal('StatusNotifierItemUnregistered',
                 new this.GLib.Variant('(s)', [item.address]));
@@ -265,20 +263,21 @@ export class StatusNotifierHost {
                     if (this.disposed || this.ownsName)
                         return;
                     this.external = proxy;
-                    this.externalSignal = proxy.connect('g-signal', (_proxy, _sender, name, parameters) => {
+                    this.externalCleanup.addSignal(proxy, proxy.connect('g-signal', (_proxy, _sender, name, parameters) => {
                         const [address] = parameters.deep_unpack();
                         if (name === 'StatusNotifierItemRegistered')
                             this._addExternalItem(address);
                         else if (name === 'StatusNotifierItemUnregistered')
                             this._removeExternalItem(address);
-                    });
-                    this.externalWatcher = this.Gio.bus_watch_name_on_connection(this.Gio.DBus.session,
+                    }));
+                    const watcher = this.Gio.bus_watch_name_on_connection(this.Gio.DBus.session,
                         STATUS_NOTIFIER_NAME, this.Gio.BusNameWatcherFlags.NONE, null, () => {
                             this._stopExternal();
                             this._clearItems();
                             if (!this.disposed)
                                 this._own();
                         });
+                    this.externalCleanup.add(() => this.Gio.bus_unwatch_name(watcher));
                     const registered = proxy.get_cached_property('RegisteredStatusNotifierItems');
                     for (const address of registered?.deep_unpack() ?? [])
                         this._addExternalItem(address);
@@ -313,13 +312,9 @@ export class StatusNotifierHost {
     }
 
     _stopExternal() {
-        if (this.externalSignal)
-            this.external?.disconnect(this.externalSignal);
-        this.externalSignal = 0;
+        this.externalCleanup.clear();
+        this.externalCleanup = new CleanupManager();
         this.external = null;
-        if (this.externalWatcher)
-            this.Gio.bus_unwatch_name(this.externalWatcher);
-        this.externalWatcher = 0;
     }
 
     activate(item, method, x = 0, y = 0, scroll = 0, orientation = 'vertical') {
