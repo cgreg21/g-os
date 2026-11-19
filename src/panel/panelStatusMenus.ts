@@ -552,7 +552,7 @@ export class BatteryStatusMenu {
                 this.refresh();
             } else
                 this.content.restore();
-        });
+        }));
         this.refresh();
     }
 
