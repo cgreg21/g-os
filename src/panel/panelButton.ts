@@ -77,6 +77,20 @@ export function createPanelButton(St, Clutter, {
     return button;
 }
 
+/**
+ * Keep long application names within their available topbar width while using
+ * the shared button font size as the upper bound.
+ */
+export function calculatePanelLabelFontSize(fontSize, textLength, availableWidth) {
+    if (![fontSize, textLength, availableWidth].every(Number.isFinite) ||
+        fontSize <= 0 || textLength < 0 || availableWidth < 0)
+        throw new RangeError('Panel label dimensions must be finite and non-negative');
+
+    const estimatedWidth = textLength * fontSize * 0.56;
+    const scale = estimatedWidth > 0 ? Math.min(1, availableWidth / estimatedWidth) : 1;
+    return Math.max(1, Math.floor(fontSize * scale));
+}
+
 export function applyPanelButtonMetrics(button, metrics) {
     button.set_style(`padding: ${metrics.padding}px; margin: 0; min-height: 0;`);
     button.panelContent?.set_style?.(`spacing: ${metrics.spacing}px;`);
