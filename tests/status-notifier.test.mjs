@@ -14,7 +14,7 @@ class MockVariant {
 }
 
 function createHost() {
-    const state = {items: [], signals: [], watches: new Map(), disposedProxies: 0};
+    const state = {items: [], signals: [], watches: new Map(), disposedProxies: 0, proxySignals: new Map(), properties: {\n        Id: 'fixture', Title: 'Fixture', Status: 'Active', IconName: 'fixture-symbolic',\n        AttentionIconName: '', ToolTip: ['', [], 'Fixture title', 'Fixture tip'],\n        ItemIsMenu: false, Menu: '/Menu',\n    }};
     const session = {
         get_unique_name: () => ':1.99',
         call(_bus, _path, _interface, _method, parameters, _reply, _flags, _timeout, _token, callback) {
@@ -24,16 +24,11 @@ function createHost() {
         call_finish() { return new MockVariant('(s)', [':1.23']); },
     };
     const itemProxy = {
-        connect() { return 7; },
+        connect(signal, callback) { state.proxySignals.set(signal, callback); return 7; },
         disconnect() {},
         run_dispose() { state.disposedProxies++; },
         get_cached_property(name) {
-            const values = {
-                Id: 'fixture', Title: 'Fixture', Status: 'Active', IconName: 'fixture-symbolic',
-                AttentionIconName: '', ToolTip: ['', [], 'Fixture title', 'Fixture tip'],
-                ItemIsMenu: false, Menu: '/Menu',
-            };
-            return name in values ? new MockVariant('', values[name]) : null;
+            return name in state.properties ? new MockVariant('', state.properties[name]) : null;
         },
     };
     const Gio = {
@@ -130,6 +125,23 @@ test('StatusNotifierWatcher registers items, exposes watcher state and removes v
     assert.equal(state.items.length, 0);
     assert.equal(state.disposedProxies, 1);
     assert.deepEqual(state.signals.at(-1), ['StatusNotifierItemUnregistered', [':1.23/org/example/Item']]);
+    host.destroy();
+});
+
+
+test('StatusNotifier item properties are cleared when D-Bus invalidates their cache', () => {
+    const {host, state} = createHost();
+    const invocation = {
+        get_sender: () => ':1.23',
+        return_value(value) { state.reply = value.deep_unpack(); },
+        return_dbus_error(name, message) { state.error = {name, message}; },
+    };
+    state.implementation.RegisterStatusNotifierItemAsync(['/org/example/Item'], invocation);
+    const item = state.items[0];
+    assert.equal(item.properties.Title, 'Fixture');
+    delete state.properties.Title;
+    state.proxySignals.get('g-properties-changed')(null, new MockVariant('a{sv}', {}), ['Title']);
+    assert.equal(Object.hasOwn(item.properties, 'Title'), false);
     host.destroy();
 });
 
