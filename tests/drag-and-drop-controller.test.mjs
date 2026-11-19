@@ -71,7 +71,7 @@ test('generic DND cleanup continues when Shell teardown rejects signal or monito
     assert.match(source, /DND\.removeDragMonitor\(monitor\)/);
     assert.match(source, /disconnectIfConnected\(draggable, signalId\)/);
     assert.match(source, /disconnectIfConnected\(actor, actorDestroySignal\)/);
-    assert.match(source, /emitter instanceof GObject\.Object && !GObject\.signal_handler_is_connected\(emitter, id\)/);
+    assert.match(source, /isGObject \|\| emitter instanceof GObject\.Object[\s\S]*?signal_handler_is_connected\(emitter as GObject\.Object, id\)/);
     assert.match(source, /actorDestroySignal = 0;[\s\S]*?callbacks\.onDestroy\?\.\(\)[\s\S]*?dispose\(\)/);
     assert.match(source, /actorDestroySignal = 0;[\s\S]*?dispose\(\);[\s\S]*?this\.targets\.set/);
 });
