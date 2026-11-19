@@ -1018,9 +1018,9 @@ export class RadioStatusMenu {
         this.header.setToggleState(enabled);
         this.header.setSensitive(Boolean(this.toggle) && this.toggle.visible !== false && this.toggle.reactive !== false);
         if (this.toggle?.icon_name) this.icon.icon_name = this.toggle.icon_name;
-        const devices = enabled ? (this.client?.getDevices?.() ?? []) : [];
-        const connected = devices.filter(device => device.connected);
-        const available = devices.filter(device => !device.connected && device.connectable !== false).slice(0, 4);
+        const devices = enabled ? Array.from(this.client?.getDevices?.() ?? []) : [];
+        const connected = Array.from(devices.filter(device => device.connected));
+        const available = Array.from(devices.filter(device => !device.connected && device.connectable !== false)).slice(0, 4);
         this._fill(this.connectedGrid, connected); this._fill(this.otherGrid, available);
         this.connectedLabel.visible = connected.length > 0; this.connectedGrid.get_parent().visible = connected.length > 0;
         this.otherLabel.visible = available.length > 0; this.otherGrid.get_parent().visible = available.length > 0;
