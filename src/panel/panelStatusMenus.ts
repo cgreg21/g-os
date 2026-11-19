@@ -591,10 +591,14 @@ export class NetworkStatusMenu {
         this.body.add_child(this.rowsBox);
         for (const entry of this.toggles) {
             const {toggle, title} = entry;
+            const isWifi = /wi-?fi|wifi/i.test(title);
             const button = new this.PopupMenu.PopupMenuItem(title);
-            const icon = new this.St.Icon({icon_name: this._iconFor(title), icon_size: 20,
+            const icon = new this.St.Icon({icon_name: isWifi
+                ? (toggle.icon_name || 'network-wireless-signal-none-symbolic')
+                : this._iconFor(title), icon_size: 20,
                 y_align: this.Clutter.ActorAlign.CENTER});
             button.insert_child_at_index(icon, 0);
+            button.label.text = isWifi ? (toggle.subtitle || title) : title;
             button.label.set_x_expand(true);
             const chevron = new this.St.Icon({icon_name: 'go-next-symbolic', icon_size: 16,
                 y_align: this.Clutter.ActorAlign.CENTER});
@@ -602,6 +606,12 @@ export class NetworkStatusMenu {
             button.visible = Boolean(toggle.checked && toggle.visible !== false);
             button.connect('activate', () => this.showDetail(toggle));
             this.rowsBox.add_child(button);
+            if (isWifi) {
+                this.overviewSignals.addSignal(toggle, toggle.connect('notify::subtitle', () =>
+                    this._refreshWifiRow(toggle)));
+                this.overviewSignals.addSignal(toggle, toggle.connect('notify::icon-name', () =>
+                    this._refreshWifiRow(toggle)));
+            }
             const content = previousContents.get(toggle)?.content ?? new NativeMenuContent(this.menu,
                 new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
                     style_class: 'g-os-network-native-content'}), {
@@ -623,6 +633,14 @@ export class NetworkStatusMenu {
         this.rowsBox.add_child(this.emptyLabel);
         this._appendSettingsItem();
         this._updateOverviewVisibility();
+    }
+
+    _refreshWifiRow(toggle) {
+        const state = this.contents.get(toggle);
+        if (!state || !/wi-?fi|wifi/i.test(state.entry.title))
+            return;
+        state.button.label.text = toggle.subtitle || state.entry.title;
+        state.icon.icon_name = toggle.icon_name || 'network-wireless-signal-none-symbolic';
     }
 
     _appendSettingsItem() {
@@ -915,6 +933,8 @@ export class NetworkStatusMenu {
             return;
         }
         this._updateOverviewVisibility();
+        for (const {entry} of this.contents.values())
+            this._refreshWifiRow(entry.toggle);
         const activeEntry = this.toggles.find(({toggle}) => toggle.checked);
         if (activeEntry?.toggle.icon_name)
             this.icon.icon_name = activeEntry.toggle.icon_name;
