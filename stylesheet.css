@@ -105,3 +105,9 @@
 .g-os-battery-percentage { font-size: 1.8em; font-weight: bold; }
 .g-os-status-battery-devices { spacing: 8px; }
 .g-os-status-battery-device { spacing: 10px; min-height: 28px; }
+.g-os-network-connection { spacing: 12px; padding: 8px; }
+.g-os-network-connection-text { spacing: 3px; }
+.g-os-network-connection-name { font-weight: bold; }
+.g-os-network-connection-detail { font-size: 0.82em; }
+.g-os-network-inline-content { spacing: 6px; }
+.g-os-network-traffic-graph { height: 58px; }
