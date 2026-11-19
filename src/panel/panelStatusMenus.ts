@@ -521,6 +521,7 @@ export class NetworkStatusMenu {
         this.cleanup = new CleanupManager();
         this.contents = new Map();
         this.transientItems = [];
+        this.overviewItems = [];
         this.activeView = null;
         menu.actor.add_style_class_name('g-os-network-popup');
         this._buildOverview();
@@ -541,16 +542,16 @@ export class NetworkStatusMenu {
         const heading = new this.PopupMenu.PopupMenuItem('Réseau',
             {reactive: false, can_focus: false});
         heading.add_style_class_name('g-os-network-heading');
-        this.menu.addMenuItem(heading);
+        this._addOverview(heading);
         const summary = new this.PopupMenu.PopupMenuItem('Connexions disponibles',
             {reactive: false, can_focus: false});
         summary.add_style_class_name('g-os-status-info');
-        this.menu.addMenuItem(summary);
+        this._addOverview(summary);
         for (const entry of this.toggles) {
             const {toggle, title} = entry;
             const row = new this.PopupMenu.PopupMenuItem('', {reactive: true, can_focus: true});
             row.connect('activate', () => this.showDetail(toggle));
-            this.menu.addMenuItem(row);
+            this._addOverview(row);
             const holderItem = new this.PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
             const holder = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
                 style_class: 'g-os-network-native-content'});
@@ -578,10 +579,16 @@ export class NetworkStatusMenu {
             const empty = new this.PopupMenu.PopupMenuItem('Aucun service réseau disponible',
                 {reactive: false, can_focus: false});
             empty.add_style_class_name('g-os-status-info');
-            this.menu.addMenuItem(empty);
+            this._addOverview(empty);
         }
-        this.menu.addMenuItem(new this.PopupMenu.PopupSeparatorMenuItem());
-        this.settingsItem = this.menu.addAction('Paramètres réseau', this.openSettings);
+        this._addOverview(new this.PopupMenu.PopupSeparatorMenuItem());
+        this.settingsItem = this._addOverview(this.menu.addAction('Paramètres réseau', this.openSettings));
+    }
+
+    _addOverview(item) {
+        this.overviewItems.push(item);
+        this.menu.addMenuItem(item);
+        return item;
     }
 
     _syncRows() {
@@ -606,7 +613,8 @@ export class NetworkStatusMenu {
             return;
         this._restoreActiveContent();
         this._removeDetailItems();
-        this.settingsItem.visible = true;
+        for (const item of this.overviewItems)
+            item.visible = true;
         this._syncRows();
     }
 
@@ -617,7 +625,8 @@ export class NetworkStatusMenu {
         this._removeDetailItems();
         const state = this.contents.get(toggle);
         this.activeView = toggle;
-        this.settingsItem.visible = false;
+        for (const item of this.overviewItems)
+            item.visible = false;
 
         const back = new this.PopupMenu.PopupMenuItem('‹  Tous les réseaux');
         back.add_style_class_name('g-os-network-back');
