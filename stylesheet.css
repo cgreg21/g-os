@@ -86,6 +86,6 @@
 
 /* A real St actor wraps the DND clone so GNOME Shell can render the same
    native St shadow for every topbar item, including the launcher. */
-.g-os-panel-dnd-actor {
+.g-os-dnd-drag-actor {
     -st-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
