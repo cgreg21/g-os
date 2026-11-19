@@ -965,9 +965,6 @@ export class RadioStatusMenu {
         this.toggle = toggle;
         this.destroyed = false;
         this.cleanup = new CleanupManager();
-        this.popupActors = [menu.actor, menu.box].filter(Boolean);
-        for (const actor of this.popupActors)
-            actor.add_style_class_name('g-os-bluetooth-popup');
         this.header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle?.checked));
         this.header.setSensitive(Boolean(toggle) && toggle.visible !== false && toggle.reactive !== false);
         this.cleanup.addSignal(this.header, this.header.connect('toggled', (actor, checked) => {
@@ -1066,8 +1063,6 @@ export class RadioStatusMenu {
         this.destroyed = true;
         this.content.destroy();
         this._restoreNativeContent();
-        for (const actor of this.popupActors ?? [])
-            actor.remove_style_class_name('g-os-bluetooth-popup');
         this.cleanup.clear();
     }
 }
