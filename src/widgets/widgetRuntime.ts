@@ -229,7 +229,6 @@ export class WidgetRuntime {
                 cancel();
             pending.clear();
         });
-        cleanup.push(() => { disposed = true; });
         let tooltipScreen = extra.screen;
         const attachTooltip = (button, title) => {
             if (!tooltipScreen) {
@@ -478,19 +477,23 @@ export class WidgetRuntime {
             createDockBuiltin: (type, context) => ({actor: host._addDockWidget(context.screen, type,
                 context.iconSize, context.iconPadding, instance)}),
         };
-        return {api, instance, monitor, target: instance.target, ...extra, orientation: Clutter.Orientation};
+        return {
+            context: {api, instance, monitor, target: instance.target, ...extra, orientation: Clutter.Orientation},
+            dispose: () => { disposed = true; },
+        };
     }
 
     create(instance, monitor, extra = {}) {
         const cleanup = [];
+        let widgetContext;
         let result;
         try {
             const entry = this.registry.entries.get(instance.widget);
             if (!entry)
                 throw new Error(`Widget non installe : ${instance.widget}`);
             this.loadStyle(entry);
-            const context = this.context(instance, monitor, extra, cleanup);
-            result = this.registry.create(instance.widget, context);
+            widgetContext = this.context(instance, monitor, extra, cleanup);
+            result = this.registry.create(instance.widget, widgetContext.context);
             if (!result?.actor || typeof result.actor.add_child !== 'function')
                 throw new Error('create(context) doit retourner {actor, destroy?}');
             const config = widgetConfiguration(entry.description, instance.config);
@@ -519,6 +522,7 @@ export class WidgetRuntime {
         result.actor.widgetInstance = instance;
         result.actor.connect('destroy', () => {
             instance.widgetActor = null;
+            widgetContext?.dispose();
             try { result.destroy?.(); } catch (error) { this.report(instance.id, error); }
             for (const callback of cleanup.reverse()) {
                 try { callback(); } catch (error) { this.report(instance.id, error); }
