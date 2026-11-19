@@ -44,7 +44,7 @@ test('dock reorder uses shared source registration and generic pointer motion', 
 const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
 test('panel and dock share the per-screen interaction controller', () => {
     assert.match(panelSource, /screen\.interactionDnd\.registerTarget\(zone/);
-    assert.match(panelSource, /screen\.interactionDnd\.registerSource\(actor/);
+    assert.match(panelSource, /registerShadowDragSource\(\{/);
     assert.doesNotMatch(panelSource, /new DragAndDropController/);
     assert.doesNotMatch(panelSource, /panelLayoutDnd/);
 });
