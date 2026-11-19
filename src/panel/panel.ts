@@ -774,8 +774,8 @@ export function withPanel(Base) {
                     // only a layout spacer and is destroyed at drag completion.
                     getDragActorSource: () => actor,
                 },
+                onDragActor: dragActor => this._beginPanelShadowDrag(screen, id, actor, dragActor),
                 callbacks: {
-                    onBegin: dragActor => this._beginPanelShadowDrag(screen, id, actor, dragActor),
                     onEnd: success => this._finishPanelShadowDrag(screen, success),
                     onCancelled: () => this._finishPanelShadowDrag(screen, false),
                     onDestroy: () => {
