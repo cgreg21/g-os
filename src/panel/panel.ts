@@ -761,15 +761,26 @@ export function withPanel(Base) {
             if (!actor || screen.interactionDnd.hasSource(actor))
                 return;
             actor._panelLayoutItemId = id;
+            // GNOME Shell emits drag-begin before asking the delegate for its
+            // drag actor. Capture the clone while the source is still parented;
+            // _beginPanelShadowDrag then replaces it with the visible placeholder.
+            let dragActor: Clutter.Clone | null = null;
+            const finishDrag = success => {
+                this._finishPanelShadowDrag(screen, success);
+                dragActor = null;
+            };
             screen.interactionDnd.registerSource(actor, {
                 panelLayoutItem: {screen, id},
-                getDragActor: () => new Clutter.Clone({source: actor}),
+                getDragActor: () => dragActor ?? new Clutter.Clone({source: actor}),
                 getDragActorSource: () => screen.panelDragState?.actor === actor
                     ? screen.panelDragState.placeholder : actor,
             }, {
-                onBegin: () => this._beginPanelShadowDrag(screen, id, actor),
-                onEnd: success => this._finishPanelShadowDrag(screen, success),
-                onCancelled: () => this._finishPanelShadowDrag(screen, false),
+                onBegin: () => {
+                    dragActor = new Clutter.Clone({source: actor});
+                    this._beginPanelShadowDrag(screen, id, actor);
+                },
+                onEnd: success => finishDrag(success),
+                onCancelled: () => finishDrag(false),
                 onDestroy: () => {
                     if (screen.panelDragState?.actor === actor)
                         this._finishPanelShadowDrag(screen, false);
