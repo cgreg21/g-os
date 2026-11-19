@@ -38,9 +38,8 @@ export function createPanelButton(St, Clutter, {
     visible = true,
     canFocus = true,
     reactive = true,
-    child = null,
 } = {}) {
-    const content = child ?? new St.BoxLayout({
+    const content = new St.BoxLayout({
         orientation: Clutter.Orientation.HORIZONTAL,
         y_expand: true,
         y_align: Clutter.ActorAlign.CENTER,
@@ -49,18 +48,16 @@ export function createPanelButton(St, Clutter, {
     let iconActor = icon;
     let labelActor = null;
 
-    if (!child) {
-        if (!iconActor && iconName)
-            iconActor = new St.Icon({icon_name: iconName, style_class: 'system-status-icon'});
-        if (iconActor)
-            content.add_child(iconActor);
-        if (text !== null && text !== undefined) {
-            labelActor = typeof text === 'string'
-                ? new St.Label({text, y_align: Clutter.ActorAlign.CENTER})
-                : text;
-            labelActor.y_align = Clutter.ActorAlign.CENTER;
-            content.add_child(labelActor);
-        }
+    if (!iconActor && iconName)
+        iconActor = new St.Icon({icon_name: iconName, style_class: 'system-status-icon'});
+    if (iconActor)
+        content.add_child(iconActor);
+    if (text !== null && text !== undefined) {
+        labelActor = typeof text === 'string'
+            ? new St.Label({text, y_align: Clutter.ActorAlign.CENTER})
+            : text;
+        labelActor.y_align = Clutter.ActorAlign.CENTER;
+        content.add_child(labelActor);
     }
 
     const button = new St.Button({
