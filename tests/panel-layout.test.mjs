@@ -267,3 +267,13 @@ test('network menu keeps connection, service grid, traffic and inline details in
     assert.ok(network.includes('insert_child_at_index(inline'));
     assert.ok(!network.includes('showDetail(toggle)'));
 });
+
+
+test('night light control uses the supported GNOME popup switch item', async () => {
+    const source = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const display = source.slice(source.indexOf('export class DisplayStatusMenu'), source.indexOf('class NativeMenuContent'));
+    assert.ok(display.includes('new PopupMenu.PopupSwitchMenuItem('));
+    assert.ok(display.includes("connect('toggled'"));
+    assert.ok(display.includes('nightLightItem.setToggleState(enabled)'));
+    assert.ok(!display.includes('new St.Switch'));
+});
