@@ -72,3 +72,7 @@ test('generic DND source setup rolls back partially acquired resources', () => {
     assert.match(source, /catch \(error\) \{\s*\/\/ Signal setup can fail part-way through[\s\S]*?dispose\(\);\s*throw error;/);
     assert.match(source, /catch \(error\) \{\s*restoreDelegate\(\);\s*throw error;/);
 });
+
+test('generic DND target setup restores the previous delegate when signal registration fails', () => {
+    assert.match(source, /try \{\s*actorDestroySignal = actor\.connect\('destroy', dispose\);\s*this\.targets\.set\(actor, dispose\);[\s\S]*?catch \(error\) \{\s*\/\/ Restore the previous delegate[\s\S]*?dispose\(\);\s*throw error;/);
+});
