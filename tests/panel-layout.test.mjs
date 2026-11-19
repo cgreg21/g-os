@@ -244,3 +244,11 @@ test('sound and display menus use compact icon-led controls', async () => {
     assert.ok(display.includes('this.temperatureRow.visible = enabled'));
     assert.ok(!display.includes('Luminosité :'));
 });
+
+test('Bluetooth menu shows connected and available devices in compact icon grids', async () => {
+    const source = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const bluetooth = source.slice(source.indexOf('export class RadioStatusMenu'), source.indexOf('export class BatteryStatusMenu'));
+    assert.ok(bluetooth.includes('toggleDevice(device)'));
+    assert.ok(bluetooth.includes('Périphériques connectés'));
+    assert.ok(bluetooth.includes('g-os-status-device-grid'));
+});
