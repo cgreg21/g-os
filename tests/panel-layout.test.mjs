@@ -278,3 +278,13 @@ test('night light control uses the supported GNOME popup switch item', async () 
     assert.ok(display.includes('nightLightItem.setToggleState(enabled)'));
     assert.ok(!display.includes('new St.Switch'));
 });
+
+test('sound menu hides disabled volume controls when no output stream exists', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('export class SoundStatusMenu');
+    const end = menus.indexOf('export class DisplayStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.match(source, /this\.volumeRow = row/);
+    assert.match(source, /this\.volumeRow\.visible = Boolean\(this\.stream\)/);
+    assert.match(source, /Aucune sortie audio disponible/);
+});
