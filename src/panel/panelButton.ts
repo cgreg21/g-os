@@ -81,3 +81,15 @@ export function applyPanelButtonMetrics(button, metrics) {
     button.panelIcon?.set_style?.(`icon-size: ${metrics.iconSize}px;`);
     button.panelLabel?.set_style?.(`font-size: ${metrics.fontSize}px;`);
 }
+
+/**
+ * The menu variant deliberately remains an St.Button. Popup behavior is
+ * composed onto the same shared button instead of using PanelMenu.Button.
+ */
+export function createPanelMenuButton(St, Clutter, PopupMenu, options = {}) {
+    const button = createPanelButton(St, Clutter, options);
+    const panelButton = button as any;
+    panelButton.container = button;
+    panelButton.menu = new PopupMenu.PopupMenu(button, 0.5, St.Side.TOP);
+    return panelButton;
+}
