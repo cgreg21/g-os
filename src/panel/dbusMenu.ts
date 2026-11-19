@@ -145,6 +145,7 @@ export class DbusMenuClient {
                 } catch (error) {
                     if (!this.disposed) {
                         this.error = String(error);
+                        this._clearNodeModels();
                         this.nodes.clear();
                         this.signature = '';
                         this.model.items = [];
@@ -160,11 +161,17 @@ export class DbusMenuClient {
             });
     }
 
+    _clearNodeModels(nodes = this.nodes) {
+        for (const node of nodes.values())
+            node.model?.clear();
+    }
+
     _apply(layout) {
         const {root, nodes} = decodeDbusMenuLayout(layout);
         const signature = JSON.stringify(root);
         if (signature === this.signature)
             return;
+        this._clearNodeModels();
         const populate = node => {
             node.model = new DbusMenuModel(this, node.id,
                 node.children.filter(child => child.properties.visible !== false));
@@ -212,8 +219,7 @@ export class DbusMenuClient {
         this.signal = 0;
         this.proxy?.run_dispose?.();
         this.proxy = null;
-        for (const node of this.nodes.values())
-            node.model?.clear();
+        this._clearNodeModels();
         this.nodes.clear();
         this.model.items = [];
         this.model.clear();
