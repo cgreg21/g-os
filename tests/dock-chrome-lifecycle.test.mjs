@@ -114,3 +114,22 @@ test('widget list scroll view waits until it is mapped before attaching content'
 test('window preview scroll view is inserted into the staged menu before attaching content', () => {
     assert.match(windowPreviewsSource, /item\.add_child\(scroll\);[\s\S]*?this\.menu\.addMenuItem\(item\);[\s\S]*?scroll\.set_child\(box\)/);
 });
+
+
+const actorUtilsSource = await readFile(new URL('../src/core/actorUtils.ts', import.meta.url), 'utf8');
+const panelSource = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+const globalMenuSource = await readFile(new URL('../src/panel/globalMenu.ts', import.meta.url), 'utf8');
+const windowPreviewsSource = await readFile(new URL('../src/dock/windowPreviews.ts', import.meta.url), 'utf8');
+const desktopIconsSource = await readFile(new URL('../src/desktop/desktopIcons.ts', import.meta.url), 'utf8');
+const widgetRuntimeSource = await readFile(new URL('../src/widgets/widgetRuntime.ts', import.meta.url), 'utf8');
+
+test('scroll view content is attached only after the actor is mapped on stage', () => {
+    assert.match(actorUtilsSource, /if \(!actor\.is_mapped\(\)\)[\s\S]*?actor\.set_child\(child\)/);
+    assert.match(actorUtilsSource, /actor\.connect\('notify::mapped', attach\)/);
+    assert.match(panelSource, /setChildWhenMapped\(scroll, menu\.box\)/);
+    assert.match(panelSource, /setChildWhenMapped\(scroll, screen\.calendarEventList\)/);
+    assert.match(globalMenuSource, /setChildWhenMapped\(scrollView, menu\.box\)/);
+    assert.match(windowPreviewsSource, /setChildWhenMapped\(scroll, box\)/);
+    assert.match(desktopIconsSource, /setChildWhenMapped\(scroll, content\)/);
+    assert.match(widgetRuntimeSource, /setChildWhenMapped\(actor, content\)/);
+});
