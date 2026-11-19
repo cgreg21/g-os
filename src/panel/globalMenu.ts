@@ -83,7 +83,11 @@ export class GtkGlobalMenu {
     }
 
     _clearButtons() {
-        for (const {button, menu} of this.buttons) {
+        // Clear ownership before invoking GNOME teardown: closing or destroying
+        // a popup may synchronously re-enter this cleanup path.
+        const buttons = this.buttons.splice(0);
+        this.submenus = [];
+        for (const {button, menu} of buttons) {
             try {
                 menu.close({animate: false});
             } catch {
@@ -106,8 +110,6 @@ export class GtkGlobalMenu {
                 // The button may already have been disposed by its parent.
             }
         }
-        this.buttons = [];
-        this.submenus = [];
         this.container.hide();
     }
 
