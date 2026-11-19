@@ -2,10 +2,6 @@ import type Clutter from 'gi://Clutter';
 import type {LifecycleScope} from '../../core/lifecycleScope.js';
 import type {DragAndDropController, DragSourceCallbacks, DragSourceOptions} from './dragAndDrop.js';
 
-type ShadowDragSourceCallbacks = Omit<DragSourceCallbacks, 'onBegin'> & {
-    onBegin?: (dragActor: Clutter.Actor) => void;
-};
-
 type ShadowDragSourceOptions = {
     controller: DragAndDropController;
     actor: Clutter.Actor & {_delegate?: Record<string, unknown> | null};
@@ -13,7 +9,8 @@ type ShadowDragSourceOptions = {
     St: any;
     Clutter: any;
     delegate?: Record<string, unknown>;
-    callbacks?: ShadowDragSourceCallbacks;
+    callbacks?: DragSourceCallbacks;
+    onDragActor?: (dragActor: Clutter.Actor) => void;
     options?: DragSourceOptions;
     lifecycle?: LifecycleScope | null;
 };
@@ -33,6 +30,7 @@ export function registerShadowDragSource({
     Clutter,
     delegate = {},
     callbacks = {},
+    onDragActor,
     options = {},
     lifecycle = null,
 }: ShadowDragSourceOptions) {
@@ -77,7 +75,8 @@ export function registerShadowDragSource({
             // GNOME Shell asks for getDragActor after drag-begin. Capture the
             // clone before feature behavior replaces the source actor.
             dragActor = createDragActor();
-            callbacks.onBegin?.(dragActor);
+            callbacks.onBegin?.();
+            onDragActor?.(dragActor);
         },
         onEnd: success => finish(() => callbacks.onEnd?.(success)),
         onCancelled: () => finish(() => callbacks.onCancelled?.()),
