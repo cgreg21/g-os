@@ -138,6 +138,11 @@ test('network overview uses a compact connection card, icon grid and inline devi
     assert.ok(overview.includes('connectionCard'));
     assert.ok(overview.includes('g-os-status-device-grid'));
     assert.ok(overview.includes('_buildTrafficGraph'));
+    assert.ok(overview.includes('this._appendSettingsItem()'));
+    assert.ok(source.includes("    _appendSettingsItem() {"));
+    assert.ok(source.includes("new this.PopupMenu.PopupSeparatorMenuItem()"));
+    assert.ok(source.includes("_button('Paramètres', 'popup-menu-item'"));
+    assert.ok(source.includes('this.openSettings?.()'));
     assert.ok(overview.includes('this._refreshConnectionCard()'));
     assert.ok(overview.includes('this._toggleInlineContent(toggle)'));
     assert.ok(source.includes('insert_child_at_index(inline'));
