@@ -25,6 +25,15 @@ import {CleanupManager} from '../core/cleanupManager.js';
 import {calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
+function getActorParent(actor) {
+    try {
+        return actor?.get_parent?.() ?? null;
+    } catch {
+        // GJS may throw when a native Clutter actor has already been disposed.
+        return null;
+    }
+}
+
 const DEFAULT_PANEL_LAYOUT = [
     'left:launcher', 'left:application', 'left:global-menu', 'left:transfer',
     'center:clock',
@@ -728,8 +737,10 @@ export function withPanel(Base) {
                 });
                 screen.panelLayoutGroups.set(group, {zone, content});
             }
-            for (const child of screen.panel.get_children())
-                screen.panel.remove_child(child);
+            for (const child of screen.panel.get_children()) {
+                if (getActorParent(child) === screen.panel)
+                    screen.panel.remove_child(child);
+            }
             for (const group of PANEL_LAYOUT_GROUPS)
                 screen.panel.add_child(screen.panelLayoutGroups.get(group).zone);
             for (const [id, actor] of screen.panelLayoutItems)
@@ -789,11 +800,18 @@ export function withPanel(Base) {
         _beginPanelShadowDrag(screen, id, actor, dragActor) {
             if (screen.panelDragState)
                 this._finishPanelShadowDrag(screen, false);
-            if (!actor || actor.is_destroyed() || !dragActor || dragActor.is_destroyed())
+            const parent = getActorParent(actor);
+            if (!parent || !getActorParent(dragActor) && !dragActor)
                 return;
-            const parent = actor.get_parent();
-            if (!parent || parent.is_destroyed())
+            try {
+                // Accessing a disposed native actor can throw in GJS. A live
+                // drag source must still be attached to its original parent.
+                if (actor.get_parent() !== parent)
+                    return;
+                dragActor.get_child_at_index(0);
+            } catch {
                 return;
+            }
             const index = parent.get_children().indexOf(actor);
             if (index < 0)
                 return;
@@ -817,12 +835,13 @@ export function withPanel(Base) {
                 parent.insert_child_at_index(placeholder, index);
                 // Shell callbacks can change the source parent while a drag starts.
                 // Never remove an actor from a parent it no longer belongs to.
-                if (actor.get_parent() === parent)
+                if (getActorParent(actor) === parent)
                     parent.remove_child(actor);
             } catch (error) {
                 screen.panelDragState = null;
-                if (placeholder.get_parent())
-                    placeholder.get_parent().remove_child(placeholder);
+                const currentParent = getActorParent(placeholder);
+                if (currentParent)
+                    currentParent.remove_child(placeholder);
                 placeholder.destroy();
                 throw error;
             }
@@ -835,13 +854,17 @@ export function withPanel(Base) {
             // Clear state first: destroy/remove signals may re-enter this method.
             screen.panelDragState = null;
             this._clearPanelDropZone(screen);
-            const placeholderParent = state.placeholder.get_parent();
+            const placeholderParent = getActorParent(state.placeholder);
             if (placeholderParent)
                 placeholderParent.remove_child(state.placeholder);
-            if (!success && state.actor && !state.actor.is_destroyed() &&
-                state.parent && !state.parent.is_destroyed() && !state.actor.get_parent()) {
-                state.parent.insert_child_at_index(state.actor,
-                    Math.min(state.index, state.parent.get_n_children()));
+            if (!success && !getActorParent(state.actor)) {
+                try {
+                    const parentChildren = state.parent.get_children();
+                    state.parent.insert_child_at_index(state.actor,
+                        Math.min(state.index, parentChildren.length));
+                } catch {
+                    // The original parent may have been disposed with its panel.
+                }
             }
             state.placeholder.destroy();
         }
