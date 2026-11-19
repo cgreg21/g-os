@@ -117,7 +117,9 @@ export function openWidgetManager(parent, settings, target = 'desktop', requeste
     };
     const selectedMonitor = () => target === 'desktop' ? monitors[monitorRow.selected]?.id ?? null : '*';
     const write = values => {
-        if (settings.is_writable('widget-instances')) {
+        if (closed || !settings.is_writable('widget-instances'))
+            return;
+        {
             const removed = storedInstances().filter(instance => !values.some(value => value.id === instance.id));
             settings.set_string('widget-instances', JSON.stringify(values));
             if (removed.length > 0 && settings.is_writable('widget-state')) {
