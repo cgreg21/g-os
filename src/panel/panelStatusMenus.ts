@@ -454,6 +454,8 @@ export class RadioStatusMenu {
         this.header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle?.checked));
         this.header.setSensitive(Boolean(toggle) && toggle.visible !== false && toggle.reactive !== false);
         this.cleanup.addSignal(this.header, this.header.connect('toggled', (actor, checked) => {
+            if (this.destroyed)
+                return;
             if (toggle && checked !== Boolean(toggle.checked))
                 toggle.emit('clicked', 1);
         }));
