@@ -60,3 +60,32 @@ test('view options combine defaults and per-folder overrides while rejecting out
     });
     assert.deepEqual(folderViewOptions(settings, 'grille').rows, 6);
 });
+
+test('unknown folder views and malformed stored options fall back safely', () => {
+    const settings = createSettings({'dock-view-options': {
+        pile: null,
+        'folder-a:pile': ['not', 'an', 'options', 'object'],
+    }});
+    assert.deepEqual(folderViewOptions(settings, 'unknown'), {});
+    assert.deepEqual(folderViewOptions(settings, 'pile', 'folder-a'), {
+        'text-size': 12,
+        'icon-size': 48,
+        spacing: 6,
+        'max-files': 9,
+        'sort-order': 0,
+    });
+
+    const brokenSettings = {
+        ...settings,
+        get_value() { throw new Error('invalid setting variant'); },
+    };
+    assert.deepEqual(folderViewOptions(brokenSettings, 'grille'), {
+        'text-size': 10,
+        'icon-size': 36,
+        'horizontal-spacing': 8,
+        'vertical-spacing': 8,
+        columns: 4,
+        rows: 6,
+        'sort-order': 0,
+    });
+});
