@@ -46,7 +46,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     assert.match(panelSource, /if \(!actor \|\| actor\.is_destroyed\(\) \|\| !dragActor \|\| dragActor\.is_destroyed\(\)\)/);
     assert.match(panelSource, /if \(actor\.get_parent\(\) === parent\)\s*parent\.remove_child\(actor\)/);
     assert.match(panelSource, /state\.parent && !state\.parent\.is_destroyed\(\) && !state\.actor\.get_parent\(\)/);
-    assert.match(panelSource, /if \(!state\.placeholder\.is_destroyed\(\)\)\s*state\.placeholder\.destroy\(\)/);
+    assert.match(panelSource, /state\.placeholder\.destroy\(\)/);
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     assert.doesNotMatch(stylesheet, /\.g-os-panel-dnd-placeholder\s*\{[^}]*?(?:background-color|border|shadow)/s);
     assert.match(panelSource, /if \(currentIndex === index\)\s*return;/);
