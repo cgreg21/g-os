@@ -53,7 +53,11 @@ export class ChromeActorManager<T extends object> {
         try {
             this.removeActor(actor);
         } catch (error) {
-            logError(error as Error, 'Unable to remove g-os chrome actor');
+            try {
+                logError(error as Error, 'Unable to remove g-os chrome actor');
+            } catch {
+                // Keep releasing remaining actors if the host logger also fails.
+            }
         }
     }
 
