@@ -59,11 +59,29 @@ export class DragAndDropController {
         );
         actor._delegate = composedDelegate;
 
-        const draggable = DND.makeDraggable(actor, {
-            dragActorOpacity: options.dragActorOpacity,
-        });
+        const restoreDelegate = () => {
+            if (actor._delegate !== composedDelegate)
+                return;
+            if (previousDelegate)
+                actor._delegate = previousDelegate;
+            else
+                delete actor._delegate;
+        };
+
+        let draggable: ReturnType<typeof DND.makeDraggable>;
+        try {
+            draggable = DND.makeDraggable(actor, {
+                dragActorOpacity: options.dragActorOpacity,
+            });
+        } catch (error) {
+            restoreDelegate();
+            throw error;
+        }
+
         let disposed = false;
         let dragMonitor: {dragMotion: (event: any) => number} | null = null;
+        let actorDestroySignal = 0;
+        const signalIds: number[] = [];
         const removeDragMonitor = () => {
             if (!dragMonitor)
                 return;
@@ -76,28 +94,6 @@ export class DragAndDropController {
                 logError(error as Error, 'Unable to remove g-os drag monitor');
             }
         };
-        const signalIds = [
-            draggable.connect('drag-begin', () => {
-                callbacks.onBegin?.();
-                if (callbacks.onMotion) {
-                    dragMonitor = {
-                        dragMotion: event => {
-                            callbacks.onMotion?.(event);
-                            return DND.DragMotionResult.CONTINUE;
-                        },
-                    };
-                    DND.addDragMonitor(dragMonitor);
-                }
-            }),
-            draggable.connect('drag-end', (_draggable, _time, success) => {
-                removeDragMonitor();
-                callbacks.onEnd?.(Boolean(success));
-            }),
-            draggable.connect('drag-cancelled', () => {
-                callbacks.onCancelled?.();
-            }),
-        ];
-        let actorDestroySignal = 0;
 
         const dispose = () => {
             if (disposed)
@@ -118,24 +114,45 @@ export class DragAndDropController {
                     logError(error as Error, 'Unable to disconnect g-os actor destroy signal');
                 }
             }
-            if (actor._delegate === composedDelegate) {
-                if (previousDelegate)
-                    actor._delegate = previousDelegate;
-                else
-                    delete actor._delegate;
-            }
+            restoreDelegate();
             this.sources.delete(actor);
         };
 
-        actorDestroySignal = actor.connect('destroy', () => {
-            try {
-                callbacks.onDestroy?.();
-            } finally {
-                dispose();
-            }
-        });
-        this.sources.set(actor, {dispose});
-        lifecycle?.add(dispose);
+        try {
+            signalIds.push(draggable.connect('drag-begin', () => {
+                callbacks.onBegin?.();
+                if (callbacks.onMotion) {
+                    dragMonitor = {
+                        dragMotion: event => {
+                            callbacks.onMotion?.(event);
+                            return DND.DragMotionResult.CONTINUE;
+                        },
+                    };
+                    DND.addDragMonitor(dragMonitor);
+                }
+            }));
+            signalIds.push(draggable.connect('drag-end', (_draggable, _time, success) => {
+                removeDragMonitor();
+                callbacks.onEnd?.(Boolean(success));
+            }));
+            signalIds.push(draggable.connect('drag-cancelled', () => {
+                callbacks.onCancelled?.();
+            }));
+            actorDestroySignal = actor.connect('destroy', () => {
+                try {
+                    callbacks.onDestroy?.();
+                } finally {
+                    dispose();
+                }
+            });
+            this.sources.set(actor, {dispose});
+            lifecycle?.add(dispose);
+        } catch (error) {
+            // Signal setup can fail part-way through; release every acquired
+            // connection and restore the actor delegate before propagating it.
+            dispose();
+            throw error;
+        }
         return dispose;
     }
 
