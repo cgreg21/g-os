@@ -221,6 +221,23 @@ test('destroyed sound menus ignore queued output updates', () => {
     assert.equal(controller.refreshDevices(), undefined);
 });
 
+test('destroyed sound menus ignore queued volume and mute interactions', () => {
+    const controller = Object.create(SoundStatusMenu.prototype);
+    controller.destroyed = true;
+    controller.Clutter = {EVENT_STOP: 'stop'};
+    controller.control = {
+        get_vol_max_norm: () => assert.fail('destroyed menu must not query audio'),
+    };
+    controller.stream = {
+        set_volume: () => assert.fail('destroyed menu must not change volume'),
+        change_is_muted: () => assert.fail('destroyed menu must not change mute state'),
+    };
+    assert.equal(controller.changeVolume(), undefined);
+    assert.equal(controller._syncAmplification(), undefined);
+    assert.equal(controller.adjustVolume(0), 'stop');
+    assert.equal(controller.toggleMute(), undefined);
+});
+
 test('sound slider reaches amplified volume only while the system allows it', () => {
     let amplificationEnabled = false;
     const soundSettings = new MockEmitter();
