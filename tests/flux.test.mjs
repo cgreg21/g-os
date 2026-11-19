@@ -350,3 +350,15 @@ test('Flux session isolates listener failures so other views still update', () =
     assert.equal(updates, 1);
     session.destroy();
 });
+
+
+test('Flux session does not retain subscriptions created after disposal', () => {
+    const session = new FluxSession({sources: {}}, {GLib: {}});
+    session.destroy();
+    let updates = 0;
+    const unsubscribe = session.subscribe(() => { updates++; });
+
+    assert.doesNotThrow(() => unsubscribe());
+    assert.doesNotThrow(() => session.notify());
+    assert.equal(updates, 0);
+});
