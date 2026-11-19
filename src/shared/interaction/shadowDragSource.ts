@@ -45,6 +45,7 @@ export function registerShadowDragSource({
         container.add_child(new Clutter.Clone({source: visualActor, reactive: false}));
         return container;
     };
+    controller.unregisterSource(actor);
     const originalDelegate = actor._delegate;
     const delegateGetDragActorSource = delegate.getDragActorSource as ((...args: any[]) => unknown) | undefined;
     const originalGetDragActorSource = originalDelegate?.getDragActorSource as
