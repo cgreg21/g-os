@@ -96,18 +96,21 @@
 }
 
 .g-os-network-shell-item {
+    width: 390px;
     padding: 0;
     border-radius: 18px;
     background-color: transparent;
 }
 
 .g-os-network-scroll {
+    width: 390px;
     max-height: 560px;
     min-height: 120px;
     border-radius: 18px;
 }
 
 .g-os-network-panel {
+    width: 390px;
     spacing: 12px;
     padding: 16px;
 }
