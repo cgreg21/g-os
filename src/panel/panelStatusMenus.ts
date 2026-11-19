@@ -49,7 +49,7 @@ export class SoundStatusMenu {
         this.cleanup = new CleanupManager();
         this.streamCleanup = new CleanupManager();
         const row = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        row.add_style_class_name('g-os-status-control-row');
+        row.add_style_class_name?.('g-os-status-control-row');
         this.muteIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 20});
         this.muteButton = new St.Button({child: this.muteIcon, can_focus: true, reactive: true, track_hover: true,
             style_class: 'g-os-sound-mute', accessible_name: 'Couper le son'});
@@ -268,7 +268,7 @@ export class DisplayStatusMenu {
         this.cancellable = new Gio.Cancellable(); this.cleanup = new CleanupManager();
         this.nightLight = new Gio.Settings({schema_id: 'org.gnome.settings-daemon.plugins.color'});
         const brightness = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        brightness.add_style_class_name('g-os-status-control-row');
+        brightness.add_style_class_name?.('g-os-status-control-row');
         this.brightnessIcon = new St.Icon({icon_name: 'display-brightness-symbolic', icon_size: 20});
         this.brightnessSlider = new Slider.Slider(0); this.brightnessSlider.width = 230;
         this.brightnessSlider.accessible_name = 'Luminosité de l’écran';
@@ -281,6 +281,7 @@ export class DisplayStatusMenu {
 
         this.nightLightItem = new PopupMenu.PopupSwitchMenuItem(
             'Mode nuit', this.nightLight.get_boolean('night-light-enabled'));
+        this.nightLightToggle = this.nightLightItem;
         menu.addMenuItem(this.nightLightItem);
         this.cleanup.addSignal(this.nightLightItem, this.nightLightItem.connect('toggled', (_item, state) => {
             if (!this.destroyed && !this.syncingNightLight)
@@ -288,7 +289,7 @@ export class DisplayStatusMenu {
         }));
 
         this.temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        this.temperatureRow.add_style_class_name('g-os-status-control-row');
+        this.temperatureRow.add_style_class_name?.('g-os-status-control-row');
         this.temperatureRow.add_child(new St.Icon({icon_name: 'thermometer-sun-symbolic', icon_size: 20}));
         this.temperatureSlider = new Slider.Slider(0); this.temperatureSlider.width = 200;
         this.temperatureSlider.accessible_name = 'Température du mode nuit';
