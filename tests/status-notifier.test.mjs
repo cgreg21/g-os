@@ -148,3 +148,31 @@ test('StatusNotifierWatcher verifies well-known item names belong to the registe
     assert.equal(STATUS_NOTIFIER_PATH, '/StatusNotifierWatcher');
     host.destroy();
 });
+
+test('StatusNotifier pixbuf conversion reuses cached decoded pixels across topbar screens', async () => {
+    const {GOSCache} = await import('../dist/core/cache.js');
+    const cache = new GOSCache(8, 5 * 60 * 1000);
+    let conversions = 0;
+    const GdkPixbuf = {
+        Colorspace: {RGB: 0},
+        Pixbuf: {new_from_bytes: (...args) => ({id: ++conversions, pixels: [...args[0].data]})},
+    };
+    const GLib = {Bytes: class { constructor(data) { this.data = data; } }};
+    const firstPixels = [[1, 1, [255, 12, 34, 56]]];
+    const first = createStatusNotifierPixbuf(firstPixels, GdkPixbuf, GLib, cache);
+    const reused = createStatusNotifierPixbuf(firstPixels, GdkPixbuf, GLib, cache);
+    assert.equal(reused, first);
+    assert.equal(conversions, 1);
+    assert.deepEqual(cache.statistics, {size: 1, hits: 1, misses: 1});
+
+    const changed = createStatusNotifierPixbuf([[1, 1, [255, 12, 34, 57]]], GdkPixbuf, GLib, cache);
+    assert.notEqual(changed, first);
+    assert.equal(conversions, 2);
+    assert.equal(cache.size, 2);
+});
+
+test('topbar StatusNotifier conversion receives the extension-wide cache', async () => {
+    const {readFile} = await import('node:fs/promises');
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    assert.match(panel, /createStatusNotifierPixbuf\(pixmaps, GdkPixbuf, GLib, this\._cache\)/);
+});
