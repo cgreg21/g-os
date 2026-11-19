@@ -85,3 +85,31 @@ test('continues releasing actors when a removal callback fails', () => {
 
     assert.equal(removed.length, 3);
 });
+
+
+test('releases an actor when host registration re-enters destroy', () => {
+    const actor = {};
+    const removed = [];
+    let manager;
+    manager = new ChromeActorManager(
+        () => manager.destroy(),
+        value => removed.push(value),
+    );
+
+    manager.add(actor);
+
+    assert.deepEqual(removed, [actor]);
+    assert.equal(manager.size, 0);
+    assert.equal(manager.isDestroyed, true);
+});
+
+test('does not retain an actor when host registration throws', () => {
+    const actor = {};
+    const manager = new ChromeActorManager(
+        () => { throw new Error('registration failed'); },
+        () => {},
+    );
+
+    assert.throws(() => manager.add(actor), /registration failed/);
+    assert.equal(manager.size, 0);
+});
