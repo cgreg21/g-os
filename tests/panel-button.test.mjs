@@ -274,8 +274,8 @@ test('topbar item spacing is a live setting independent from button padding', as
     const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     assert.match(panel, /const itemSpacing = this\._settings\.get_int\('panel-item-spacing'\)/);
-    assert.match(panel, /screen\.panel\.set_style\([^\n]*spacing: \\$\{metrics\.itemSpacing\}px/);
-    assert.match(panel, /content\.set_style\(\\`spacing: \\$\{metrics\.itemSpacing\}px/);
+    assert.ok(panel.includes("screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px; spacing: ${metrics.itemSpacing}px;`));
+    assert.ok(panel.includes("content.set_style(`spacing: ${metrics.itemSpacing}px;`)"));
     assert.match(extension, /'panel-icon-padding', 'panel-item-spacing'/);
     assert.doesNotMatch(stylesheet, /\.g-os-secondary-panel\s*\{[^}]*\bspacing:/s);
     assert.doesNotMatch(stylesheet, /\.g-os-panel-zone-content\s*\{[^}]*\bspacing:/s);
