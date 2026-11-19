@@ -59,3 +59,9 @@ test('topbar and dock share the lifecycle-owned per-screen controller', () => {
     assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
     assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
 });
+
+test('generic DND cleanup continues when Shell teardown rejects signal or monitor removal', () => {
+    assert.match(source, /const monitor = dragMonitor;\s*dragMonitor = null;\s*try \{\s*DND\.removeDragMonitor\(monitor\)/);
+    assert.match(source, /try \{\s*draggable\.disconnect\(signalId\);\s*\} catch/);
+    assert.match(source, /try \{\s*actor\.disconnect\(actorDestroySignal\);\s*\} catch/);
+});
