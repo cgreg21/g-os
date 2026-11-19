@@ -20,7 +20,7 @@ import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
 import {CleanupManager} from '../core/cleanupManager.js';
-import {PANEL_BUTTON_SPACING, calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
+import {calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -869,13 +869,14 @@ export function withPanel(Base) {
             const height = this._settings.get_int('panel-height');
             const horizontalPadding = this._settings.get_int('panel-padding-horizontal');
             const buttonPadding = this._settings.get_int('panel-icon-padding');
+            const itemSpacing = this._settings.get_int('panel-item-spacing');
             const verticalPadding = Math.min(this._settings.get_int('panel-padding-vertical'),
                 Math.max(0, Math.floor((height - 22) / 2)));
             const metrics = calculatePanelButtonMetrics({
                 panelHeight: height,
                 panelVerticalPadding: verticalPadding,
                 buttonPadding,
-                spacing: PANEL_BUTTON_SPACING,
+                itemSpacing,
             });
             const availableLabelWidth = Math.max(48, screen.monitor.width - 360 - horizontalPadding * 2);
             const labelLength = screen.appLabel.text?.length ?? 0;
@@ -883,7 +884,7 @@ export function withPanel(Base) {
             screen.appFontSize = calculatePanelLabelFontSize(metrics.fontSize, labelLength, availableLabelWidth);
             screen.iconSize = metrics.iconSize;
             screen.panelButtonMetrics = metrics;
-            screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px; spacing: ${metrics.spacing}px;`);
+            screen.panel.set_style(`padding: ${verticalPadding}px ${horizontalPadding}px; spacing: ${metrics.itemSpacing}px;`);
 
             screen.appLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             screen.appLabel.y_align = Clutter.ActorAlign.CENTER;
@@ -904,11 +905,11 @@ export function withPanel(Base) {
             // does not overwrite the width-aware font size.
             screen.appLabel.set_style(`font-size: ${screen.appFontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
             for (const {content} of screen.panelLayoutGroups?.values() ?? [])
-                content.set_style(`spacing: ${metrics.spacing}px;`);
-            screen.statusNotifierBox?.set_style(`spacing: ${metrics.spacing}px;`);
+                content.set_style(`spacing: ${metrics.itemSpacing}px;`);
+            screen.statusNotifierBox?.set_style(`spacing: ${metrics.itemSpacing}px;`);
             if (screen.globalMenuBox) {
                 screen.globalMenuBox.y_align = Clutter.ActorAlign.CENTER;
-                screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px; spacing: ${metrics.spacing}px;`);
+                screen.globalMenuBox.set_style(`font-size: ${screen.fontSize}px; spacing: ${metrics.itemSpacing}px;`);
             }
             for (const button of screen.globalMenuBox?.get_children() ?? []) {
                 applyPanelButtonMetrics(button, metrics);
