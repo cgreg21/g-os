@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 const session = await readFile(new URL('../scripts/dev-session.sh', import.meta.url), 'utf8');
 
 test('development session waits for GNOME Shell startup completion before enabling extensions', () => {
-    const dbusReady = session.indexOf('wait "$WAIT_PID"');
+    const dbusReady = session.indexOf('if ! wait "$WAIT_PID"; then');
     const startupWait = session.indexOf('until grep -q "GNOME Shell started at" "$SHELL_LOG"');
     const watchStart = session.indexOf('npm run dev:watch');
     assert.ok(dbusReady >= 0);
