@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
 import {CleanupManager} from '../core/cleanupManager.js';
+import {resolveActiveTransfers} from './transferProgress.js';
 
 export function withDockActivity(Base) {
     return class extends Base {
@@ -87,13 +88,7 @@ export function withDockActivity(Base) {
                 GLib.source_remove(this._transferIndicatorSource);
                 this._transferIndicatorSource = 0;
             }
-            const active = new Map();
-            for (const entries of this._launcherEntries.values()) {
-                for (const [appId, entry] of entries) {
-                    if (entry.visible && (!active.has(appId) || entry.revision > active.get(appId).revision))
-                        active.set(appId, entry);
-                }
-            }
+            const active = resolveActiveTransfers(this._launcherEntries.values());
             this._activeTransfers = active;
             const totalText = active.size === 1
                 ? `${Math.round(active.values().next().value.progress * 100)} %`
