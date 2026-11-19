@@ -221,7 +221,7 @@ export function withDesktopIcons(Base) {
             const area = Main.layoutManager.getWorkAreaForMonitor(monitor.index);
             const content = new St.Viewport({layout_manager: new Clutter.FixedLayout(), width: area.width,
                 height: area.height});
-            const scroll = new St.ScrollView({child: content, reactive: true,
+            const scroll = new St.ScrollView({reactive: true,
                 hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
             const contextClick = new Clutter.ClickGesture({required_button: Clutter.BUTTON_SECONDARY,
                 recognize_on_press: true});
@@ -242,6 +242,7 @@ export function withDesktopIcons(Base) {
             scroll.set_size(area.width, area.height);
             const parent = Main.layoutManager._backgroundGroup;
             parent.add_child(scroll);
+            scroll.set_child(content);
             const background = desktopBackgroundManagers()[monitor.index]?.backgroundActor;
             if (background?.get_parent() === parent)
                 parent.set_child_above_sibling(scroll, background);
