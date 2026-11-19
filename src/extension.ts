@@ -275,11 +275,11 @@ export default class GOsExtension extends ExtensionComponents {
             this._debugRuntimeMonitor = directory.monitor_directory(Gio.FileMonitorFlags.WATCH_MOVES, null);
             this._debugRuntimeMonitor.connect('changed', (_monitor, file, otherFile) => {
                 const target = this._debugRuntimeFile.get_path();
-                if ([file, otherFile].some(candidate => candidate?.get_path() === target))
+                if ([file, otherFile].some(candidate => (candidate as Gio.File | null)?.get_path() === target))
                     this._queueDebugRuntimeSync();
             });
         } catch (error) {
-            logError(error, '[G-Os Debug] Could not monitor the debug session descriptor');
+            logError(error as Error, '[G-Os Debug] Could not monitor the debug session descriptor');
             return;
         }
         this._queueDebugRuntimeSync();
@@ -299,6 +299,11 @@ export default class GOsExtension extends ExtensionComponents {
         const generation = (this._debugRuntimeGeneration ?? 0) + 1;
         this._debugRuntimeGeneration = generation;
         try {
+            if (!this._debugRuntimeFile.query_exists(null)) {
+                this._debugRuntime?.close();
+                this._debugRuntime = null;
+                return;
+            }
             const info = this._debugRuntimeFile.query_info('unix::mode', Gio.FileQueryInfoFlags.NONE, null);
             if ((info.get_attribute_uint32('unix::mode') & 0o077) !== 0)
                 throw new Error('Debug session descriptor permissions must be 0600');
@@ -341,9 +346,7 @@ export default class GOsExtension extends ExtensionComponents {
                 return;
             this._debugRuntime?.close();
             this._debugRuntime = null;
-            if (error?.matches?.(Gio.io_error_quark(), Gio.IOErrorEnum.NOT_FOUND))
-                return;
-            logError(error, '[G-Os Debug] Inspector runtime connection failed');
+            logError(error as Error, '[G-Os Debug] Inspector runtime connection failed');
         }
     }
 
