@@ -98,7 +98,6 @@ test('calculates the dock magnification wave and keeps its pointer anchor fixed'
         engaged: true,
         viewStart: 0,
         viewEnd: 400,
-        iconSize: 48,
     });
     assert.ok(geometry);
     assert.deepEqual(geometry.scales, [1.5, 2, 1.5]);
@@ -185,7 +184,7 @@ test('rejects invalid magnification scale, pointer and unsorted centers', () => 
     assert.equal(calculateDockMagnificationGeometry({...input, maximumScale: 0.8}), null);
     assert.equal(calculateDockMagnificationGeometry({...input, coordinate: Number.NaN}), null);
     assert.equal(calculateDockMagnificationGeometry({...input, centers: [50, 150, 100]}), null);
-    assert.equal(calculateDockMagnificationGeometry({...input, iconSize: -1}), null);
+    assert.equal(calculateDockMagnificationGeometry({...input, buttonSizes: [48, -1, 48]}), null);
 });
 
 test('uses each button dimension for magnification growth and anchoring', () => {
