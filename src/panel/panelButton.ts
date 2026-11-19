@@ -76,7 +76,6 @@ export function createPanelButton(St, Clutter, {
 }
 
 export function applyPanelButtonMetrics(button, metrics) {
-    button.y_align = button.y_align;
     button.set_style(`padding: ${metrics.padding}px; margin: 0; min-height: 0;`);
     button.panelContent?.set_style?.(`spacing: ${metrics.spacing}px;`);
     button.panelIcon?.set_style?.(`icon-size: ${metrics.iconSize}px;`);
