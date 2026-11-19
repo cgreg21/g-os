@@ -283,6 +283,7 @@ export function withDockFolders(Base) {
                         controller: screen.interactionDnd,
                         actor: item as Clutter.Actor & {_delegate?: Record<string, unknown> | null},
                         St,
+                        Clutter,
                         delegate,
                         callbacks: {onBegin: () => menu.close()},
                         lifecycle: screen.lifecycle,
