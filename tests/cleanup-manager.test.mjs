@@ -98,3 +98,21 @@ test('disconnects a signal immediately when registered after clearing', () => {
     assert.deepEqual(disconnected, [56]);
     assert.equal(manager.size, 0);
 });
+
+test('continues cleanup when both a disposer and the host logger throw', () => {
+    const manager = new CleanupManager();
+    const calls = [];
+    const originalLogError = globalThis.logError;
+    globalThis.logError = () => { throw new Error('logger failure'); };
+    try {
+        manager.add(() => calls.push('first'));
+        manager.add(() => { throw new Error('disposer failure'); });
+        manager.add(() => calls.push('last'));
+        assert.doesNotThrow(() => manager.clear());
+    } finally {
+        globalThis.logError = originalLogError;
+    }
+
+    assert.deepEqual(calls, ['last', 'first']);
+    assert.equal(manager.size, 0);
+});
