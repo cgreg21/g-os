@@ -227,7 +227,11 @@ export class StatusNotifierHost {
                     }
                     item.proxy = proxy;
                     item.cleanup.addSignal(proxy,
-                        proxy.connect('g-properties-changed', () => this._refreshItem(item)));
+                        proxy.connect('g-properties-changed', (_proxy, _changed, invalidated = []) => {
+                            for (const name of invalidated ?? [])
+                                delete item.properties[name];
+                            this._refreshItem(item);
+                        }));
                     this._refreshItem(item);
                 } catch {
                     this._removeItem(item);
@@ -245,8 +249,14 @@ export class StatusNotifierHost {
             'AttentionIconPixmap', 'ToolTip', 'ItemIsMenu', 'Menu'];
         for (const name of names) {
             const value = item.proxy.get_cached_property(name);
-            if (value) {
-                try { item.properties[name] = value.deep_unpack(); } catch {}
+            if (!value) {
+                delete item.properties[name];
+                continue;
+            }
+            try {
+                item.properties[name] = value.deep_unpack();
+            } catch {
+                delete item.properties[name];
             }
         }
         this.onChanged(this.visibleItems());
