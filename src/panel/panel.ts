@@ -969,7 +969,7 @@ export function withPanel(Base) {
                 const pixmaps = properties.Status === 'NeedsAttention'
                     ? properties.AttentionIconPixmap : properties.IconPixmap;
                 const name = iconName || properties.Id || 'application-x-executable-symbolic';
-                button.statusIcon.gicon = createStatusNotifierPixbuf(pixmaps, GdkPixbuf, GLib) ??
+                button.statusIcon.gicon = createStatusNotifierPixbuf(pixmaps, GdkPixbuf, GLib, this._cache) ??
                     new Gio.ThemedIcon({name});
                 button.accessible_name = properties.Title || properties.Id || 'Application indicator';
                 const tooltip = properties.ToolTip;
