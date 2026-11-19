@@ -3,6 +3,7 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {CleanupManager} from '../core/cleanupManager.js';
 import {rectanglesOverlap} from '../shared/geometry/rectangle.js';
 
 export function withDockVisibility(Base) {
@@ -16,23 +17,22 @@ export function withDockVisibility(Base) {
             if (!window || !this._dockWindowTrackingEnabled() ||
                 this._dockCoverageWindows.has(window))
                 return;
-            const signals = [];
+            const cleanup = new CleanupManager();
             for (const signal of ['position-changed', 'size-changed'])
-                signals.push(window.connect(signal, () => this._queueDockCoverageUpdate()));
+                cleanup.addSignal(window, window.connect(signal, () => this._queueDockCoverageUpdate()));
             for (const signal of ['workspace-changed', 'notify::minimized', 'notify::maximized-horizontally',
                 'notify::maximized-vertically', 'notify::fullscreen'])
-                signals.push(window.connect(signal, () => this._updateDockCoverage()));
-            signals.push(window.connect('unmanaged', () => this._untrackDockCoverageWindow(window)));
-            this._dockCoverageWindows.set(window, signals);
+                cleanup.addSignal(window, window.connect(signal, () => this._updateDockCoverage()));
+            cleanup.addSignal(window, window.connect('unmanaged', () => this._untrackDockCoverageWindow(window)));
+            this._dockCoverageWindows.set(window, cleanup);
         }
 
         _untrackDockCoverageWindow(window) {
-            const signals = this._dockCoverageWindows.get(window);
-            if (!signals)
+            const cleanup = this._dockCoverageWindows.get(window);
+            if (!cleanup)
                 return;
-            for (const id of signals)
-                window.disconnect(id);
             this._dockCoverageWindows.delete(window);
+            cleanup.clear();
             this._updateDockCoverage();
         }
 
@@ -49,10 +49,8 @@ export function withDockVisibility(Base) {
             if (this._dockCoverageSource)
                 GLib.source_remove(this._dockCoverageSource);
             this._dockCoverageSource = 0;
-            for (const [window, signals] of this._dockCoverageWindows ?? []) {
-                for (const id of signals)
-                    window.disconnect(id);
-            }
+            for (const cleanup of this._dockCoverageWindows?.values() ?? [])
+                cleanup.clear();
             this._dockCoverageWindows?.clear();
         }
 
