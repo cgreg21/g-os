@@ -82,9 +82,9 @@
     -st-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
 
-/* Keep the Bluetooth popup compact; the native GNOME menu still supplies
-   its controls, rows, separators and theme colors. */
-.g-os-bluetooth-popup {
+/* Give every status popup the same compact footprint while leaving its
+   colors, surfaces, separators and controls to the active GNOME theme. */
+.g-os-compact-status-popup {
     width: 420px;
     max-width: 420px;
 }
