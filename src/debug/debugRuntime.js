@@ -1,11 +1,12 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import St from 'gi://St';
 
 const PROTOCOL_VERSION = 1;
 const RUNTIME_VERSION = '0.1.0';
 const MAX_MESSAGE_BYTES = 16 * 1024;
 
-function snapshotStage(stage, {maxDepth = 12, maxNodes = 500} = {}) {
+function snapshotStage(stage, {maxDepth = 12, maxNodes = 500, getActorId = actor => actor, actorMap = new Map()} = {}) {
     if (!stage)
         return {root: null, truncated: false};
     const depthLimit = Math.max(0, Math.min(Number.isInteger(maxDepth) ? maxDepth : 12, 32));
@@ -17,7 +18,9 @@ function snapshotStage(stage, {maxDepth = 12, maxNodes = 500} = {}) {
             truncated = true;
             return null;
         }
-        const id = nextId++;
+        let id;
+        try { id = getActorId(actor); } catch { id = nextId++; }
+        actorMap.set(id, actor);
         let allocation = null;
         try {
             if (actor.has_allocation()) {
@@ -34,6 +37,7 @@ function snapshotStage(stage, {maxDepth = 12, maxNodes = 500} = {}) {
                 if (childCount > 0) truncated = true;
             } else {
                 for (const child of actors) {
+                    try { if (child.get_name?.() === 'g-os-debug-highlight-overlay') continue; } catch {}
                     const result = visit(child, depth + 1);
                     if (result) children.push(result);
                     else break;
@@ -63,6 +67,10 @@ export class DebugRuntime {
         this._output = null;
         this._cancellable = new Gio.Cancellable();
         this._closed = false;
+        this._actorIds = new WeakMap();
+        this._nextActorId = 1;
+        this._actorsById = new Map();
+        this._highlightOverlay = null;
         this.connected = false;
     }
 
@@ -115,13 +123,32 @@ export class DebugRuntime {
                     await this._writeLine({type: 'pong', id: message.id});
                 } else if (message.type === 'inspectStage' && Number.isSafeInteger(message.id)) {
                     try {
-                        await this._writeLine({type: 'stageSnapshot', id: message.id, ...snapshotStage(this._stageProvider(), {
+                        this._actorsById.clear();
+                        const snapshot = snapshotStage(this._stageProvider(), {
                             maxDepth: message.maxDepth, maxNodes: message.maxNodes,
-                        })});
+                            actorMap: this._actorsById,
+                            getActorId: actor => {
+                                let id = this._actorIds.get(actor);
+                                if (!id) { id = this._nextActorId++; this._actorIds.set(actor, id); }
+                                return id;
+                            },
+                        });
+                        await this._writeLine({type: 'stageSnapshot', id: message.id, ...snapshot});
                     } catch (error) {
                         await this._writeLine({type: 'error', id: message.id, code: 'INSPECTION_FAILED',
                             message: error instanceof Error ? error.message : String(error)});
                     }
+                } else if (message.type === 'highlightActor' && Number.isSafeInteger(message.id) && Number.isSafeInteger(message.actorId)) {
+                    try {
+                        this._highlightActor(message.actorId);
+                        await this._writeLine({type: 'highlightResult', id: message.id, actorId: message.actorId, success: true});
+                    } catch (error) {
+                        await this._writeLine({type: 'error', id: message.id, code: 'HIGHLIGHT_FAILED',
+                            message: error instanceof Error ? error.message : String(error)});
+                    }
+                } else if (message.type === 'clearHighlight' && Number.isSafeInteger(message.id)) {
+                    this._clearHighlight();
+                    await this._writeLine({type: 'highlightResult', id: message.id, actorId: null, success: true});
                 } else if (message.type === 'shutdown') {
                     this.close();
                     return;
@@ -135,10 +162,54 @@ export class DebugRuntime {
         }
     }
 
+    _clearHighlight() {
+        const overlay = this._highlightOverlay;
+        this._highlightOverlay = null;
+        if (!overlay) return;
+        try {
+            const parent = overlay.get_parent();
+            if (parent) parent.remove_child(overlay);
+            overlay.destroy();
+        } catch {}
+    }
+
+    _highlightActor(actorId) {
+        const actor = this._actorsById.get(actorId);
+        if (!actor) throw new Error('Actor is no longer present in the latest stage snapshot');
+        const stage = this._stageProvider();
+        if (!stage || actor === stage) throw new Error('The stage itself cannot be highlighted');
+        try {
+            if (actor.get_stage() !== stage || !actor.is_visible())
+                throw new Error('Actor is no longer visible on the GNOME Shell stage');
+            const [x, y] = actor.get_transformed_position();
+            const [width, height] = actor.get_transformed_size();
+            if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0)
+                throw new Error('Actor has no visible on-screen allocation');
+            this._clearHighlight();
+            const overlay = new St.Widget({
+                name: 'g-os-debug-highlight-overlay',
+                reactive: false,
+                can_focus: false,
+                track_hover: false,
+                style: 'border: 2px solid #ff453a; background-color: rgba(255, 69, 58, 0.08);',
+            });
+            stage.add_child(overlay);
+            overlay.set_position(Math.round(x), Math.round(y));
+            overlay.set_size(Math.max(1, Math.round(width)), Math.max(1, Math.round(height)));
+            overlay.raise_top();
+            this._highlightOverlay = overlay;
+        } catch (error) {
+            this._clearHighlight();
+            throw error;
+        }
+    }
+
     close() {
         if (this._closed) return;
         this._closed = true;
         this.connected = false;
+        this._clearHighlight();
+        this._actorsById.clear();
         this._cancellable.cancel();
         try { this._connection?.close(null); } catch {}
         this._connection = null;
