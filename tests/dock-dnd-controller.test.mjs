@@ -65,6 +65,9 @@ test('widget grid dragging uses the shared shadow source and per-screen lifecycl
     assert.match(widgetRuntimeSource, /onMotion: event => \{/);
     assert.match(widgetRuntimeSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
     assert.doesNotMatch(widgetRuntimeSource, /_makeDraggable\(/);
+    assert.match(widgetRuntimeSource, /new DelegateManager\(\)/);
+    assert.match(widgetRuntimeSource, /dropTargetDelegates\.add\(actor/);
+    assert.doesNotMatch(widgetRuntimeSource, /actor\._delegate = delegate/);
 });
 
 test('desktop icons use the per-screen shared DND controller', () => {
