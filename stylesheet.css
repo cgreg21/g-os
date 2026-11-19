@@ -98,3 +98,10 @@
 .g-os-status-device-active { color: #80c99b; font-size: 0.82em; }
 .g-os-status-device-muted, .g-os-status-empty { font-size: 0.85em; }
 .g-os-status-value { min-width: 42px; text-align: right; }
+.g-os-status-section-label { font-size: 0.78em; font-weight: bold; }
+.g-os-status-muted, .g-os-status-empty { font-size: 0.85em; }
+.g-os-status-summary-row { spacing: 12px; }
+.g-os-battery-summary { spacing: 8px; }
+.g-os-battery-percentage { font-size: 1.8em; font-weight: bold; }
+.g-os-status-battery-devices { spacing: 8px; }
+.g-os-status-battery-device { spacing: 10px; min-height: 28px; }
