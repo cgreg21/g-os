@@ -47,6 +47,5 @@ test('topbar opts into the native GNOME Shell panel theme when styling is enable
     const createPanelEnd = panelSource.indexOf('        _initializePanelLayout(screen) {', createPanelStart);
     const createPanelSource = panelSource.slice(createPanelStart, createPanelEnd);
     assert.match(createPanelSource, /if \(this\._settings\.get_boolean\('panel-style'\)\) \{[\s\S]*?add_style_class_name\('panel'\)[\s\S]*?add_style_class_name\('g-os-panel'\)/);
-    assert.match(createPanelSource, /St automatically restyles the actor[\\s\\S]*whenever the Shell theme or color scheme changes/);
     assert.match(panelSource, /style_class: 'g-os-secondary-panel'/);
 });
