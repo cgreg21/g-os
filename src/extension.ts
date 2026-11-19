@@ -853,7 +853,8 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.dockReservation.destroy();
                 }
                 if (screen.magnificationBackground) {
-                    Main.layoutManager.removeChrome?.(screen.magnificationBackground);
+                    // The screen LifecycleScope already unregisters every chrome
+                    // actor before this resource cleanup runs.
                     const magnificationParent = screen.magnificationBackground.get_parent();
                     if (magnificationParent)
                         magnificationParent.remove_child(screen.magnificationBackground);
