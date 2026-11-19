@@ -451,7 +451,7 @@ export function withPanel(Base) {
         }
 
         _populateAppMenu(button) {
-            button.menu.actor.add_style_class_name('g-os-popup');
+            applyNativeMenuTheme(button.menu, 'g-os-popup');
             const quit = button.menu.addAction('Quitter l’application', () => {
                 quit.targetApp?.request_quit();
             });
@@ -1027,7 +1027,7 @@ export function withPanel(Base) {
 
         _createStatusMenu(button) {
             const menu = new PopupMenu.PopupMenu(button, 0.5, St.Side.TOP);
-            menu.actor.add_style_class_name('g-os-popup');
+            applyNativeMenuTheme(menu, 'g-os-popup');
             menu.actor.add_style_class_name(`g-os-status-menu-${button.statusKind}`);
             Main.uiGroup.add_child(menu.actor);
             menu.actor.hide();
