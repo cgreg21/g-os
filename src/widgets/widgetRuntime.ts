@@ -341,7 +341,7 @@ export class WidgetRuntime {
                 const button = new St.Button({style_class: 'g-os-widget-button', can_focus: true,
                     reactive: true, track_hover: true, accessible_name: accessibleTitle,
                     child: new St.Icon({icon_name: icon, icon_size: 16})});
-                button.connect('clicked', callback);
+                button.connect('clicked', guarded(callback));
                 attachTooltip(button, title);
                 return button;
             },
