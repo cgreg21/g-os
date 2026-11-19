@@ -252,7 +252,6 @@ export class DisplayStatusMenu {
         night.add_child(new St.Icon({icon_name: 'weather-clear-night-symbolic', icon_size: 20}));
         night.add_child(new St.Label({text: 'Mode nuit', x_expand: true}));
         this.nightLightToggle = new PopupMenu.PopupSwitchMenuItem('', this.nightLight.get_boolean('night-light-enabled'));
-        this.nightLightToggle.label.text = '';
         night.add_child(this.nightLightToggle); menu.addMenuItem(night);
         this.cleanup.addSignal(this.nightLightToggle, this.nightLightToggle.connect('toggled', (_item, enabled) => {
             if (!this.destroyed && !this.syncingNightLight) this.nightLight.set_boolean('night-light-enabled', enabled);
