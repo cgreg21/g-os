@@ -429,7 +429,8 @@ export default class GOsExtension extends ExtensionComponents {
             if (!keys?.size || !this._screens.length)
                 return false;
             const live = new Set(['icon-size', 'dock-hover-animation', 'dock-hover-duration', 'dock-hover-strength',
-                'panel-height', 'panel-layout', 'global-menu-enabled', 'dock-window-preview-delay', 'dock-hide-delay',
+                'panel-height', 'panel-padding-horizontal', 'panel-padding-vertical', 'panel-icon-padding',
+                'panel-layout', 'global-menu-enabled', 'dock-window-preview-delay', 'dock-hide-delay',
                 'dock-slide-duration', 'dock-slide-curve', 'dock-maximize-slide-duration',
                 'dock-launch-animation', 'dock-launch-mode', 'dock-launch-strength', 'dock-launch-duration',
                 'dock-edge-margin', 'dock-item-spacing', 'dock-padding-top', 'dock-padding-bottom',
@@ -492,10 +493,11 @@ export default class GOsExtension extends ExtensionComponents {
                                 adjustment.connect('notify::value', () => this._updateDockIconGeometries(screen)));
                     }
                 }
-                if (keys.has('panel-height')) {
+                if (keys.has('panel-height'))
                     screen.panel.set_height(this._settings.get_int('panel-height'));
+                if (['panel-height', 'panel-padding-horizontal', 'panel-padding-vertical',
+                    'panel-icon-padding'].some(key => keys.has(key)))
                     this._applyPanelMetrics(screen);
-                }
                 if (keys.has('panel-layout')) {
                     screen.panelLayout = this._normalizePanelLayout(this._settings.get_strv('panel-layout'));
                     this._applyPanelLayout(screen);
