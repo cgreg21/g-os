@@ -29,9 +29,11 @@ export function calculateDockMagnificationGeometry(
     const count = centers.length;
     if (buttonSizes.length !== count || excluded.length !== count ||
         ![maximumScale, radius, viewStart, viewEnd, iconSize].every(Number.isFinite) ||
-        centers.some(center => !Number.isFinite(center)) ||
+        (coordinate !== null && !Number.isFinite(coordinate)) ||
+        centers.some((center, index) => !Number.isFinite(center) ||
+            (index > 0 && center < centers[index - 1])) ||
         buttonSizes.some(size => !Number.isFinite(size) || size < 0) ||
-        radius < 0 || viewEnd < viewStart)
+        maximumScale < 1 || radius < 0 || iconSize < 0 || viewEnd < viewStart)
         return null;
 
     let pointerIndex = 0;
