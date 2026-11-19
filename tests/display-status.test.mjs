@@ -160,6 +160,11 @@ function createDisplayMenu(initialBrightness = 42) {
     const St = {
         Icon: class { constructor(properties) { Object.assign(this, properties); } },
         Label: class { constructor(properties) { Object.assign(this, properties); } },
+        Switch: class extends MockEmitter {
+            constructor(properties) { super(); this.state = properties.state; }
+            set state(value) { this._state = value; this.emit('notify::state'); }
+            get state() { return this._state; }
+        },
         BoxLayout: class { constructor() { this.children = []; } add_child(child) { this.children.push(child); }
             destroy_all_children() { this.children = []; } },
         Widget: class { constructor(properties) { Object.assign(this, properties); } },
@@ -180,7 +185,7 @@ test('display controls read and write screen brightness and night-light settings
 
     controller.temperatureSlider.value = 0.5;
     assert.equal(settingsValues['night-light-temperature'], 5500);
-    controller.nightLightToggle.emit('toggled', true);
+    controller.nightLightSwitch.state = true;
     assert.equal(settingsValues['night-light-enabled'], true);
 
     controller.brightnessSlider.value = 0.75;
