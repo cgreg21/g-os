@@ -774,7 +774,7 @@ export function withPanel(Base) {
                     getDragActorSource: () => actor,
                 },
                 callbacks: {
-                    onBegin: () => this._beginPanelShadowDrag(screen, id, actor),
+                    onBegin: dragActor => this._beginPanelShadowDrag(screen, id, actor, dragActor),
                     onEnd: success => this._finishPanelShadowDrag(screen, success),
                     onCancelled: () => this._finishPanelShadowDrag(screen, false),
                     onDestroy: () => {
@@ -785,7 +785,7 @@ export function withPanel(Base) {
             });
         }
 
-        _beginPanelShadowDrag(screen, id, actor) {
+        _beginPanelShadowDrag(screen, id, actor, dragActor) {
             if (screen.panelDragState)
                 this._finishPanelShadowDrag(screen, false);
             const parent = actor.get_parent();
@@ -796,8 +796,11 @@ export function withPanel(Base) {
             // Keep a visual copy in the layout while the dragged item is
             // represented by the drag actor that GNOME Shell moves with the pointer.
             // This avoids the empty slot that made the topbar jump visually.
+            // Clone the already-created drag actor, not the source button:
+            // GNOME Shell changes the source opacity as the drag starts, which
+            // can make a clone of the source render as an empty slot.
             const placeholder = new Clutter.Clone({
-                source: actor,
+                source: dragActor,
                 width,
                 height,
                 reactive: false,
