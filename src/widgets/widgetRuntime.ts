@@ -688,10 +688,11 @@ export class WidgetRuntime {
                 if (instance.legacy)
                     this.host._attachDesktopWidgetDrag(actor, monitor, `desktop-widget-${instance.widget}-x`,
                         `desktop-widget-${instance.widget}-y`);
-                else
+                else {
                     const screen = this.host._screens?.find(candidate => candidate.monitor.index === monitor.index);
                     if (screen?.interactionDnd)
                         this.attachGridDrag(screen, result.dragHandle ?? actor, actor, instance, area, grid);
+                }
             }
         }
     }
