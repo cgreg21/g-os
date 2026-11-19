@@ -252,3 +252,12 @@ test('Bluetooth menu shows connected and available devices in compact icon grids
     assert.ok(bluetooth.includes('Périphériques connectés'));
     assert.ok(bluetooth.includes('g-os-status-device-grid'));
 });
+
+test('battery menu presents power profiles as direct icon-grid choices', async () => {
+    const source = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const battery = source.slice(source.indexOf('export class BatteryStatusMenu'), source.indexOf('export function createPowerDeviceClient'));
+    assert.ok(battery.includes('ActiveProfile = profile'));
+    assert.ok(battery.includes('g-os-status-device-grid'));
+    assert.ok(!battery.includes('this.content.mount(profiles?.menu)'));
+    assert.ok(battery.includes('Périphériques'));
+});
