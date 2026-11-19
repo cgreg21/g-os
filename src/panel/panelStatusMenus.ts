@@ -815,15 +815,8 @@ export class NetworkStatusMenu {
     }
 
     _updateOverviewVisibility() {
-        let activeCount = 0;
-        for (const {entry, button} of this.contents.values()) {
-            const active = Boolean(entry.toggle.checked && entry.toggle.visible !== false);
-            button.visible = active;
-            if (active)
-                activeCount++;
-        }
-        if (this.emptyLabel)
-            this.emptyLabel.visible = activeCount === 0;
+        for (const {entry, button} of this.contents.values())
+            button.visible = entry.toggle.visible !== false;
     }
 
     _iconFor(title) {
@@ -863,62 +856,6 @@ export class NetworkStatusMenu {
         this.overviewSignals = new CleanupManager();
         this.body.destroy_all_children();
         this._buildOverview();
-        this.refresh();
-    }
-
-    showDetail(toggle) {
-        if (this.destroyed || !this.contents.has(toggle) || toggle.visible === false)
-            return;
-        this._restoreActiveContent();
-        this.detailSignals.clear();
-        this.activeView = toggle;
-        const state = this.contents.get(toggle);
-        this.body.destroy_all_children();
-
-        const back = this._button('Retour', 'g-os-network-back',
-            () => this.showOverview(), 'go-previous-symbolic');
-        this.body.add_child(back);
-
-        const switchLabel = /wi-?fi|wifi/i.test(state.entry.title)
-            ? 'Activer le Wi-Fi' : `Activer ${state.entry.title}`;
-        this.detailSwitch = new this.PopupMenu.PopupSwitchMenuItem(switchLabel, Boolean(toggle.checked));
-        this.detailSwitch.setSensitive(toggle.visible !== false && toggle.reactive !== false);
-        this.detailSignals.addSignal(this.detailSwitch, this.detailSwitch.connect('toggled', (_item, checked) => {
-            if (!this.destroyed && checked !== Boolean(toggle.checked))
-                toggle.emit('clicked', 1);
-        }));
-        this.detailSignals.addSignal(toggle, toggle.connect('notify::checked', () => {
-            if (!this.destroyed && this.detailSwitch)
-                this.detailSwitch.setToggleState(Boolean(toggle.checked));
-        }));
-        this.body.add_child(this.detailSwitch);
-
-        if (/wi-?fi|wifi/i.test(state.entry.title)) {
-            this.body.add_child(this._button('Rechercher', 'g-os-network-action', () => {
-                if (this.destroyed || this.activeView !== toggle)
-                    return;
-                toggle._startScanning?.();
-                toggle._reorderDeviceItems?.();
-            }, 'view-refresh-symbolic'));
-        }
-
-        const nativeHolder = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-network-native-content'});
-        this.body.add_child(nativeHolder);
-        if (!state.content)
-            state.content = new NativeMenuContent(this.menu, nativeHolder, {
-                Clutter: this.Clutter,
-                onOpen: () => {
-                    if (!this.destroyed) {
-                        toggle._startScanning?.();
-                        toggle._reorderDeviceItems?.();
-                    }
-                },
-                onClose: () => toggle._stopScanning?.(),
-            });
-        else
-            state.content.holder = nativeHolder;
-        state.content.mount(toggle.menu, true);
-        this._appendSettingsItem();
         this.refresh();
     }
 
