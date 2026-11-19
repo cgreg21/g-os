@@ -198,7 +198,7 @@ export function openWidgetManager(parent, settings, target = 'desktop', requeste
         editor.add_response('save', 'Enregistrer');
         editor.set_response_appearance('save', Adw.ResponseAppearance.SUGGESTED);
         editor.connect('response', (alert, response) => {
-            if (response !== 'save')
+            if (closed || response !== 'save')
                 return;
             const positions = Object.fromEntries([...positionRows].map(([key, row]) =>
                 [key, Math.round(key === 'dockSize' ? row.selected : row.value)]));
@@ -337,6 +337,8 @@ export function openWidgetManager(parent, settings, target = 'desktop', requeste
     importButton.connect('clicked', () => {
         const chooser = new Gtk.FileDialog({title: 'Importer un dossier de widget'});
         chooser.select_folder(parent, null, (source, result) => {
+            if (closed)
+                return;
             let folder;
             try { folder = source.select_folder_finish(result); } catch { return; }
             let description;
