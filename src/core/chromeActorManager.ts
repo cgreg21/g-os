@@ -16,8 +16,15 @@ export class ChromeActorManager<T extends object> {
     add(actor: T, options: ChromeActorOptions = {}): void {
         if (this.destroyed || this.actors.has(actor))
             return;
-        this.addActor(actor, options);
+        // Track ownership before calling host code: registration can re-enter
+        // this manager (including destroy()) through GNOME signal delivery.
         this.actors.add(actor);
+        try {
+            this.addActor(actor, options);
+        } catch (error) {
+            this.actors.delete(actor);
+            throw error;
+        }
     }
 
     remove(actor: T): void {
