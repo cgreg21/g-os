@@ -73,3 +73,19 @@ test('normalizes invalid capacities and remains bounded', () => {
     fractionalCapacity.set('second', 2);
     assert.equal(fractionalCapacity.size, 1);
 });
+
+test('dock folder listings use a short-lived cache and skip caching cancelled reads', async () => {
+    const {readFile} = await import('node:fs/promises');
+    const source = await readFile(new URL('../src/dock/dockFolders.ts', import.meta.url), 'utf8');
+    assert.match(source, /dock-folder-contents:\$\{folder\.get_uri\(\)\}/);
+    assert.match(source, /this\._cache\?\.get<DockFolderEntry\[]>\(cacheKey\)/);
+    assert.match(source, /if \(!cancellable\.is_cancelled\(\)\)\s+this\._cache\?\.set\(cacheKey, files, DOCK_FOLDER_CACHE_TTL_MS\)/);
+    assert.match(source, /const DOCK_FOLDER_CACHE_TTL_MS = 2000/);
+});
+
+test('the extension owns the shared cache and releases it on disable', async () => {
+    const {readFile} = await import('node:fs/promises');
+    const source = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
+    assert.match(source, /this\._cache = new GOSCache\(256, 5 \* 60 \* 1000\)/);
+    assert.match(source, /this\._cache\?\.clear\(\);\s+this\._cache = null;/);
+});
