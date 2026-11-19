@@ -174,7 +174,7 @@ export class DockWindowPreview {
         }
         if (typeof this.button.app?.connect === 'function')
             this.windowCleanup.addSignal(this.button.app, this.button.app.connect('windows-changed', () => this.refresh()));
-        const scroll = new this.St.ScrollView({child: box,
+        const scroll = new this.St.ScrollView({
             width: horizontal ? Math.min(availableWidth, windows.length * (width + 12)) : width,
             hscrollbar_policy: horizontal ? this.St.PolicyType.AUTOMATIC : this.St.PolicyType.NEVER,
             vscrollbar_policy: horizontal ? this.St.PolicyType.NEVER : this.St.PolicyType.AUTOMATIC,
@@ -182,6 +182,7 @@ export class DockWindowPreview {
         const item = new this.PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         item.add_child(scroll);
         this.menu.addMenuItem(item);
+        scroll.set_child(box);
         return true;
     }
 
