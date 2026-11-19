@@ -404,6 +404,7 @@ class NativeMenuContent {
         this.Clutter = Clutter;
         this.onOpen = onOpen;
         this.onClose = onClose;
+        this.destroyed = false;
     }
 
     alignDeviceRows(actor = this.saved?.actor) {
@@ -411,6 +412,8 @@ class NativeMenuContent {
     }
 
     mount(nativeMenu, notifyOpen = true) {
+        if (this.destroyed)
+            return false;
         this.restore();
         const actor = nativeMenu?.box;
         const parent = actor?.get_parent();
@@ -430,6 +433,13 @@ class NativeMenuContent {
         if (notifyOpen)
             this.onOpen();
         return true;
+    }
+
+    destroy() {
+        if (this.destroyed)
+            return;
+        this.restore();
+        this.destroyed = true;
     }
 
     restore() {
@@ -521,7 +531,7 @@ export class RadioStatusMenu {
         if (this.destroyed)
             return;
         this.destroyed = true;
-        this.content.restore();
+        this.content.destroy();
         this.cleanup.clear();
     }
 }
