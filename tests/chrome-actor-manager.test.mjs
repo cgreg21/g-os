@@ -157,3 +157,29 @@ test('does not release an actor twice when registration removes it before throwi
     assert.deepEqual(removed, [actor]);
     assert.equal(manager.size, 0);
 });
+
+test('preserves a reentrant replacement registration when the original add throws', () => {
+    const actor = {};
+    const removed = [];
+    let manager;
+    let registrations = 0;
+    manager = new ChromeActorManager(
+        () => {
+            registrations++;
+            if (registrations === 1) {
+                manager.remove(actor);
+                manager.add(actor);
+                throw new Error('original registration failed');
+            }
+        },
+        value => removed.push(value),
+    );
+
+    assert.throws(() => manager.add(actor), /original registration failed/);
+    assert.deepEqual(removed, [actor]);
+    assert.equal(manager.size, 1);
+
+    manager.destroy();
+    assert.deepEqual(removed, [actor, actor]);
+    assert.equal(manager.size, 0);
+});
