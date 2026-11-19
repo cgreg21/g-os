@@ -522,6 +522,7 @@ export class NetworkStatusMenu {
         this.contents = new Map();
         this.activeView = null;
         this.detailSignals = new CleanupManager();
+        this.overviewSignals = new CleanupManager();
 
         menu.actor.add_style_class_name('g-os-network-popup');
         this.rootItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false,
@@ -624,9 +625,9 @@ export class NetworkStatusMenu {
                     onClose: () => toggle._stopScanning?.(),
                 });
             this.contents.set(toggle, {entry, button, state, icon, content});
-            this.cleanup.addSignal(toggle, toggle.connect('notify::checked', () => this.refresh()));
-            this.cleanup.addSignal(toggle, toggle.connect('notify::visible', () => this.refresh()));
-            this.cleanup.addSignal(toggle, toggle.connect('notify::reactive', () => this.refresh()));
+            this.overviewSignals.addSignal(toggle, toggle.connect('notify::checked', () => this.refresh()));
+            this.overviewSignals.addSignal(toggle, toggle.connect('notify::visible', () => this.refresh()));
+            this.overviewSignals.addSignal(toggle, toggle.connect('notify::reactive', () => this.refresh()));
         }
         if (!this.toggles.length)
             this.rowsBox.add_child(this._label('Aucun service réseau disponible', 'g-os-network-empty'));
@@ -676,6 +677,8 @@ export class NetworkStatusMenu {
             return;
         this._restoreActiveContent();
         this.detailSignals.clear();
+        this.overviewSignals.clear();
+        this.overviewSignals = new CleanupManager();
         this.body.destroy_all_children();
         this._buildOverview();
         this.refresh();
@@ -771,6 +774,7 @@ export class NetworkStatusMenu {
         this.destroyed = true;
         this._restoreActiveContent();
         this.detailSignals.clear();
+        this.overviewSignals.clear();
         for (const state of this.contents.values())
             state.content?.destroy();
         this.cleanup.clear();
