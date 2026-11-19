@@ -16,8 +16,8 @@ test('generic DND controller registers sources through GNOME Shell makeDraggable
 });
 
 test('generic DND controller composes source and target delegates through the shared manager', () => {
-    assert.match(source, /this\\.delegates\\.add\\(actor, delegate\\)/);
-    assert.match(source, /new DelegateManager<DelegateActor>\\(\\)/);
+    assert.match(source, /this\.delegates\.add\(actor, delegate\)/);
+    assert.match(source, /new DelegateManager<DelegateActor>\(\)/);
     assert.match(source, /Object\.create\(previousDelegate \?\? null\)/);
     assert.match(source, /actor\._delegate = composedDelegate/);
     assert.match(source, /actor\._delegate === composedDelegate/);
@@ -72,7 +72,7 @@ test('generic DND source setup rolls back partially acquired resources', () => {
     assert.match(source, /const signalIds: number\[\] = \[\]/);
     assert.match(source, /signalIds\.push\(draggable\.connect/);
     assert.match(source, /catch \(error\) \{\s*\/\/ Signal setup can fail part-way through[\s\S]*?dispose\(\);\s*throw error;/);
-    assert.match(source, /catch \(error\) \{\s*restoreDelegate\(\);\s*throw error;/);
+    assert.match(source, /catch \(error\) \{\s*removeDelegate\(\);\s*throw error;/);
 });
 
 test('generic DND target setup restores the previous delegate when signal registration fails', () => {
