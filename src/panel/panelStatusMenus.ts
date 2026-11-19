@@ -611,7 +611,7 @@ export class BatteryStatusMenu {
                 this.settingsSeparator.visible = !mounted;
                 this.refresh();
             } else
-                this.content.destroy();
+                this.content.restore();
         }));
         this.refresh();
     }
@@ -702,7 +702,7 @@ export class BatteryStatusMenu {
         if (this.destroyed)
             return;
         this.destroyed = true;
-        this.content.restore();
+        this.content.destroy();
         this.cleanup.clear();
         for (const cleanup of this.deviceConnections.values())
             cleanup.clear();
