@@ -127,30 +127,25 @@ test('native status menu content restores only actors it can safely reparent', a
 });
 
 
-test('network popup is a dedicated floating panel with a connection card and compact actions', async () => {
+test('network overview avoids duplicate status and keeps Wi-Fi scanning in its detail view', async () => {
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
-    assert.ok(source.includes('new St.ScrollView'));
-    assert.ok(!source.includes('x_expand:'));
-    assert.ok(source.includes('this.rootItem.set_x_expand(true)'));
-    assert.ok(source.includes('this.scroll.set_x_expand(true)'));
-    assert.ok(source.includes('this.body.set_x_expand(true)'));
-    assert.ok(source.includes('button.set_x_expand(true)'));
-    assert.ok(source.includes('orientation: this.Clutter.Orientation.VERTICAL'));
-    assert.ok(source.includes('orientation: this.Clutter.Orientation.HORIZONTAL'));
-    assert.ok(!source.includes('vertical:'));
-    assert.ok(source.includes('g-os-network-connection-card'));
-    assert.ok(!source.includes('État des connexions'));
-    assert.ok(!source.includes('Gérez vos connexions depuis ce panneau'));
-    assert.ok(!source.includes('CONNEXIONS'));
-    assert.ok(!source.includes('g-os-network-section-title'));
-    assert.ok(source.includes('g-os-network-rows'));
-    assert.ok(source.includes('g-os-network-actions'));
-    assert.ok(source.includes('showDetail(toggle)'));
-    assert.ok(source.includes('Tous les réseaux'));
-    assert.ok(source.includes('state.content.mount(toggle.menu, true)'));
-    assert.ok(source.includes('this.connectionSummary.text ='));
-    assert.ok(source.includes('_refreshNetworks()'));
+    const overviewStart = source.indexOf('    _buildOverview()');
+    const detailStart = source.indexOf('    showDetail(toggle)');
+    const overview = source.slice(overviewStart, detailStart);
+    const detailEnd = source.indexOf('    refresh()', detailStart);
+    const detail = source.slice(detailStart, detailEnd);
+    assert.ok(!overview.includes('connectionCard'));
+    assert.ok(!overview.includes('connectionSummary'));
+    assert.ok(!overview.includes('Actualiser'));
+    assert.ok(!overview.includes('_refreshNetworks'));
+    assert.ok(overview.includes('g-os-network-rows'));
+    assert.ok(overview.includes('g-os-network-settings'));
+    assert.ok(detail.includes('Rechercher les réseaux'));
+    assert.ok(detail.includes('toggle._startScanning?.()'));
+    assert.ok(detail.includes('toggle._reorderDeviceItems?.()'));
+    assert.ok(detail.includes('state.content.mount(toggle.menu, true)'));
+    assert.ok(detail.includes('Tous les réseaux'));
 });
