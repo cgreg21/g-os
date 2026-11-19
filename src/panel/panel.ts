@@ -801,7 +801,7 @@ export function withPanel(Base) {
             if (screen.panelDragState)
                 this._finishPanelShadowDrag(screen, false);
             const parent = getActorParent(actor);
-            if (!parent || !getActorParent(dragActor) && !dragActor)
+            if (!parent || !dragActor)
                 return;
             try {
                 // Accessing a disposed native actor can throw in GJS. A live
