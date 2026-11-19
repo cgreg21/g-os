@@ -46,7 +46,9 @@ test('topbar uses the shared controller while preserving shadow drag callbacks',
     assert.match(panelSource, /registerShadowDragSource\(\{/);
     assert.match(panelSource, /getDragActorSource: \(\) => actor/);
     assert.match(panelSource, /registerShadowDragSource\(\{/);
-    assert.match(panelSource, /onDragActor: dragActor => this\._beginPanelShadowDrag\(screen, id, actor, dragActor\)/);\n    assert.match(panelSource, /source: dragActor/);\n    assert.match(panelSource, /onEnd: success => this\._finishPanelShadowDrag/);
+    assert.match(panelSource, /onDragActor: dragActor => this\\._beginPanelShadowDrag\\(screen, id, actor, dragActor\\)/);
+    assert.match(panelSource, /source: dragActor\\.get_child_at_index\\(0\\) \\?\\? dragActor/);
+    assert.match(panelSource, /onEnd: success => this\\._finishPanelShadowDrag/);
     assert.match(panelSource, /onCancelled: \(\) => this\._finishPanelShadowDrag\(screen, false\)/);
     assert.match(panelSource, /onDestroy: \(\) => \{/);
     assert.doesNotMatch(panelSource, /DND\.makeDraggable\(actor/);
