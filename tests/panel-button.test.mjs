@@ -41,11 +41,11 @@ test('panel button dimensions scale with available topbar height', () => {
 
 test('topbar spacing and padding are not hardcoded per button style', async () => {
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
-    assert.doesNotMatch(stylesheet, /\\.g-os-(?:status-button|status-notifier-button|panel-button-content)[^{]*\\{[^}]*padding:/s);
-    assert.doesNotMatch(stylesheet, /\\.macos-global-menu-button[^}]*\\{[^}]*padding:/s);
-    assert.doesNotMatch(stylesheet, /\\.g-os-(?:status-notifier-items|global-menu)[^{]*\\{[^}]*spacing:/s);
+    assert.doesNotMatch(stylesheet, /\.g-os-(?:status-button|status-notifier-button|panel-button-content)[^{]*\{[^}]*padding:/s);
+    assert.doesNotMatch(stylesheet, /\.macos-global-menu-button[^}]*\{[^}]*padding:/s);
+    assert.doesNotMatch(stylesheet, /\.g-os-(?:status-notifier-items|global-menu)[^{]*\{[^}]*spacing:/s);
     const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
-    assert.match(panel, /for \\(const \\{content\\} of screen\\.panelLayoutGroups\\?\\.values\\(\\) \\?\\? \\[\\]\\)[\\s\\S]*?content\\.set_style\\(`spacing:/);
+    assert.match(panel, /for \(const \{content\} of screen\.panelLayoutGroups\?\.values\(\) \?\? \[\]\)[\s\S]*?content\.set_style\(`spacing:/);
 });
 
 test('application label font size follows shared metrics and available width', () => {
