@@ -157,7 +157,10 @@ function createDisplayMenu(initialBrightness = 42) {
             return action;
         },
     };
-    const St = {Icon: class { constructor(properties) { Object.assign(this, properties); } }};
+    const St = {
+        Icon: class { constructor(properties) { Object.assign(this, properties); } },
+        Label: class { constructor(properties) { Object.assign(this, properties); } },
+    };
     const Slider = {Slider: MockSlider};
     const PopupMenu = {PopupBaseMenuItem, PopupMenuItem, PopupSwitchMenuItem,
         PopupSeparatorMenuItem: class {}};
@@ -169,7 +172,7 @@ function createDisplayMenu(initialBrightness = 42) {
 test('display controls read and write screen brightness and night-light settings', () => {
     const {controller, state, settingsValues} = createDisplayMenu();
     assert.equal(controller.brightnessSlider.value, 0.42);
-    assert.equal(controller.brightnessInfo.label.text, 'Luminosité : 42 %');
+    assert.equal(controller.brightnessValue.text, '42 %');
     assert.equal(controller.temperatureSlider.value, 3500 / 9000);
 
     controller.temperatureSlider.value = 0.5;
@@ -178,7 +181,7 @@ test('display controls read and write screen brightness and night-light settings
     assert.equal(settingsValues['night-light-enabled'], true);
 
     controller.brightnessSlider.value = 0.75;
-    assert.equal(controller.brightnessInfo.label.text, 'Luminosité : 75 %');
+    assert.equal(controller.brightnessValue.text, '75 %');
     assert.equal(state.timeout(), 0);
     const setCall = state.calls.find(call => call.method === 'Set');
     assert.ok(setCall);
@@ -190,7 +193,7 @@ test('display controls read and write screen brightness and night-light settings
         new MockVariant('(sa{sv}as)', ['org.gnome.SettingsDaemon.Power.Screen',
             {Brightness: new MockVariant('i', 80)}, []]));
     assert.equal(controller.brightnessSlider.value, 0.8);
-    assert.equal(controller.brightnessInfo.label.text, 'Luminosité : 80 %');
+    assert.equal(controller.brightnessValue.text, '80 %');
 
     controller.destroy();
     assert.deepEqual(state.unsubscribed, [7]);
@@ -216,7 +219,7 @@ test('display menu does not write brightness when a queued debounce fires after 
 test('brightness controls report unsupported hardware instead of accepting adjustments', () => {
     const {controller} = createDisplayMenu(Number.NaN);
     assert.equal(controller.brightnessSlider.reactive, false);
-    assert.equal(controller.brightnessInfo.label.text, 'Réglage de luminosité indisponible');
+    assert.equal(controller.brightnessValue.text, '—');
     controller.brightnessSlider.value = 0.8;
     assert.equal(controller.brightness, null);
     controller.destroy();
