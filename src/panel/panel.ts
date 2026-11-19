@@ -447,6 +447,17 @@ export function withPanel(Base) {
 
         _populateAppMenu(button) {
             applyNativeMenuTheme(button.menu, 'g-os-popup');
+            const lookupExtensionsApp = () => this._appSystem.lookup_app('org.gnome.Extensions.desktop') ??
+                this._appSystem.lookup_app('gnome-extensions-app.desktop');
+            const extensions = button.menu.addAction('Gérer les extensions', () => {
+                const app = lookupExtensionsApp();
+                if (!app)
+                    return;
+                Main.overview.hide();
+                app.activate();
+            });
+            const updateExtensions = () => extensions.setSensitive(Boolean(lookupExtensionsApp()));
+            updateExtensions();
             const quit = button.menu.addAction('Quitter l’application', () => {
                 quit.targetApp?.request_quit();
             });
@@ -463,6 +474,7 @@ export function withPanel(Base) {
             updateQuit();
             button.menu.connect('open-state-changed', (menu, open) => {
                 if (open) {
+                    updateExtensions();
                     updateQuit();
                     alignMenuRows(button.menu.box, Clutter);
                 }
