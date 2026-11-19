@@ -286,8 +286,8 @@ export function withPanel(Base) {
                 const scroll = new St.ScrollView({vscrollbar_policy: St.PolicyType.AUTOMATIC,
                     hscrollbar_policy: St.PolicyType.NEVER});
                 menu._boxPointer.bin.set_child(null);
-                scroll.set_child(menu.box);
                 menu._boxPointer.bin.set_child(scroll);
+                scroll.set_child(menu.box);
                 screen.notificationScroll = scroll;
             }
             this._populateNotificationMenu(menu);
@@ -418,9 +418,9 @@ export function withPanel(Base) {
                 vscrollbar_policy: St.PolicyType.AUTOMATIC,
                 style_class: 'g-os-calendar-scroll',
             });
-            scroll.set_child(screen.calendarEventList);
             content.add_child(scroll);
             menu.box.add_child(content);
+            scroll.set_child(screen.calendarEventList);
             menu.connect('open-state-changed', (menu, open) => {
                 if (open)
                     this._updatePanelCalendarEvents(screen, this._panelCalendarSelectedDate);
