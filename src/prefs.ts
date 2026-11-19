@@ -124,7 +124,7 @@ export default class GOsPreferences extends ExtensionPreferences {
             [shortcuts, 'shortcut-files', 'Fichiers'],
             [shortcuts, 'shortcut-downloads', 'Téléchargements'],
             [shortcuts, 'shortcut-trash', 'Corbeille'],
-            [panel, 'panel-style', 'Adapter la disposition de la barre'],
+            [panel, 'panel-style', 'Utiliser le thème GNOME Shell pour la barre supérieure'],
             [panel, 'show-active-app', 'Afficher le nom de l’application active'],
             [panel, 'panel-show-clock', 'Afficher l’horloge'],
             [panel, 'panel-show-search', 'Afficher le bouton de recherche'],
