@@ -13,12 +13,14 @@ export function calculatePanelButtonMetrics({
     if (values.some(value => !Number.isFinite(value) || value < 0) || panelHeight <= 0)
         throw new RangeError('Panel button dimensions must be finite non-negative values');
 
-    const contentHeight = Math.max(1, panelHeight - 2 * panelVerticalPadding - 2 * buttonPadding);
+    const effectivePadding = Math.min(buttonPadding,
+        Math.max(0, Math.floor((panelHeight - 2 * panelVerticalPadding - 1) / 2)));
+    const contentHeight = Math.max(1, panelHeight - 2 * panelVerticalPadding - 2 * effectivePadding);
     return {
         contentHeight,
         iconSize: Math.max(1, Math.floor(contentHeight * 0.72)),
         fontSize: Math.max(1, Math.floor(contentHeight * 0.64)),
-        padding: buttonPadding,
+        padding: effectivePadding,
         spacing,
     };
 }
