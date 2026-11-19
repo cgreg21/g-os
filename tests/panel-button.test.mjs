@@ -14,29 +14,30 @@ test('panel button dimensions account for both panel and button vertical padding
         panelHeight: 48,
         panelVerticalPadding: 4,
         buttonPadding: 2,
-        spacing: 5,
+        itemSpacing: 5,
     }), {
         contentHeight: 36,
         iconSize: 25,
         fontSize: 23,
         padding: 2,
-        spacing: 5,
+        itemSpacing: 5,
+        contentSpacing: 4,
     });
 });
 
 test('panel button dimensions scale with available topbar height', () => {
     const compact = calculatePanelButtonMetrics({
-        panelHeight: 32, panelVerticalPadding: 2, buttonPadding: 2, spacing: 3,
+        panelHeight: 32, panelVerticalPadding: 2, buttonPadding: 2, itemSpacing: 3,
     });
     const roomy = calculatePanelButtonMetrics({
-        panelHeight: 64, panelVerticalPadding: 4, buttonPadding: 3, spacing: 6,
+        panelHeight: 64, panelVerticalPadding: 4, buttonPadding: 3, itemSpacing: 6,
     });
     assert.ok(roomy.iconSize > compact.iconSize);
     assert.ok(roomy.fontSize > compact.fontSize);
     assert.equal(compact.padding, 2);
     assert.equal(roomy.padding, 3);
-    assert.equal(compact.spacing, 3);
-    assert.equal(roomy.spacing, 6);
+    assert.equal(compact.itemSpacing, 3);
+    assert.equal(roomy.itemSpacing, 6);
 });
 
 test('all topbar buttons use computed metrics without local padding overrides', async () => {
@@ -59,8 +60,8 @@ test('topbar spacing and padding are not hardcoded per button style', async () =
 
 test('live topbar geometry settings refresh shared metrics without rebuilding controls', async () => {
     const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
-    assert.match(extension, /'panel-height', 'panel-padding-horizontal', 'panel-padding-vertical', 'panel-icon-padding'/);
-    assert.match(extension, /\['panel-height', 'panel-padding-horizontal', 'panel-padding-vertical',[\s\S]*?'panel-icon-padding'\]\.some\(key => keys\.has\(key\)\)[\s\S]*?this\._applyPanelMetrics\(screen\);/);
+    assert.match(extension, /'panel-height', 'panel-padding-horizontal', 'panel-padding-vertical', 'panel-icon-padding', 'panel-item-spacing'/);
+    assert.match(extension, /\['panel-height', 'panel-padding-horizontal', 'panel-padding-vertical',[\s\S]*?'panel-icon-padding', 'panel-item-spacing'\]\.some\(key => keys\.has\(key\)\)[\s\S]*?this\._applyPanelMetrics\(screen\);/);
     assert.match(extension, /if \(keys\.has\('panel-height'\)\)\s+screen\.panel\.set_height/);
 });
 
@@ -82,10 +83,10 @@ test('application label font size follows shared metrics and available width', (
 
 test('panel button dimensions reject invalid geometry', () => {
     assert.throws(() => calculatePanelButtonMetrics({
-        panelHeight: 0, panelVerticalPadding: 0, buttonPadding: 0, spacing: 0,
+        panelHeight: 0, panelVerticalPadding: 0, buttonPadding: 0, itemSpacing: 0,
     }), RangeError);
     assert.throws(() => calculatePanelButtonMetrics({
-        panelHeight: 40, panelVerticalPadding: -1, buttonPadding: 0, spacing: 0,
+        panelHeight: 40, panelVerticalPadding: -1, buttonPadding: 0, itemSpacing: 0,
     }), RangeError);
 });
 
@@ -133,19 +134,30 @@ test('icon-only, text-only and combined controls share the same St.Button compon
     assert.ok(combined.panelLabel);
 });
 
-test('shared metrics apply identical padding and spacing and scale icon and text', () => {
-    const button = createPanelButton(fakeSt, fakeClutter, {
-        iconName: 'wifi', text: 'Wi-Fi',
-    });
+test('icon-only, text-only and combined buttons receive exactly the same padding', () => {
+    const iconOnly = createPanelButton(fakeSt, fakeClutter, {iconName: 'wifi'});
+    const textOnly = createPanelButton(fakeSt, fakeClutter, {text: 'Wi-Fi'});
+    const combined = createPanelButton(fakeSt, fakeClutter, {iconName: 'wifi', text: 'Wi-Fi'});
     const metrics = calculatePanelButtonMetrics({
-        panelHeight: 48, panelVerticalPadding: 4, buttonPadding: 2, spacing: 5,
+        panelHeight: 48, panelVerticalPadding: 4, buttonPadding: 2, itemSpacing: 11,
     });
-    applyPanelButtonMetrics(button, metrics);
+    for (const button of [iconOnly, textOnly, combined])
+        applyPanelButtonMetrics(button, metrics);
+    assert.equal(iconOnly.styles[0], 'padding: 2px; margin: 0; min-height: 0;');
+    assert.equal(textOnly.styles[0], iconOnly.styles[0]);
+    assert.equal(combined.styles[0], iconOnly.styles[0]);
+    assert.ok(iconOnly.panelIcon.styles.some(style => style.includes('icon-size: 25px')));
+    assert.ok(textOnly.panelLabel.styles.some(style => style.includes('font-size: 23px')));
+    assert.ok(combined.panelContent.styles.some(style => style.includes('spacing: 4px')));
+});
 
-    assert.ok(button.styles.some(style => style.includes('padding: 2px')));
-    assert.ok(button.panelContent.styles.some(style => style.includes('spacing: 5px')));
-    assert.ok(button.panelIcon.styles.some(style => style.includes('icon-size: 25px')));
-    assert.ok(button.panelLabel.styles.some(style => style.includes('font-size: 23px')));
+test('item spacing is independent from button padding', () => {
+    const compactPadding = calculatePanelButtonMetrics({panelHeight: 48, buttonPadding: 1, itemSpacing: 12});
+    const roomyPadding = calculatePanelButtonMetrics({panelHeight: 48, buttonPadding: 9, itemSpacing: 12});
+    assert.equal(compactPadding.itemSpacing, 12);
+    assert.equal(roomyPadding.itemSpacing, 12);
+    assert.equal(compactPadding.padding, 1);
+    assert.equal(roomyPadding.padding, 9);
 });
 
 test('menu-capable controls are the same shared St.Button with an attached menu', () => {
@@ -228,7 +240,7 @@ test('menu buttons toggle on click and open from the popup-menu gesture', () => 
 
 test('button padding cannot consume the entire topbar height', () => {
     const metrics = calculatePanelButtonMetrics({
-        panelHeight: 24, panelVerticalPadding: 1, buttonPadding: 16, spacing: 6,
+        panelHeight: 24, panelVerticalPadding: 1, buttonPadding: 16, itemSpacing: 6,
     });
     assert.equal(metrics.padding, 10);
     assert.equal(metrics.contentHeight, 2);
@@ -257,20 +269,22 @@ test('global menu does not retain an independent text padding setting', async ()
 });
 
 
-test('topbar and all button content share one spacing constant', async () => {
+test('topbar item spacing is a live setting independent from button padding', async () => {
     const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
-    assert.match(panel, /spacing: PANEL_BUTTON_SPACING/);
-    assert.match(panel, /screen\.panel\.set_style\([^\n]*spacing: \$\{metrics\.spacing\}px/);
-    assert.match(panel, /content\.set_style\(\`spacing: \$\{metrics\.spacing\}px/);
-    assert.doesNotMatch(stylesheet, /\.g-os-secondary-panel\s*\{[^}]*\bspacing:/s);
-    assert.doesNotMatch(stylesheet, /\.g-os-panel-zone-content\s*\{[^}]*\bspacing:/s);
-    assert.doesNotMatch(stylesheet, /\.macos-global-menu\s*\{[^}]*\bspacing:/s);
+    assert.match(panel, /const itemSpacing = this\\._settings\\.get_int\\('panel-item-spacing'\\)/);
+    assert.match(panel, /screen\\.panel\\.set_style\\([^\\n]*spacing: \\$\\{metrics\\.itemSpacing\\}px/);
+    assert.match(panel, /content\\.set_style\\(\\`spacing: \\$\\{metrics\\.itemSpacing\\}px/);
+    assert.match(extension, /'panel-icon-padding', 'panel-item-spacing'/);
+    assert.doesNotMatch(stylesheet, /\\.g-os-secondary-panel\\s*\\{[^}]*\\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\\.g-os-panel-zone-content\\s*\\{[^}]*\\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\\.macos-global-menu\\s*\\{[^}]*\\bspacing:/s);
 });
 
 test('default metrics use the shared topbar spacing', () => {
     const metrics = calculatePanelButtonMetrics({panelHeight: 32});
-    assert.equal(metrics.spacing, 6);
+    assert.equal(metrics.itemSpacing, 6);
 });
 
 test('obsolete per-text topbar padding is absent from configuration and schema', async () => {
