@@ -3,6 +3,7 @@ import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 
 type DesktopMonitor = (typeof Main.layoutManager.monitors)[number] & {connector?: string};
 type DesktopBackgroundManager = {
@@ -222,7 +223,12 @@ export function withDesktopWidgets(Base) {
                     this._settings.set_int(xKey, Math.max(0, Math.round(x - monitor.x)));
                     this._settings.set_int(yKey, Math.max(0, Math.round(y - monitor.y)));
                 };
-                screen.interactionDnd.registerSource(widget.dragHandle ?? widget, {}, {
+                registerShadowDragSource({
+                    controller: screen.interactionDnd,
+                    actor: widget.dragHandle ?? widget,
+                    visualActor: widget,
+                    St,
+                    callbacks: {
                     onBegin: () => {
                         origin = widget.get_position();
                         const [pointerX, pointerY] = global.get_pointer();
@@ -245,7 +251,9 @@ export function withDesktopWidgets(Base) {
                     },
                     onEnd: finish,
                     onDestroy: finish,
-                }, {}, screen.lifecycle);
+                    },
+                    lifecycle: screen.lifecycle,
+                });
                 screen.lifecycle.add(restore);
             }
 
