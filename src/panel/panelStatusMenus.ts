@@ -968,7 +968,7 @@ export class RadioStatusMenu {
         this.connectedLabel = new St.Label({text: 'Périphériques connectés', style_class: 'g-os-status-section-label'});
         this.connectedGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-grid'});
         this.otherLabel = new St.Label({text: 'Autres appareils', style_class: 'g-os-status-section-label'});
-        this.otherGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-grid'});
+        this.otherGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-other-list'});
         this.emptyLabel = new St.Label({text: 'Aucun appareil disponible', style_class: 'g-os-status-empty'});
         for (const actor of [this.connectedLabel, this.connectedGrid, this.otherLabel, this.otherGrid, this.emptyLabel]) {
             const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
@@ -1011,6 +1011,32 @@ export class RadioStatusMenu {
             container.add_child(row);
         }
     }
+    _otherDeviceRow(device) {
+        const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true,
+            style_class: 'g-os-status-other-device',
+            accessible_name: `Connecter ${device.alias || 'Périphérique'}`}));
+        const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
+            style_class: 'g-os-status-other-content'});
+        content.add_child(new this.St.Icon({icon_name: device.icon || 'bluetooth-symbolic', icon_size: 18}));
+        const label = expandHorizontally(new this.St.Label({text: device.alias || 'Périphérique',
+            style_class: 'g-os-status-other-label'}));
+        label.y_align = this.Clutter.ActorAlign.CENTER;
+        content.add_child(label);
+        const action = new this.St.Label({text: 'Connecter', style_class: 'g-os-status-device-muted'});
+        action.y_align = this.Clutter.ActorAlign.CENTER;
+        content.add_child(action);
+        button.set_child(content);
+        button.connect('clicked', () => {
+            if (!this.destroyed)
+                this.client?.toggleDevice(device).catch(error => console.error('G-OS Bluetooth device:', error));
+        });
+        return button;
+    }
+    _fillOtherList(container, devices) {
+        container.destroy_all_children();
+        for (const device of devices)
+            container.add_child(this._otherDeviceRow(device));
+    }
     refresh() {
         if (this.destroyed) return;
         const enabled = Boolean(this.toggle?.checked);
@@ -1020,7 +1046,7 @@ export class RadioStatusMenu {
         const devices: any[] = enabled ? Array.from(this.client?.getDevices?.() ?? []) : [];
         const connected = Array.from(devices.filter(device => device.connected));
         const available = Array.from(devices.filter(device => !device.connected && device.connectable !== false)).slice(0, 4);
-        this._fill(this.connectedGrid, connected); this._fill(this.otherGrid, available);
+        this._fill(this.connectedGrid, connected); this._fillOtherList(this.otherGrid, available);
         this.connectedLabel.visible = connected.length > 0; this.connectedGrid.get_parent().visible = connected.length > 0;
         this.otherLabel.visible = available.length > 0; this.otherGrid.get_parent().visible = available.length > 0;
         this.emptyLabel.visible = enabled && connected.length === 0 && available.length === 0;
