@@ -208,6 +208,7 @@ export function withDockOrder(Base) {
                 controller: screen.interactionDnd,
                 actor: button,
                 St,
+                Clutter,
                 callbacks: {
                     onBegin: () => {
                         cancelled = false;
