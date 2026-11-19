@@ -100,8 +100,10 @@ test('dock reorder transitions are owned by the screen animation manager', () =>
 test('drag actor visuals are created only by the shared shadow source', async () => {
     const featureSources = [extensionSource, panelSource, dockOrderSource, dockFoldersSource,
         desktopIconsSource, desktopWidgetsSource, widgetRuntimeSource];
-    for (const source of featureSources)
+    for (const source of featureSources) {
         assert.doesNotMatch(source, /getDragActor\s*:/);
+        assert.doesNotMatch(source, /interactionDnd\.registerSource\(/);
+    }
     const sharedDndSource = await readFile(new URL('../src/shared/interaction/shadowDragSource.ts', import.meta.url), 'utf8');
     assert.match(sharedDndSource, /getDragActor: \(\) => dragActor \?\? createDragActor\(\)/);
     assert.match(dragAndDropSource, /DND\.makeDraggable\(actor/);
