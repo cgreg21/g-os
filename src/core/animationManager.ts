@@ -67,8 +67,14 @@ export class AnimationManager {
         if (!animation)
             return;
         this.active.delete(key);
-        for (const property of animation.properties)
-            animation.actor.remove_transition(property);
+        for (const property of animation.properties) {
+            try {
+                animation.actor.remove_transition(property);
+            } catch (error) {
+                // Continue cancelling remaining properties if an actor is already disposed.
+                logError(error as Error, `Unable to cancel animation transition: ${property}`);
+            }
+        }
     }
 
     cancelAll(): void {
