@@ -823,8 +823,7 @@ export function withPanel(Base) {
                 screen.panelDragState = null;
                 if (placeholder.get_parent())
                     placeholder.get_parent().remove_child(placeholder);
-                if (!placeholder.is_destroyed())
-                    placeholder.destroy();
+                placeholder.destroy();
                 throw error;
             }
         }
