@@ -48,10 +48,12 @@ function removeActorFromParent(actor, parent = getActorParent(actor)) {
 }
 
 const DEFAULT_PANEL_LAYOUT = [
-    'left:launcher', 'left:application', 'left:global-menu', 'left:transfer',
+    'left:launcher', 'left:activities', 'left:application', 'left:global-menu', 'left:transfer',
     'center:clock',
-    'right:search', 'right:preferences', 'right:notifications', 'right:tray',
-    'right:wifi', 'right:bluetooth', 'right:sound', 'right:brightness', 'right:battery', 'right:session',
+    'right:search', 'right:preferences', 'right:quick-settings', 'right:notifications', 'right:tray',
+    'right:wifi', 'right:bluetooth', 'right:sound', 'right:brightness', 'right:battery',
+    'right:accessibility', 'right:keyboard', 'right:dwell-click',
+    'right:screen-recording', 'right:screen-sharing', 'right:session',
 ];
 
 type NativeDateMenu = typeof Main.panel.statusArea.dateMenu & {
@@ -707,6 +709,7 @@ export function withPanel(Base) {
             this._populateSessionMenu(screen.sessionButton);
             Main.panel.menuManager.addMenu(screen.sessionButton.menu);
             screen.panel.add_child(screen.sessionButton.container);
+            this._adoptNativePanelItems(screen);
             this._initializePanelLayout(screen);
             this._applyPanelMetrics(screen);
             screen.panel.set_position(monitor.x, monitor.y);
@@ -714,8 +717,56 @@ export function withPanel(Base) {
             screen.lifecycle.chrome?.add(screen.panel, {affectsStruts: true, trackFullscreen: true});
         }
 
+        _adoptNativePanelItems(screen) {
+            if (screen.monitor.index !== Main.layoutManager.primaryIndex ||
+                Main.sessionMode.currentMode !== 'user')
+                return;
+
+            const statusArea = Main.panel.statusArea as Record<string, any>;
+            const roles = [
+                ['activities', 'activities'],
+                ['quick-settings', 'quickSettings'],
+                ['accessibility', 'a11y'],
+                ['keyboard', 'keyboard'],
+                ['dwell-click', 'dwellClick'],
+                ['screen-recording', 'screenRecording'],
+                ['screen-sharing', 'screenSharing'],
+            ];
+            screen.nativePanelItems = new Map();
+            for (const [id, role] of roles) {
+                const indicator = statusArea[role];
+                const actor = indicator?.container ?? indicator;
+                const parent = getActorParent(actor);
+                if (!actor || !parent)
+                    continue;
+                const index = parent.get_children().indexOf(actor);
+                if (index < 0 || !removeActorFromParent(actor, parent))
+                    continue;
+                screen.nativePanelItems.set(id, {actor, parent, index});
+                screen.panel.add_child(actor);
+            }
+        }
+
+        _restoreNativePanelItems(screen) {
+            for (const {actor, parent, index} of screen.nativePanelItems?.values() ?? []) {
+                const currentParent = getActorParent(actor);
+                if (currentParent && currentParent !== parent)
+                    removeActorFromParent(actor, currentParent);
+                if (!getActorParent(actor)) {
+                    try {
+                        parent.insert_child_at_index(actor, Math.min(index, parent.get_n_children()));
+                    } catch {
+                        // GNOME Shell may have disposed an indicator during a session transition.
+                    }
+                }
+            }
+            screen.nativePanelItems?.clear();
+            screen.nativePanelItems = null;
+        }
+
         _initializePanelLayout(screen) {
             screen.panelLayoutItems = new Map([
+                ...[...(screen.nativePanelItems ?? new Map())].map(([id, state]) => [id, state.actor]),
                 ['launcher', screen.menuButton.container],
                 ['application', screen.appMenuButton.container],
                 ['global-menu', screen.globalMenuBox],

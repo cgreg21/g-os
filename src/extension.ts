@@ -1004,6 +1004,7 @@ export default class GOsExtension extends ExtensionComponents {
                 if (screen.tooltip) {
                     screen.tooltip.destroy();
                 }
+                this._restoreNativePanelItems?.(screen);
                 if (screen.panel)
                     screen.panel.destroy();
             }

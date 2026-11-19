@@ -63,6 +63,21 @@ test('topbar lifecycle scope owns DND signals and chrome registration', () => {
 });
 
 
+test('the topbar adopts native GNOME panel controls and restores their original parents', () => {
+    assert.match(panelSource, /_adoptNativePanelItems\(screen\)[\s\S]*?\['activities', 'activities'\][\s\S]*?\['quick-settings', 'quickSettings'\][\s\S]*?\['accessibility', 'a11y'\][\s\S]*?\['keyboard', 'keyboard'\][\s\S]*?\['dwell-click', 'dwellClick'\][\s\S]*?\['screen-recording', 'screenRecording'\][\s\S]*?\['screen-sharing', 'screenSharing'\]/);
+    assert.match(panelSource, /Main\.sessionMode\.currentMode !== 'user'/);
+    assert.match(panelSource, /_restoreNativePanelItems\(screen\)[\s\S]*?parent\.insert_child_at_index\(actor, Math\.min\(index, parent\.get_n_children\(\)\)\)/);
+    assert.match(panelSource, /\.\.\.\[\.\.\.\(screen\.nativePanelItems \?\? new Map\(\)\)\]\.map\(\(\[id, state\]\) => \[id, state\.actor\]\)/);
+    assert.match(extensionSource, /this\._restoreNativePanelItems\?\.\(screen\)/);
+});
+
+test('native GNOME panel controls are part of the default draggable layout', () => {
+    for (const id of ['activities', 'quick-settings', 'accessibility', 'keyboard',
+        'dwell-click', 'screen-recording', 'screen-sharing']) {
+        assert.match(panelSource, new RegExp('(?:left|right):' + id));
+    }
+});
+
 test('topbar opts into the native GNOME Shell panel theme when styling is enabled', () => {
     const createPanelStart = panelSource.indexOf('        _createPanel(screen) {');
     const createPanelEnd = panelSource.indexOf('        _initializePanelLayout(screen) {', createPanelStart);
