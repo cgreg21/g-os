@@ -315,7 +315,7 @@ export default class GOsExtension extends ExtensionComponents {
                     }
                 });
             });
-            const descriptor = JSON.parse(new TextDecoder().decode(contents));
+            const descriptor = JSON.parse(new TextDecoder().decode(contents as Uint8Array));
             if (descriptor.version !== 1 || typeof descriptor.socketPath !== 'string' ||
                 !GLib.path_is_absolute(descriptor.socketPath) ||
                 typeof descriptor.token !== 'string' || !/^[a-f0-9]{64}$/i.test(descriptor.token))
