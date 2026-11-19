@@ -119,15 +119,13 @@ export function openWidgetManager(parent, settings, target = 'desktop', requeste
     const write = values => {
         if (closed || !settings.is_writable('widget-instances'))
             return;
-        {
-            const removed = storedInstances().filter(instance => !values.some(value => value.id === instance.id));
-            settings.set_string('widget-instances', JSON.stringify(values));
-            if (removed.length > 0 && settings.is_writable('widget-state')) {
-                const state = readJSON(settings.get_string('widget-state'), {});
-                for (const instance of removed)
-                    delete state[instance.id];
-                settings.set_string('widget-state', JSON.stringify(state));
-            }
+        const removed = storedInstances().filter(instance => !values.some(value => value.id === instance.id));
+        settings.set_string('widget-instances', JSON.stringify(values));
+        if (removed.length > 0 && settings.is_writable('widget-state')) {
+            const state = readJSON(settings.get_string('widget-state'), {});
+            for (const instance of removed)
+                delete state[instance.id];
+            settings.set_string('widget-state', JSON.stringify(state));
         }
     };
     const update = (id, changes) => write(storedInstances().map(instance => instance.id === id ? {...instance, ...changes} : instance));
