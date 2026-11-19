@@ -524,6 +524,36 @@ test('widget runtime blocks media creation and host actions after disposal', () 
     assert.equal(hostActions, 0);
 });
 
+test('widget runtime rejects new system operations after disposal', async () => {
+    let fileRequests = 0;
+    let processRequests = 0;
+    const runtime = Object.create(WidgetRuntime.prototype);
+    runtime.env = {
+        St: {}, GLib: {},
+        Gio: {
+            File: {new_for_path: () => {
+                fileRequests++;
+                return {load_contents_async() {}, query_filesystem_info_async() {}};
+            }},
+            Subprocess: {new: () => {
+                processRequests++;
+                return {communicate_utf8_async() {}, force_exit() {}};
+            }},
+            SubprocessFlags: {STDOUT_PIPE: 1, STDERR_PIPE: 2},
+        },
+    };
+    runtime.host = {_settings: {get_string: () => '{}', is_writable: () => false}};
+    runtime.registry = {entries: new Map([['test', {description: {configuration: []}}]])};
+    const context = runtime.context({id: 'instance', widget: 'test', config: {}}, {}, {}, []);
+    context.dispose();
+
+    await assert.rejects(context.context.api.systemStats(), /Widget detruit/);
+    await assert.rejects(context.context.api.diskStats('/'), /Widget detruit/);
+    await assert.rejects(context.context.api.solve('1 + 1'), /Widget detruit/);
+    assert.equal(fileRequests, 0);
+    assert.equal(processRequests, 0);
+});
+
 test('widget runtime ignores signal and timer callbacks after instance disposal', () => {
     let signalCallback;
     const timerCallbacks = [];
