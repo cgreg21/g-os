@@ -21,6 +21,8 @@ buildSync({entryPoints: ['src/widgets/fluxLanguage.ts'], outfile: 'dist/widgets/
     bundle: true, format: 'esm', platform: 'neutral', mainFields: ['module', 'main'], target: 'es2022', sourcemap: true});
 rmSync('dist/widgets/fluxPython.js', {force: true});
 rmSync('dist/widgets/fluxPython.js.map', {force: true});
+mkdirSync('dist/debug', {recursive: true});
+cpSync('src/debug/debugRuntime.js', 'dist/debug/debugRuntime.js');
 mkdirSync('dist/licenses', {recursive: true});
 cpSync('node_modules/yaml/LICENSE', 'dist/licenses/yaml-LICENSE');
 cpSync('node_modules/mustache/LICENSE', 'dist/licenses/mustache-LICENSE');

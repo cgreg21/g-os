@@ -16,6 +16,7 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders} from './shared/appFolders.js';
+import {connectDebugRuntime} from './debug/debugRuntime.js';
 import {errorMessage} from './shared/errorMessage.js';
 import {LifecycleScope} from './core/lifecycleScope.js';
 import {DragAndDropController} from './shared/interaction/dragAndDrop.js';
@@ -92,6 +93,7 @@ export default class GOsExtension extends ExtensionComponents {
             this._appSystem = Shell.AppSystem.get_default();
             this._favorites = AppFavorites.getAppFavorites();
         this._settings = this.getSettings();
+        this._startDebugRuntimeMonitor();
         this._cache = new GOSCache(256, 5 * 60 * 1000);
         this._statusNotifierHost = new StatusNotifierHost({Gio, GLib,
             onChanged: () => {
@@ -264,7 +266,101 @@ export default class GOsExtension extends ExtensionComponents {
             this._updateActiveApp();
     }
 
+    _startDebugRuntimeMonitor() {
+        const directoryPath = GLib.build_filenamev([GLib.get_user_cache_dir(), 'g-os-debug']);
+        GLib.mkdir_with_parents(directoryPath, 0o700);
+        this._debugRuntimeFile = Gio.File.new_for_path(GLib.build_filenamev([directoryPath, 'session.json']));
+        const directory = Gio.File.new_for_path(directoryPath);
+        try {
+            this._debugRuntimeMonitor = directory.monitor_directory(Gio.FileMonitorFlags.WATCH_MOVES, null);
+            this._debugRuntimeMonitor.connect('changed', (_monitor, file, otherFile) => {
+                const target = this._debugRuntimeFile.get_path();
+                if ([file, otherFile].some(candidate => candidate?.get_path() === target))
+                    this._queueDebugRuntimeSync();
+            });
+        } catch (error) {
+            logError(error, '[G-Os Debug] Could not monitor the debug session descriptor');
+            return;
+        }
+        this._queueDebugRuntimeSync();
+    }
+
+    _queueDebugRuntimeSync() {
+        if (this._debugRuntimeSyncSource)
+            GLib.source_remove(this._debugRuntimeSyncSource);
+        this._debugRuntimeSyncSource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+            this._debugRuntimeSyncSource = 0;
+            void this._syncDebugRuntimeSession();
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    async _syncDebugRuntimeSession() {
+        const generation = (this._debugRuntimeGeneration ?? 0) + 1;
+        this._debugRuntimeGeneration = generation;
+        try {
+            const info = this._debugRuntimeFile.query_info('unix::mode', Gio.FileQueryInfoFlags.NONE, null);
+            if ((info.get_attribute_uint32('unix::mode') & 0o077) !== 0)
+                throw new Error('Debug session descriptor permissions must be 0600');
+            const contents = await new Promise((resolve, reject) => {
+                this._debugRuntimeFile.load_contents_async(null, (file, result) => {
+                    try {
+                        const [success, bytes] = file.load_contents_finish(result);
+                        if (!success)
+                            reject(new Error('Could not read debug session descriptor'));
+                        else
+                            resolve(bytes);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            });
+            const descriptor = JSON.parse(new TextDecoder().decode(contents));
+            if (descriptor.version !== 1 || typeof descriptor.socketPath !== 'string' ||
+                !GLib.path_is_absolute(descriptor.socketPath) ||
+                typeof descriptor.token !== 'string' || !/^[a-f0-9]{64}$/i.test(descriptor.token))
+                throw new Error('Invalid G-Os debug session descriptor');
+            if (this._debugRuntime?.socketPath === descriptor.socketPath &&
+                this._debugRuntime?._token === descriptor.token && this._debugRuntime.connected)
+                return;
+            const {runtime} = await connectDebugRuntime({
+                socketPath: descriptor.socketPath,
+                token: descriptor.token,
+                stageProvider: () => global.stage,
+            });
+            if (generation !== this._debugRuntimeGeneration) {
+                runtime.close();
+                return;
+            }
+            const previous = this._debugRuntime;
+            this._debugRuntime = runtime;
+            previous?.close();
+            log('[G-Os Debug] Authenticated inspector runtime connected');
+        } catch (error) {
+            if (generation !== this._debugRuntimeGeneration)
+                return;
+            this._debugRuntime?.close();
+            this._debugRuntime = null;
+            if (error?.matches?.(Gio.io_error_quark(), Gio.IOErrorEnum.NOT_FOUND))
+                return;
+            logError(error, '[G-Os Debug] Inspector runtime connection failed');
+        }
+    }
+
+    _stopDebugRuntimeMonitor() {
+        this._debugRuntimeGeneration = (this._debugRuntimeGeneration ?? 0) + 1;
+        if (this._debugRuntimeSyncSource)
+            GLib.source_remove(this._debugRuntimeSyncSource);
+        this._debugRuntimeSyncSource = 0;
+        this._debugRuntimeMonitor?.cancel();
+        this._debugRuntimeMonitor = null;
+        this._debugRuntime?.close();
+        this._debugRuntime = null;
+        this._debugRuntimeFile = null;
+    }
+
     disable() {
+            this._stopDebugRuntimeMonitor();
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
