@@ -45,10 +45,11 @@ export function registerShadowDragSource({
         container.add_child(new Clutter.Clone({source: visualActor, reactive: false}));
         return container;
     };
+    const originalDelegate = actor._delegate;
     const getDragActorSource = typeof delegate.getDragActorSource === 'function'
-        ? delegate.getDragActorSource
-        : typeof actor._delegate?.getDragActorSource === 'function'
-            ? actor._delegate.getDragActorSource
+        ? (...args: any[]) => delegate.getDragActorSource(...args)
+        : typeof originalDelegate?.getDragActorSource === 'function'
+            ? (...args: any[]) => originalDelegate.getDragActorSource(...args)
             : () => visualActor;
     const finish = callback => {
         try {
