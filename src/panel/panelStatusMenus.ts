@@ -249,6 +249,8 @@ export class DisplayStatusMenu {
             'org.gnome.SettingsDaemon.Power.Screen',
             Gio.DBusSignalFlags.NONE,
             (_connection, _sender, _path, _interface, _signal, parameters) => {
+                if (this.destroyed)
+                    return;
                 const [interfaceName, properties] = parameters.deep_unpack();
                 if (interfaceName !== 'org.gnome.SettingsDaemon.Power.Screen' ||
                     !Object.hasOwn(properties, 'Brightness'))
