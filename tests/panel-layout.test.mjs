@@ -127,54 +127,36 @@ test('native status menu content restores only actors it can safely reparent', a
 });
 
 
-test('network overview avoids duplicate status and keeps Wi-Fi scanning in its detail view', async () => {
+test('network overview uses a compact connection card, icon grid and inline device controls', async () => {
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
     const overviewStart = source.indexOf('    _buildOverview()');
-    const detailStart = source.indexOf('    showDetail(toggle)');
-    const overview = source.slice(overviewStart, detailStart);
-    const detailEnd = source.indexOf('    refresh()', detailStart);
-    const detail = source.slice(detailStart, detailEnd);
-    assert.ok(!overview.includes('connectionCard'));
-    assert.ok(!overview.includes('connectionSummary'));
-    assert.ok(!overview.includes('Actualiser'));
-    assert.ok(!overview.includes('_refreshNetworks'));
-    assert.ok(overview.includes('g-os-network-rows'));
-    assert.ok(overview.includes('PopupMenuItem'));
-    assert.ok(overview.includes("button.label.set_x_expand(true)"));
-    assert.ok(overview.includes("button.connect('activate'"));
-    assert.ok(overview.includes('PopupSeparatorMenuItem'));
-    assert.ok(!overview.includes('emblem-system-symbolic'));
-    assert.ok(!overview.includes('g-os-network-popup'));
-    assert.ok(!overview.includes('g-os-network-row-button'));
+    const inlineStart = source.indexOf('    _toggleInlineContent(toggle)');
+    const overview = source.slice(overviewStart, inlineStart);
+    assert.ok(overview.includes('connectionCard'));
+    assert.ok(overview.includes('g-os-status-device-grid'));
     assert.ok(overview.includes('_buildTrafficGraph'));
-    assert.ok(overview.includes('_updateOverviewVisibility'));
-    assert.ok(overview.includes('button.visible = active'));
-    assert.ok(!overview.includes("_label('Réseau'"));
-    assert.ok(detail.includes("_button('Rechercher', 'g-os-network-action'"));
-    assert.ok(detail.includes("'Activer le Wi-Fi'"));
-    assert.ok(!detail.includes('Service activé'));
-    assert.ok(!detail.includes("_label(state.entry.title, 'g-os-network-title')"));
-    assert.ok(detail.includes('toggle._startScanning?.()'));
-    assert.ok(detail.includes('toggle._reorderDeviceItems?.()'));
-    assert.ok(detail.includes('state.content.mount(toggle.menu, true)'));
-    assert.ok(detail.includes("_button('Retour', 'g-os-network-back'"));
-    assert.ok(detail.includes('_appendSettingsItem'));
+    assert.ok(overview.includes('this._refreshConnectionCard()'));
+    assert.ok(overview.includes('this._toggleInlineContent(toggle)'));
+    assert.ok(source.includes('insert_child_at_index(inline'));
+    assert.ok(source.includes("_button('Rechercher', 'g-os-network-action'"));
+    assert.ok(!source.includes('showDetail(toggle)'));
+    assert.ok(!source.includes("_label('Réseau'"));
+    assert.ok(!source.includes('Service activé'));
 });
 
-test('Wi-Fi overview row displays the active SSID and native signal-strength icon', async () => {
+test('Wi-Fi connection card displays the active SSID and native signal-strength icon', async () => {
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
-    assert.ok(source.includes("toggle.subtitle || title"));
-    assert.ok(source.includes("toggle.icon_name || 'network-wireless-signal-none-symbolic'"));
+    assert.ok(source.includes("active.toggle.subtitle || 'Wi-Fi connecté'"));
+    assert.ok(source.includes('active.toggle.icon_name || this._iconFor(active.title)'));
     assert.ok(source.includes("notify::subtitle"));
     assert.ok(source.includes("notify::icon-name"));
     assert.ok(source.includes('_refreshWifiRow(toggle)'));
-    assert.ok(source.includes('state.button.label.text = toggle.subtitle || state.entry.title'));
     assert.ok(source.includes('state.icon.icon_name = toggle.icon_name'));
 });
 
@@ -199,23 +181,25 @@ test('network popup delegates its visual styling to the active GNOME theme', asy
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
-    assert.ok(!css.includes('.g-os-network-'));
+    const networkStyles = css.slice(css.indexOf('.g-os-network-connection'));
+    assert.ok(!networkStyles.includes('background-color'));
+    assert.ok(!networkStyles.includes('border-radius'));
+    assert.ok(!networkStyles.includes('box-shadow'));
     assert.ok(!source.includes('add_style_class_name(\'g-os-network-popup\')'));
     assert.ok(!source.includes('style_class: \'g-os-network-panel\''));
 });
 
 
-test('Bluetooth popup stays compact and removes duplicate native heading', async () => {
+test('Bluetooth popup uses connected and available device grids in one view', async () => {
     const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
-    const css = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
     const start = menus.indexOf('export class RadioStatusMenu');
     const end = menus.indexOf('export class BatteryStatusMenu', start);
     const source = menus.slice(start, end);
-    assert.ok(source.includes('nativeMenu?._header'));
-    assert.ok(source.includes('nativeHeader.hide()'));
-    assert.ok(source.includes('nativeHeader.show()'));
-    assert.ok(source.includes("'Aucun appareil disponible'"));
-    assert.ok(source.includes("'Activez Bluetooth pour connecter un appareil'"));
+    assert.ok(source.includes('Périphériques connectés'));
+    assert.ok(source.includes('Autres appareils'));
+    assert.ok(source.includes('toggleDevice(device)'));
+    assert.ok(source.includes('g-os-status-device-grid'));
+    assert.ok(!source.includes('NativeMenuContent'));
 });
 
 
