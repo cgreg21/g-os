@@ -68,6 +68,7 @@ export class SoundStatusMenu {
         row.add_child(this.muteButton);
         row.add_child(this.slider);
         row.add_child(this.percentage);
+        this.volumeRow = row;
         menu.addMenuItem(row);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this.devices = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL,
@@ -128,6 +129,7 @@ export class SoundStatusMenu {
         this.syncing = true;
         this.slider.value = volume;
         this.syncing = false;
+        this.volumeRow.visible = Boolean(this.stream);
         this.slider.reactive = Boolean(this.stream);
         this.slider.can_focus = Boolean(this.stream);
         this.muteButton.reactive = Boolean(this.stream);
