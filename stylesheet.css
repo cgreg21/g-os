@@ -112,3 +112,9 @@
 .g-os-network-inline-content { spacing: 6px; }
 .g-os-network-traffic-graph { height: 58px; }
 .g-os-status-input-row { spacing: 10px; min-height: 28px; }
+
+/* Available Bluetooth devices stay compact; their surfaces remain theme-owned. */
+.g-os-status-other-list { spacing: 2px; }
+.g-os-status-other-device { min-height: 36px; padding: 4px 8px; }
+.g-os-status-other-content { spacing: 10px; }
+.g-os-status-other-label { font-size: 0.9em; }
