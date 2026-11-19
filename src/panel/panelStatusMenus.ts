@@ -39,6 +39,7 @@ export class SoundStatusMenu {
         this.destroyed = false;
         this.Clutter = Clutter;
         this.PopupMenu = PopupMenu;
+        this.St = St;
         this.soundSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.sound'});
         this.cleanup = new CleanupManager();
         this.streamCleanup = new CleanupManager();
@@ -61,8 +62,11 @@ export class SoundStatusMenu {
         row.add_child(this.percentage);
         menu.addMenuItem(row);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Sortie audio'));
-        this.devices = new PopupMenu.PopupMenuSection();
-        menu.addMenuItem(this.devices);
+        this.devices = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL,
+            style_class: 'g-os-status-device-grid'});
+        const devicesItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        devicesItem.add_child(this.devices);
+        menu.addMenuItem(devicesItem);
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         menu.addAction('Parametres du son', openSettings);
         this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
@@ -182,26 +186,39 @@ export class SoundStatusMenu {
     refreshDevices() {
         if (this.destroyed)
             return;
-        this.devices.removeAll();
-        const streams = this.control.get_sinks();
-        let count = 0;
-        for (const stream of streams) {
-            const device = this.control.lookup_device_from_stream(stream);
-            if (!device)
-                continue;
-            const label = stream.get_description() || stream.get_name() || 'Sortie audio';
-            const item = this.devices.addAction(label, () => {
-                if (!this.destroyed)
-                    this.control.change_output(device.get_id());
-            });
-            count++;
-            item.setOrnament(stream === this.stream ? this.PopupMenu.Ornament.DOT : this.PopupMenu.Ornament.NONE);
+        this.devices.destroy_all_children();
+        const available = this.control.get_sinks().map(stream => ({
+            stream, device: this.control.lookup_device_from_stream(stream),
+            label: stream.get_description() || stream.get_name() || 'Sortie audio',
+        })).filter(entry => entry.device);
+        for (let index = 0; index < available.length; index += 2) {
+            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
+                style_class: 'g-os-status-grid-row'});
+            for (const entry of available.slice(index, index + 2)) {
+                const active = entry.stream === this.stream;
+                const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true,
+                    x_expand: true, style_class: 'g-os-status-device-tile', accessible_name: entry.label});
+                const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
+                    style_class: 'g-os-status-device-content'});
+                content.add_child(new this.St.Icon({icon_name: /headphone|casque/i.test(entry.label)
+                    ? 'audio-headphones-symbolic' : 'audio-speakers-symbolic', icon_size: 22}));
+                content.add_child(new this.St.Label({text: entry.label, style_class: 'g-os-status-device-label'}));
+                if (active)
+                    content.add_child(new this.St.Icon({icon_name: 'object-select-symbolic', icon_size: 14}));
+                button.set_child(content);
+                button.connect('clicked', () => {
+                    if (!this.destroyed)
+                        this.control.change_output(entry.device.get_id());
+                });
+                row.add_child(button);
+            }
+            if (available.length % 2 && index + 1 >= available.length)
+                row.add_child(new this.St.Widget({x_expand: true}));
+            this.devices.add_child(row);
         }
-        if (count === 0) {
-            const item = this.devices.addAction('Aucune sortie audio disponible', () => {});
-            item.setSensitive(false);
-        }
-        alignMenuRows(this.devices.actor, this.Clutter);
+        if (!available.length)
+            this.devices.add_child(new this.St.Label({text: 'Aucune sortie audio disponible',
+                style_class: 'g-os-status-empty'}));
     }
 
     destroy() {
@@ -215,202 +232,121 @@ export class SoundStatusMenu {
 
 export class DisplayStatusMenu {
     [key: string]: any;
-
     constructor(menu, icon, {Gio, GLib, St, Slider, PopupMenu, Clutter, openSettings}) {
-        this.menu = menu;
-        this.icon = icon;
-        this.Gio = Gio;
-        this.GLib = GLib;
-        this.brightness = null;
-        this.syncingBrightness = false;
-        this.syncingNightLight = false;
-        this.destroyed = false;
-        this.cancellable = new Gio.Cancellable();
-        this.cleanup = new CleanupManager();
+        this.Gio = Gio; this.GLib = GLib; this.St = St;
+        this.syncingBrightness = false; this.syncingNightLight = false; this.destroyed = false;
+        this.cancellable = new Gio.Cancellable(); this.cleanup = new CleanupManager();
         this.nightLight = new Gio.Settings({schema_id: 'org.gnome.settings-daemon.plugins.color'});
-
-        const brightnessRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        const brightness = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
         this.brightnessIcon = new St.Icon({icon_name: 'display-brightness-symbolic', icon_size: 20});
-        this.brightnessSlider = new Slider.Slider(0);
-        this.brightnessSlider.width = 200;
+        this.brightnessSlider = new Slider.Slider(0); this.brightnessSlider.width = 230;
         this.brightnessSlider.accessible_name = 'Luminosité de l’écran';
-        this.brightnessIcon.y_align = Clutter.ActorAlign.CENTER;
-        this.brightnessSlider.y_align = Clutter.ActorAlign.CENTER;
-        brightnessRow.add_child(this.brightnessIcon);
-        brightnessRow.add_child(this.brightnessSlider);
-        menu.addMenuItem(brightnessRow);
-        this.brightnessInfo = new PopupMenu.PopupMenuItem('Luminosité indisponible',
-            {reactive: false, can_focus: false});
-        this.brightnessInfo.add_style_class_name('g-os-status-info');
-        menu.addMenuItem(this.brightnessInfo);
-        this.cleanup.addSignal(this.brightnessSlider,
-            this.brightnessSlider.connect('notify::value', () => this._writeBrightness()));
+        this.brightnessValue = new St.Label({text: '—', style_class: 'g-os-status-value'});
+        for (const actor of [this.brightnessIcon, this.brightnessSlider, this.brightnessValue])
+            actor.y_align = Clutter.ActorAlign.CENTER;
+        brightness.add_child(this.brightnessIcon); brightness.add_child(this.brightnessSlider);
+        brightness.add_child(this.brightnessValue); menu.addMenuItem(brightness);
+        this.cleanup.addSignal(this.brightnessSlider, this.brightnessSlider.connect('notify::value', () => this._writeBrightness()));
 
-        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Mode nuit'));
-        this.nightLightToggle = new PopupMenu.PopupSwitchMenuItem('Activer le mode nuit',
-            this.nightLight.get_boolean('night-light-enabled'));
-        this.cleanup.addSignal(this.nightLightToggle, this.nightLightToggle.connect('toggled', (item, enabled) => {
-            if (!this.destroyed && !this.syncingNightLight)
-                this.nightLight.set_boolean('night-light-enabled', enabled);
+        const night = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        night.add_child(new St.Icon({icon_name: 'weather-clear-night-symbolic', icon_size: 20}));
+        night.add_child(new St.Label({text: 'Mode nuit', x_expand: true}));
+        this.nightLightToggle = new PopupMenu.PopupSwitchMenuItem('', this.nightLight.get_boolean('night-light-enabled'));
+        this.nightLightToggle.label.text = '';
+        night.add_child(this.nightLightToggle); menu.addMenuItem(night);
+        this.cleanup.addSignal(this.nightLightToggle, this.nightLightToggle.connect('toggled', (_item, enabled) => {
+            if (!this.destroyed && !this.syncingNightLight) this.nightLight.set_boolean('night-light-enabled', enabled);
         }));
-        menu.addMenuItem(this.nightLightToggle);
 
-        const temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        this.temperatureIcon = new St.Icon({icon_name: 'weather-clear-night-symbolic', icon_size: 20});
-        this.temperatureSlider = new Slider.Slider(0);
-        this.temperatureSlider.width = 200;
+        this.temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        this.temperatureRow.add_child(new St.Icon({icon_name: 'thermometer-sun-symbolic', icon_size: 20}));
+        this.temperatureSlider = new Slider.Slider(0); this.temperatureSlider.width = 200;
         this.temperatureSlider.accessible_name = 'Température du mode nuit';
-        this.temperatureIcon.y_align = Clutter.ActorAlign.CENTER;
-        this.temperatureSlider.y_align = Clutter.ActorAlign.CENTER;
-        temperatureRow.add_child(this.temperatureIcon);
-        temperatureRow.add_child(this.temperatureSlider);
-        menu.addMenuItem(temperatureRow);
-        this.temperatureInfo = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
-        this.temperatureInfo.add_style_class_name('g-os-status-info');
-        menu.addMenuItem(this.temperatureInfo);
-        this.cleanup.addSignal(this.temperatureSlider,
-            this.temperatureSlider.connect('notify::value', () => this._writeTemperature()));
+        this.temperatureValue = new St.Label({text: '', style_class: 'g-os-status-value'});
+        this.temperatureRow.add_child(this.temperatureSlider); this.temperatureRow.add_child(this.temperatureValue);
+        menu.addMenuItem(this.temperatureRow);
+        this.cleanup.addSignal(this.temperatureSlider, this.temperatureSlider.connect('notify::value', () => this._writeTemperature()));
         for (const signal of ['changed::night-light-enabled', 'changed::night-light-temperature'])
-            this.cleanup.addSignal(this.nightLight,
-                this.nightLight.connect(signal, () => this._refreshNightLight()));
+            this.cleanup.addSignal(this.nightLight, this.nightLight.connect(signal, () => this._refreshNightLight()));
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        menu.addAction('Configurer le mode nuit', openSettings);
+        menu.addAction('Paramètres d’affichage', openSettings);
 
-        const brightnessSignal = Gio.DBus.session.signal_subscribe(
-            'org.gnome.SettingsDaemon.Power',
-            'org.freedesktop.DBus.Properties',
-            'PropertiesChanged',
-            '/org/gnome/SettingsDaemon/Power',
-            'org.gnome.SettingsDaemon.Power.Screen',
-            Gio.DBusSignalFlags.NONE,
+        const signal = Gio.DBus.session.signal_subscribe('org.gnome.SettingsDaemon.Power',
+            'org.freedesktop.DBus.Properties', 'PropertiesChanged', '/org/gnome/SettingsDaemon/Power',
+            'org.gnome.SettingsDaemon.Power.Screen', Gio.DBusSignalFlags.NONE,
             (_connection, _sender, _path, _interface, _signal, parameters) => {
-                if (this.destroyed)
-                    return;
-                const [interfaceName, properties] = parameters.deep_unpack();
-                if (interfaceName !== 'org.gnome.SettingsDaemon.Power.Screen' ||
-                    !Object.hasOwn(properties, 'Brightness'))
-                    return;
-                const value = properties.Brightness;
-                this._updateBrightness(typeof value === 'number' ? value : value.deep_unpack());
+                if (this.destroyed) return;
+                const [name, properties] = parameters.deep_unpack();
+                if (name === 'org.gnome.SettingsDaemon.Power.Screen' && Object.hasOwn(properties, 'Brightness')) {
+                    const value = properties.Brightness;
+                    this._updateBrightness(typeof value === 'number' ? value : value.deep_unpack());
+                }
             });
-        this.cleanup.add(() => Gio.DBus.session.signal_unsubscribe(brightnessSignal));
-        this._refreshNightLight();
-        this._readBrightness();
+        this.cleanup.add(() => Gio.DBus.session.signal_unsubscribe(signal));
+        this._refreshNightLight(); this._readBrightness();
     }
-
     _refreshNightLight() {
-        if (this.destroyed)
-            return;
+        if (this.destroyed) return;
         const enabled = this.nightLight.get_boolean('night-light-enabled');
         const temperature = this.nightLight.get_uint('night-light-temperature');
         this.syncingNightLight = true;
         this.nightLightToggle.setToggleState(enabled);
         this.temperatureSlider.value = Math.max(0, Math.min(1, (temperature - 1000) / 9000));
         this.syncingNightLight = false;
-        this.temperatureInfo.label.text = `Température : ${temperature} K`;
+        this.temperatureValue.text = `${temperature.toLocaleString()} K`;
+        this.temperatureRow.visible = enabled;
     }
-
     _writeTemperature() {
-        if (this.syncingNightLight || this.destroyed)
-            return;
-        const temperature = Math.round(1000 + Math.max(0, Math.min(1, this.temperatureSlider.value)) * 9000);
-        this.nightLight.set_uint('night-light-temperature', temperature);
+        if (this.syncingNightLight || this.destroyed) return;
+        this.nightLight.set_uint('night-light-temperature',
+            Math.round(1000 + Math.max(0, Math.min(1, this.temperatureSlider.value)) * 9000));
     }
-
     _readBrightness() {
-        this.Gio.DBus.session.call(
-            'org.gnome.SettingsDaemon.Power',
-            '/org/gnome/SettingsDaemon/Power',
-            'org.freedesktop.DBus.Properties',
-            'Get',
-            new this.GLib.Variant('(ss)', [
-                'org.gnome.SettingsDaemon.Power.Screen', 'Brightness',
-            ]),
-            null,
-            this.Gio.DBusCallFlags.NONE,
-            3000,
-            this.cancellable,
-            (connection, result) => {
-                if (this.destroyed)
-                    return;
-                try {
-                    const value = connection.call_finish(result)
-                        .get_child_value(0).get_variant().get_int32();
-                    this._updateBrightness(value);
-                } catch {
-                    this._disableBrightness();
-                }
+        this.Gio.DBus.session.call('org.gnome.SettingsDaemon.Power', '/org/gnome/SettingsDaemon/Power',
+            'org.freedesktop.DBus.Properties', 'Get',
+            new this.GLib.Variant('(ss)', ['org.gnome.SettingsDaemon.Power.Screen', 'Brightness']),
+            null, this.Gio.DBusCallFlags.NONE, 3000, this.cancellable, (connection, result) => {
+                if (this.destroyed) return;
+                try { this._updateBrightness(connection.call_finish(result).get_child_value(0).get_variant().get_int32()); }
+                catch { this._disableBrightness(); }
             });
     }
-
     _updateBrightness(value) {
-        if (this.destroyed)
-            return;
-        if (!Number.isFinite(value))
-            return this._disableBrightness();
+        if (this.destroyed || !Number.isFinite(value)) return this._disableBrightness();
         this.brightness = Math.max(0, Math.min(100, Math.round(value)));
-        this.syncingBrightness = true;
-        this.brightnessSlider.value = this.brightness / 100;
-        this.syncingBrightness = false;
-        this.brightnessSlider.reactive = true;
-        this.brightnessSlider.can_focus = true;
-        this.brightnessInfo.label.text = `Luminosité : ${this.brightness} %`;
+        this.syncingBrightness = true; this.brightnessSlider.value = this.brightness / 100;
+        this.syncingBrightness = false; this.brightnessSlider.reactive = true;
+        this.brightnessSlider.can_focus = true; this.brightnessValue.text = `${this.brightness} %`;
     }
-
     _disableBrightness() {
-        if (this.destroyed)
-            return;
-        this.brightness = null;
-        this.brightnessSlider.reactive = false;
-        this.brightnessSlider.can_focus = false;
-        this.brightnessInfo.label.text = 'Réglage de luminosité indisponible';
+        if (this.destroyed) return;
+        this.brightness = null; this.brightnessSlider.reactive = false;
+        this.brightnessSlider.can_focus = false; this.brightnessValue.text = '—';
     }
-
     _writeBrightness() {
-        if (this.syncingBrightness || this.destroyed || this.brightness === null)
-            return;
+        if (this.syncingBrightness || this.destroyed || this.brightness === null) return;
         this.brightness = Math.round(Math.max(0, Math.min(1, this.brightnessSlider.value)) * 100);
-        this.brightnessInfo.label.text = `Luminosité : ${this.brightness} %`;
-        if (this.brightnessWriteSource)
-            this.GLib.source_remove(this.brightnessWriteSource);
+        this.brightnessValue.text = `${this.brightness} %`;
+        if (this.brightnessWriteSource) this.GLib.source_remove(this.brightnessWriteSource);
         this.brightnessWriteSource = this.GLib.timeout_add(this.GLib.PRIORITY_DEFAULT, 80, () => {
             this.brightnessWriteSource = 0;
-            if (this.destroyed)
-                return this.GLib.SOURCE_REMOVE;
-            const value = new this.GLib.Variant('i', this.brightness);
-            this.Gio.DBus.session.call(
-                'org.gnome.SettingsDaemon.Power',
-                '/org/gnome/SettingsDaemon/Power',
-                'org.freedesktop.DBus.Properties',
-                'Set',
-                new this.GLib.Variant('(ssv)', [
-                    'org.gnome.SettingsDaemon.Power.Screen', 'Brightness', value,
-                ]),
-                null,
-                this.Gio.DBusCallFlags.NONE,
-                3000,
-                this.cancellable,
-                (connection, result) => {
-                    if (this.destroyed)
-                        return;
-                    try {
-                        connection.call_finish(result);
-                    } catch {
-                        this._disableBrightness();
-                    }
+            if (this.destroyed) return this.GLib.SOURCE_REMOVE;
+            this.Gio.DBus.session.call('org.gnome.SettingsDaemon.Power', '/org/gnome/SettingsDaemon/Power',
+                'org.freedesktop.DBus.Properties', 'Set',
+                new this.GLib.Variant('(ssv)', ['org.gnome.SettingsDaemon.Power.Screen', 'Brightness',
+                    new this.GLib.Variant('i', this.brightness)]),
+                null, this.Gio.DBusCallFlags.NONE, 3000, this.cancellable, (connection, result) => {
+                    if (this.destroyed) return;
+                    try { connection.call_finish(result); } catch { this._disableBrightness(); }
                 });
             return this.GLib.SOURCE_REMOVE;
         });
     }
-
     destroy() {
-        if (this.destroyed)
-            return;
+        if (this.destroyed) return;
         this.destroyed = true;
-        if (this.brightnessWriteSource)
-            this.GLib.source_remove(this.brightnessWriteSource);
-        this.cleanup.clear();
-        this.cancellable.cancel();
+        if (this.brightnessWriteSource) this.GLib.source_remove(this.brightnessWriteSource);
+        this.cleanup.clear(); this.cancellable.cancel();
     }
 }
 
