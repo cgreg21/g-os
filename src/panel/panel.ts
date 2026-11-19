@@ -455,11 +455,14 @@ export function withPanel(Base) {
             });
             const updateQuit = () => {
                 const window = global.display.focus_window;
-                const app = window ? Shell.WindowTracker.get_default().get_window_app(window) : null;
+                const isDesktop = window?.get_window_type?.() === Meta.WindowType.DESKTOP;
+                const app = window && !isDesktop
+                    ? Shell.WindowTracker.get_default().get_window_app(window) : null;
                 quit.targetApp = typeof app?.request_quit === 'function' ? app : null;
                 quit.label.text = quit.targetApp ? `Quitter ${quit.targetApp.get_name()}` : 'Quitter l’application';
                 quit.setSensitive(Boolean(quit.targetApp));
             };
+            button.refreshTargetApp = updateQuit;
             updateQuit();
             button.menu.connect('open-state-changed', (menu, open) => {
                 if (open) {
