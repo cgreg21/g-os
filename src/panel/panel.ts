@@ -492,7 +492,8 @@ export function withPanel(Base) {
                 Gio, GLib, St, Clutter, PopupMenu,
                 menuManager: Main.panel.menuManager, uiGroup: Main.uiGroup,
                 registrar: this._menuRegistrar, timestamp: () => global.get_current_time(), stylePrefix: 'g-os',
-                textPadding: this._settings.get_int('panel-text-padding'),
+                textPadding: this._settings.get_int('panel-icon-padding'),
+                getButtonMetrics: () => screen.panelButtonMetrics ?? null,
                 getMenuBounds: () => {
                     const area = Main.layoutManager.getWorkAreaForMonitor(screen.monitor.index);
                     const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
@@ -984,6 +985,8 @@ export function withPanel(Base) {
                 button.y_align = Clutter.ActorAlign.CENTER;
                 button.statusIcon.y_align = Clutter.ActorAlign.CENTER;
                 button.statusIcon.set_style(`icon-size: ${screen.iconSize ?? 16}px;`);
+                if (screen.panelButtonMetrics)
+                    applyPanelButtonMetrics(button, screen.panelButtonMetrics);
                 if (button.get_parent() !== screen.statusNotifierBox ||
                     screen.statusNotifierBox.get_children().indexOf(button) !== index) {
                     button.get_parent()?.remove_child(button);
