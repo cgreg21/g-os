@@ -209,6 +209,9 @@ test('Bluetooth popup uses connected and available device grids in one view', as
     assert.ok(source.includes('toggleDevice(device)'));
     assert.ok(source.includes('g-os-status-device-grid'));
     assert.ok(!source.includes('NativeMenuContent'));
+    assert.ok(source.includes('Array.from(this.client?.getDevices?.() ?? [])'));
+    assert.ok(source.includes('Array.from(devices.filter(device => device.connected))'));
+    assert.ok(source.includes('Array.from(devices.filter(device => !device.connected && device.connectable !== false)).slice(0, 4)'));
 });
 
 
