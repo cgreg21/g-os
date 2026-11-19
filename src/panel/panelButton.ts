@@ -1,5 +1,6 @@
 export const PANEL_BUTTON_DEFAULT_ITEM_SPACING = 6;
 export const PANEL_BUTTON_CONTENT_SPACING = 4;
+export const PANEL_BUTTON_TEXT_HORIZONTAL_PADDING = 1;
 
 /**
  * Shared construction and sizing for every interactive topbar item.
@@ -28,6 +29,7 @@ export function calculatePanelButtonMetrics({
         iconSize: Math.max(1, Math.floor(contentHeight * 0.9)),
         fontSize: Math.max(1, Math.floor(contentHeight * 0.64)),
         padding: effectivePadding,
+        textHorizontalPadding: effectivePadding + PANEL_BUTTON_TEXT_HORIZONTAL_PADDING,
         itemSpacing,
         contentSpacing,
     };
@@ -97,7 +99,8 @@ export function calculatePanelLabelFontSize(fontSize, textLength, availableWidth
 }
 
 export function applyPanelButtonMetrics(button, metrics) {
-    button.set_style(`padding: ${metrics.padding}px; margin: 0; min-height: 0;`);
+    const horizontalPadding = button.panelLabel ? metrics.textHorizontalPadding : metrics.padding;
+    button.set_style(`padding: ${metrics.padding}px ${horizontalPadding}px; margin: 0; min-height: 0;`);
     button.panelContent?.set_style?.(`spacing: ${metrics.contentSpacing}px;`);
     button.panelIcon?.set_style?.(`icon-size: ${metrics.iconSize}px; margin: 0;`);
     button.panelLabel?.set_style?.(`font-size: ${metrics.fontSize}px; margin: 0;`);
