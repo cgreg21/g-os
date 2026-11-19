@@ -273,13 +273,13 @@ test('topbar item spacing is a live setting independent from button padding', as
     const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
     const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
     const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
-    assert.match(panel, /const itemSpacing = this\\._settings\\.get_int\\('panel-item-spacing'\\)/);
-    assert.match(panel, /screen\\.panel\\.set_style\\([^\\n]*spacing: \\$\\{metrics\\.itemSpacing\\}px/);
-    assert.match(panel, /content\\.set_style\\(\\`spacing: \\$\\{metrics\\.itemSpacing\\}px/);
+    assert.match(panel, /const itemSpacing = this\._settings\.get_int\('panel-item-spacing'\)/);
+    assert.match(panel, /screen\.panel\.set_style\([^\n]*spacing: \\$\{metrics\.itemSpacing\}px/);
+    assert.match(panel, /content\.set_style\(\\`spacing: \\$\{metrics\.itemSpacing\}px/);
     assert.match(extension, /'panel-icon-padding', 'panel-item-spacing'/);
-    assert.doesNotMatch(stylesheet, /\\.g-os-secondary-panel\\s*\\{[^}]*\\bspacing:/s);
-    assert.doesNotMatch(stylesheet, /\\.g-os-panel-zone-content\\s*\\{[^}]*\\bspacing:/s);
-    assert.doesNotMatch(stylesheet, /\\.macos-global-menu\\s*\\{[^}]*\\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\.g-os-secondary-panel\s*\{[^}]*\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\.g-os-panel-zone-content\s*\{[^}]*\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\.macos-global-menu\s*\{[^}]*\bspacing:/s);
 });
 
 test('default metrics use the shared topbar spacing', () => {
@@ -296,6 +296,11 @@ test('obsolete per-text topbar padding is absent from configuration and schema',
     assert.doesNotMatch(schema, /panel-text-padding/);
     assert.doesNotMatch(preferences, /panel-text-padding/);
     assert.doesNotMatch(extension, /panel-text-padding/);
+    assert.match(config, /panel-item-spacing/);
+    assert.match(schema, /<key name="panel-item-spacing" type="i">/);
+    assert.match(preferences, /panel-item-spacing/);
+    assert.match(extension, /panel-item-spacing/);
+    assert.match(schema, /Padding intérieur uniforme des boutons/);
 });
 
 test('topbar metrics are initialized and refreshed for every monitor', async () => {
