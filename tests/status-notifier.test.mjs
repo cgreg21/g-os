@@ -14,7 +14,7 @@ class MockVariant {
 }
 
 function createHost() {
-    const state = {items: [], signals: [], watches: new Map()};
+    const state = {items: [], signals: [], watches: new Map(), disposedProxies: 0};
     const session = {
         get_unique_name: () => ':1.99',
         call(_bus, _path, _interface, _method, parameters, _reply, _flags, _timeout, _token, callback) {
@@ -26,6 +26,7 @@ function createHost() {
     const itemProxy = {
         connect() { return 7; },
         disconnect() {},
+        run_dispose() { state.disposedProxies++; },
         get_cached_property(name) {
             const values = {
                 Id: 'fixture', Title: 'Fixture', Status: 'Active', IconName: 'fixture-symbolic',
@@ -127,6 +128,7 @@ test('StatusNotifierWatcher registers items, exposes watcher state and removes v
     const watch = [...state.watches.values()][0];
     watch.vanished();
     assert.equal(state.items.length, 0);
+    assert.equal(state.disposedProxies, 1);
     assert.deepEqual(state.signals.at(-1), ['StatusNotifierItemUnregistered', [':1.23/org/example/Item']]);
     host.destroy();
 });
