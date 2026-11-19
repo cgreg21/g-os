@@ -49,6 +49,7 @@ export class SoundStatusMenu {
         this.cleanup = new CleanupManager();
         this.streamCleanup = new CleanupManager();
         const row = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        row.add_style_class_name('g-os-status-control-row');
         this.muteIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 20});
         this.muteButton = new St.Button({child: this.muteIcon, can_focus: true, reactive: true, track_hover: true,
             style_class: 'g-os-sound-mute', accessible_name: 'Couper le son'});
@@ -56,7 +57,7 @@ export class SoundStatusMenu {
         this.slider = new Slider.Slider(0);
         this.muteButton.y_align = Clutter.ActorAlign.CENTER;
         this.slider.y_align = Clutter.ActorAlign.CENTER;
-        this.slider.width = 200;
+        this.slider.width = 190;
         this.slider.accessible_name = 'Volume de sortie';
         this.cleanup.addSignal(this.slider,
             this.slider.connect('notify::value', () => this.changeVolume()));
@@ -66,7 +67,7 @@ export class SoundStatusMenu {
         row.add_child(this.slider);
         row.add_child(this.percentage);
         menu.addMenuItem(row);
-        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Sorties audio'));
+        menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this.devices = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL,
             style_class: 'g-os-status-device-grid'});
         const devicesItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
@@ -267,6 +268,7 @@ export class DisplayStatusMenu {
         this.cancellable = new Gio.Cancellable(); this.cleanup = new CleanupManager();
         this.nightLight = new Gio.Settings({schema_id: 'org.gnome.settings-daemon.plugins.color'});
         const brightness = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        brightness.add_style_class_name('g-os-status-control-row');
         this.brightnessIcon = new St.Icon({icon_name: 'display-brightness-symbolic', icon_size: 20});
         this.brightnessSlider = new Slider.Slider(0); this.brightnessSlider.width = 230;
         this.brightnessSlider.accessible_name = 'Luminosité de l’écran';
@@ -286,6 +288,7 @@ export class DisplayStatusMenu {
         }));
 
         this.temperatureRow = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+        this.temperatureRow.add_style_class_name('g-os-status-control-row');
         this.temperatureRow.add_child(new St.Icon({icon_name: 'thermometer-sun-symbolic', icon_size: 20}));
         this.temperatureSlider = new Slider.Slider(0); this.temperatureSlider.width = 200;
         this.temperatureSlider.accessible_name = 'Température du mode nuit';
@@ -495,12 +498,14 @@ export class NetworkStatusMenu {
         this.rootItem = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false,
             });
         this.rootItem.set_x_expand(true);
-        this.scroll = new St.ScrollView({hscrollbar_policy: St.PolicyType.NEVER,
-            vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
-            });
+        this.scroll = new St.ScrollView({style_class: 'g-os-network-scroll',
+            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC,
+            overlay_scrollbars: true,
+        });
         this.scroll.set_x_expand(true);
         this.body = new St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
-            });
+            style_class: 'g-os-network-body',
+        });
         this.body.set_x_expand(true);
         this.scroll.set_child(this.body);
         this.rootItem.add_child(this.scroll);
@@ -563,10 +568,10 @@ export class NetworkStatusMenu {
             style_class: 'g-os-status-device-grid'});
         this.body.add_child(this.rowsBox);
         const visible = this.toggles.filter(({toggle}) => toggle.visible !== false);
-        for (let index = 0; index < visible.length; index += 3) {
+        for (let index = 0; index < visible.length; index += 2) {
             const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL,
                 style_class: 'g-os-status-grid-row'});
-            for (const entry of visible.slice(index, index + 3)) {
+            for (const entry of visible.slice(index, index + 2)) {
                 const {toggle, title} = entry;
                 const active = Boolean(toggle.checked);
                 const button = expandHorizontally(new this.St.Button({reactive: true, can_focus: true, track_hover: true, style_class: 'g-os-status-device-tile', accessible_name: title}));
@@ -575,7 +580,7 @@ export class NetworkStatusMenu {
                 const icon = new this.St.Icon({icon_name: toggle.icon_name || this._iconFor(title), icon_size: 22});
                 content.add_child(icon);
                 content.add_child(new this.St.Label({text: title, style_class: 'g-os-status-device-label'}));
-                const stateLabel = new this.St.Label({text: active ? 'Actif' : 'Inactif',
+                const stateLabel = new this.St.Label({text: active ? 'Activé' : 'Désactivé',
                     style_class: active ? 'g-os-status-device-active' : 'g-os-status-device-muted'});
                 content.add_child(stateLabel);
                 button.set_child(content);
@@ -602,7 +607,7 @@ export class NetworkStatusMenu {
                     this.overviewSignals.addSignal(toggle, toggle.connect('notify::icon-name', () => this._refreshWifiRow(toggle)));
                 }
             }
-            while (row.get_n_children() < 3)
+            while (row.get_n_children() < 2)
                 row.add_child(expandHorizontally(new this.St.Widget()));
             this.rowsBox.add_child(row);
         }
@@ -634,7 +639,7 @@ export class NetworkStatusMenu {
         }
         const wifi = /wi-?fi|wifi/i.test(active.title);
         this.connectionName.text = wifi ? (active.toggle.subtitle || 'Wi-Fi connecté') : active.title;
-        this.connectionDetail.text = wifi ? 'Connexion Wi-Fi' : 'Connexion active';
+        this.connectionDetail.text = wifi ? 'Connecté en Wi-Fi' : 'Connecté';
         this.connectionIcon.icon_name = active.toggle.icon_name || this._iconFor(active.title);
     }
 
@@ -920,7 +925,7 @@ export class NetworkStatusMenu {
         this._updateOverviewVisibility();
         for (const {entry, stateLabel, button} of this.contents.values()) {
             const active = Boolean(entry.toggle.checked && entry.toggle.visible !== false);
-            stateLabel.text = active ? 'Actif' : 'Inactif';
+            stateLabel.text = active ? 'Activé' : 'Désactivé';
             stateLabel.style_class = active ? 'g-os-status-device-active' : 'g-os-status-device-muted';
             button.visible = entry.toggle.visible !== false;
             this._refreshWifiRow(entry.toggle);
