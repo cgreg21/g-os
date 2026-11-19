@@ -295,12 +295,12 @@ export class GtkGlobalMenu {
             vscrollbar_policy: this.St.PolicyType.AUTOMATIC,
             overlay_scrollbars: true,
         });
-        menu._boxPointer.bin.set_child(null);
-        scrollView.set_child(menu.box);
-        menu._boxPointer.bin.set_child(scrollView);
-        applyNativeMenuTheme(menu, `${this.stylePrefix}-popup`);
         this.uiGroup.add_child(menu.actor);
         menu.actor.hide();
+        menu._boxPointer.bin.set_child(null);
+        menu._boxPointer.bin.set_child(scrollView);
+        scrollView.set_child(menu.box);
+        applyNativeMenuTheme(menu, `${this.stylePrefix}-popup`);
         this.menuManager.addMenu(menu);
         this._fill(menu, model);
         const open = menu.open.bind(menu);
