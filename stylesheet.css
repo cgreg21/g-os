@@ -32,30 +32,6 @@
 	padding: 18px 0;
 }
 
-.g-os-calendar-content {
-	width: 320px;
-	spacing: 8px;
-	padding: 8px;
-}
-
-.g-os-calendar-events-heading {
-	padding: 4px 8px;
-}
-
-.g-os-calendar-scroll {
-	max-height: 200px;
-}
-
-.g-os-calendar-events {
-	spacing: 4px;
-	padding: 0 6px 6px;
-}
-
-.g-os-calendar-event {
-	spacing: 2px;
-	padding: 6px 8px;
-}
-
 .g-os-dock {
 	spacing: 2px;
 	padding: 6px;
