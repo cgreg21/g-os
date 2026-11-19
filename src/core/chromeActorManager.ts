@@ -5,7 +5,7 @@ export interface ChromeActorOptions {
 
 /** Owns actors registered with GNOME's chrome layer and releases them once. */
 export class ChromeActorManager<T extends object> {
-    private readonly actors = new Set<T>();
+    private readonly actors = new Map<T, symbol>();
     private destroyed = false;
 
     constructor(
@@ -18,14 +18,17 @@ export class ChromeActorManager<T extends object> {
             return;
         // Track ownership before calling host code: registration can re-enter
         // this manager (including destroy()) through GNOME signal delivery.
-        this.actors.add(actor);
+        const registration = Symbol('chrome-actor-registration');
+        this.actors.set(actor, registration);
         try {
             this.addActor(actor, options);
         } catch (error) {
             // Roll back only if ownership remains here; host code may already
             // have re-entered remove() or destroy() and released the actor.
-            if (this.actors.delete(actor))
+            if (this.actors.get(actor) === registration) {
+                this.actors.delete(actor);
                 this.release(actor);
+            }
             throw error;
         }
     }
@@ -40,7 +43,7 @@ export class ChromeActorManager<T extends object> {
         if (this.destroyed)
             return;
         this.destroyed = true;
-        const actors = [...this.actors];
+        const actors = [...this.actors.keys()];
         this.actors.clear();
         for (let index = actors.length - 1; index >= 0; index--)
             this.release(actors[index]!);
