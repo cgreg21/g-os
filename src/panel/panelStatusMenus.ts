@@ -758,11 +758,17 @@ export class NetworkStatusMenu {
                 activeEntry = entry;
         }
         if (activeEntry) {
-            this.connectionSummary.text = `${activeEntry.title} actif`;
+            this.connectionSummary.text = `${activeEntry.title} activé`;
             this.connectionIcon.icon_name = this._iconFor(activeEntry.title);
+            const activeToggle = activeEntry.toggle;
+            if (activeToggle.icon_name)
+                this.icon.icon_name = activeToggle.icon_name;
         } else {
-            this.connectionSummary.text = 'Aucune connexion active détectée';
+            this.connectionSummary.text = 'Aucun service réseau activé';
             this.connectionIcon.icon_name = 'network-wired-symbolic';
+            const fallback = this.toggles.find(({toggle}) => toggle.icon_name);
+            if (fallback)
+                this.icon.icon_name = fallback.toggle.icon_name;
         }
         if (this.detailSwitch && this.activeView)
             this.detailSwitch.setToggleState(Boolean(this.activeView.checked));
