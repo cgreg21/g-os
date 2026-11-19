@@ -844,8 +844,7 @@ export function withPanel(Base) {
                 state.parent.insert_child_at_index(state.actor,
                     Math.min(state.index, state.parent.get_n_children()));
             }
-            if (!state.placeholder.is_destroyed())
-                state.placeholder.destroy();
+            state.placeholder.destroy();
         }
 
         _movePanelDropPlaceholder(screen, group, x) {
