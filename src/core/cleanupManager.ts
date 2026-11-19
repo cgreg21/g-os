@@ -28,7 +28,13 @@ export class CleanupManager {
         try {
             cleanup();
         } catch (error) {
-            logError(error as Error, 'Unable to release g-os resource');
+            // Logging is best-effort too: a broken host logger must not prevent
+            // the remaining resources from being released.
+            try {
+                logError(error as Error, 'Unable to release g-os resource');
+            } catch {
+                // Preserve cleanup isolation even if the logger itself fails.
+            }
         }
     }
 
