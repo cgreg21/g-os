@@ -50,6 +50,7 @@ test('panel and dock share the per-screen interaction controller', () => {
 });
 
 const desktopWidgetsSource = await readFile(new URL('../src/desktop/desktopWidgets.ts', import.meta.url), 'utf8');
+const widgetRuntimeSource = await readFile(new URL('../src/widgets/widgetRuntime.ts', import.meta.url), 'utf8');
 const desktopIconsSource = await readFile(new URL('../src/desktop/desktopIcons.ts', import.meta.url), 'utf8');
 
 test('desktop widgets use the per-screen shared DND controller', () => {
@@ -59,12 +60,20 @@ test('desktop widgets use the per-screen shared DND controller', () => {
     assert.doesNotMatch(desktopWidgetsSource, /DND\.makeDraggable|_makeDraggable\(/);
 });
 
+test('widget grid dragging uses the shared shadow source and per-screen lifecycle', () => {
+    assert.match(widgetRuntimeSource, /registerShadowDragSource\(\{[\s\S]*?controller: screen\.interactionDnd[\s\S]*?visualActor: actor/);
+    assert.match(widgetRuntimeSource, /onMotion: event => \{/);
+    assert.match(widgetRuntimeSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
+    assert.doesNotMatch(widgetRuntimeSource, /_makeDraggable\(/);
+});
+
 test('desktop icons use the per-screen shared DND controller', () => {
     assert.match(desktopIconsSource, /registerShadowDragSource\(\{[\s\S]*?actor: button/);
     assert.match(desktopIconsSource, /onCancelled: \(\) => finish\(true\)/);
     assert.match(desktopIconsSource, /onEnd: \(\) => finish\(false\)/);
     assert.match(desktopIconsSource, /screen\.lifecycle\.add\(\(\) => finish\(true\)\)/);
     assert.doesNotMatch(desktopIconsSource, /DND\.makeDraggable/);
+    assert.doesNotMatch(widgetRuntimeSource, /_makeDraggable\(/);
 });
 
 test('the shared controller is the only GNOME makeDraggable integration', () => {
