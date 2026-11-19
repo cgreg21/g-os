@@ -255,3 +255,15 @@ test('global menu does not retain an independent text padding setting', async ()
     assert.doesNotMatch(globalMenu, /textPadding/);
     assert.doesNotMatch(panel, /textPadding: this\._settings\.get_int\('panel-icon-padding'\)/);
 });
+
+
+test('topbar and all button content share one spacing constant', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    const stylesheet = await readFile(new URL('../stylesheet.css', import.meta.url), 'utf8');
+    assert.match(panel, /spacing: PANEL_BUTTON_SPACING/);
+    assert.match(panel, /screen\.panel\.set_style\([^\n]*spacing: \$\{metrics\.spacing\}px/);
+    assert.match(panel, /content\.set_style\(\`spacing: \$\{metrics\.spacing\}px/);
+    assert.doesNotMatch(stylesheet, /\.g-os-secondary-panel\s*\{[^}]*\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\.g-os-panel-zone-content\s*\{[^}]*\bspacing:/s);
+    assert.doesNotMatch(stylesheet, /\.macos-global-menu\s*\{[^}]*\bspacing:/s);
+});
