@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
 import {
     applyPanelButtonMetrics,
     calculatePanelButtonMetrics,
@@ -115,4 +116,16 @@ test('menu-capable controls are the same shared St.Button with an attached menu'
     assert.equal(button.menu.source, button);
     assert.equal(button.menu.alignment, 0.5);
     assert.equal(button.menu.side, 'top');
+});
+
+test('topbar modules delegate every button construction to the shared factory', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    const globalMenu = await readFile(new URL('../src/panel/globalMenu.ts', import.meta.url), 'utf8');
+    const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
+
+    assert.doesNotMatch(panel, /new St\\.Button/);
+    assert.doesNotMatch(globalMenu, /new this\\.St\\.Button/);
+    assert.match(panel, /createPanelMenuButton\\(St, Clutter, PopupMenu/);
+    assert.match(extension, /createPanelMenuButton\\(St, Clutter, PopupMenu/);
+    assert.match(globalMenu, /createPanelButton\\(this\\.St, this\\.Clutter/);
 });
