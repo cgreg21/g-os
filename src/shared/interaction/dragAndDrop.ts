@@ -1,6 +1,7 @@
 import Clutter from 'gi://Clutter';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import { LifecycleScope } from '../../core/lifecycleScope.js';
+import { DelegateManager } from './delegateManager.js';
 
 type DelegateActor = Clutter.Actor & {
     _delegate?: Record<string, unknown> | null;
@@ -37,6 +38,7 @@ interface SourceRegistration {
  */
 export class DragAndDropController {
     private sources = new Map<DelegateActor, SourceRegistration>();
+    private readonly delegates = new DelegateManager<DelegateActor>();
     private targets = new Map<DelegateActor, () => void>();
     private destroyed = false;
 
@@ -52,21 +54,7 @@ export class DragAndDropController {
 
         this.unregisterSource(actor);
 
-        const previousDelegate = actor._delegate;
-        const composedDelegate = Object.assign(
-            Object.create(previousDelegate ?? null),
-            delegate,
-        );
-        actor._delegate = composedDelegate;
-
-        const restoreDelegate = () => {
-            if (actor._delegate !== composedDelegate)
-                return;
-            if (previousDelegate)
-                actor._delegate = previousDelegate;
-            else
-                delete actor._delegate;
-        };
+        const removeDelegate = this.delegates.add(actor, delegate);
 
         let draggable: ReturnType<typeof DND.makeDraggable>;
         try {
@@ -74,7 +62,7 @@ export class DragAndDropController {
                 dragActorOpacity: options.dragActorOpacity,
             });
         } catch (error) {
-            restoreDelegate();
+            removeDelegate();
             throw error;
         }
 
@@ -165,12 +153,7 @@ export class DragAndDropController {
             return () => {};
 
         this.unregisterTarget(actor);
-        const previousDelegate = actor._delegate;
-        const composedDelegate = Object.assign(
-            Object.create(previousDelegate ?? null),
-            delegate,
-        );
-        actor._delegate = composedDelegate;
+        const removeDelegate = this.delegates.add(actor, delegate);
         let disposed = false;
         let actorDestroySignal = 0;
 
@@ -185,12 +168,7 @@ export class DragAndDropController {
                     logError(error as Error, 'Unable to disconnect g-os drop-target destroy signal');
                 }
             }
-            if (actor._delegate === composedDelegate) {
-                if (previousDelegate)
-                    actor._delegate = previousDelegate;
-                else
-                    delete actor._delegate;
-            }
+            removeDelegate();
             this.targets.delete(actor);
         };
 
