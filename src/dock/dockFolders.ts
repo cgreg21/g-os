@@ -14,7 +14,7 @@ type DockFolderButton = St.Button & {
     folderUri?: string;
     appFolderId?: string;
     folderMenu?: PopupMenu.PopupMenu;
-    _delegate?: {getDragActor: () => St.Widget; getDragActorSource: () => Clutter.Actor};
+    _delegate?: {getDragActorSource: () => Clutter.Actor};
 };
 
 type DockFolderEntry = {name: string; uri: string; isDirectory: boolean; icon: Gio.Icon;
@@ -77,10 +77,7 @@ export function withDockFolders(Base) {
             button.set_style(`padding: ${iconPadding}px;`);
             button.dockFocusKey = `app-folder:${folder.id}`;
             button.appFolderId = folder.id;
-            button._delegate = {
-                getDragActor: () => this._createAppFolderIcon(folder, iconSize),
-                getDragActorSource: () => button.get_child(),
-            };
+            button._delegate = {getDragActorSource: () => button.get_child()};
             this._attachTooltip(screen, button, folder.name);
             button.connect('clicked', () => {
                 button.folderMenu ??= this._createShortcutMenu(screen, button, {onOpen: menu => {
