@@ -34,6 +34,18 @@ function getActorParent(actor) {
     }
 }
 
+function removeActorFromParent(actor, parent = getActorParent(actor)) {
+    if (!actor || !parent || getActorParent(actor) !== parent)
+        return false;
+    try {
+        parent.remove_child(actor);
+        return true;
+    } catch {
+        // The actor or parent may have been disposed during Shell teardown.
+        return false;
+    }
+}
+
 const DEFAULT_PANEL_LAYOUT = [
     'left:launcher', 'left:application', 'left:global-menu', 'left:transfer',
     'center:clock',
@@ -180,7 +192,10 @@ export function withPanel(Base) {
                 const index = parent.get_children().indexOf(banner);
                 const container = new St.Widget({layout_manager: new Clutter.BinLayout(),
                     x_expand: true, y_expand: true, reactive: false});
-                parent.remove_child(banner);
+                if (!removeActorFromParent(banner, parent)) {
+                    container.destroy();
+                    return;
+                }
                 container.add_child(banner);
                 parent.insert_child_at_index(container, index);
                 this._notificationPosition = {banner, parent, index, container};
@@ -200,9 +215,15 @@ export function withPanel(Base) {
             const state = this._notificationPosition;
             if (!state)
                 return;
-            state.container.remove_child(state.banner);
-            state.parent.remove_child(state.container);
-            state.parent.insert_child_at_index(state.banner, state.index);
+            removeActorFromParent(state.banner, state.container);
+            removeActorFromParent(state.container, state.parent);
+            if (!getActorParent(state.banner)) {
+                try {
+                    state.parent.insert_child_at_index(state.banner, state.index);
+                } catch {
+                    // The original notification parent may have been disposed.
+                }
+            }
             state.container.destroy();
             this._notificationPosition = null;
         }
@@ -317,8 +338,16 @@ export function withPanel(Base) {
             const calendar = this._panelCalendarWidget;
             const parent = this._panelCalendarOriginalParent;
             if (calendar && parent) {
-                calendar.get_parent()?.remove_child(calendar);
-                parent.insert_child_at_index(calendar, this._panelCalendarOriginalIndex);
+                const currentParent = getActorParent(calendar);
+                if (currentParent && currentParent !== parent)
+                    removeActorFromParent(calendar, currentParent);
+                if (!getActorParent(calendar)) {
+                    try {
+                        parent.insert_child_at_index(calendar, this._panelCalendarOriginalIndex);
+                    } catch {
+                        // GNOME may already have disposed the original calendar parent.
+                    }
+                }
             }
             this._panelCalendarCleanup?.clear();
             this._panelCalendarCleanup = null;
@@ -332,7 +361,9 @@ export function withPanel(Base) {
             const calendar = screen.calendar;
             if (!calendar)
                 return;
-            const parent = calendar.get_parent();
+            const parent = getActorParent(calendar);
+            if (!parent)
+                return;
             if (!this._panelCalendarWidget) {
                 this._panelCalendarWidget = calendar;
                 this._panelCalendarOriginalParent = parent;
@@ -353,9 +384,12 @@ export function withPanel(Base) {
                     }));
                 this._panelCalendarSelectedDate = new Date(calendar._selectedDate ?? Date.now());
             }
-            if (parent !== screen.calendarContent) {
-                parent?.remove_child(calendar);
-                screen.calendarContent.insert_child_at_index(calendar, 0);
+            if (parent !== screen.calendarContent && removeActorFromParent(calendar, parent)) {
+                try {
+                    screen.calendarContent.insert_child_at_index(calendar, 0);
+                } catch {
+                    // The target calendar container may have been disposed.
+                }
             }
             this._updatePanelCalendarEvents(screen, this._panelCalendarSelectedDate);
         }
@@ -738,8 +772,7 @@ export function withPanel(Base) {
                 screen.panelLayoutGroups.set(group, {zone, content});
             }
             for (const child of screen.panel.get_children()) {
-                if (getActorParent(child) === screen.panel)
-                    screen.panel.remove_child(child);
+                removeActorFromParent(child, screen.panel);
             }
             for (const group of PANEL_LAYOUT_GROUPS)
                 screen.panel.add_child(screen.panelLayoutGroups.get(group).zone);
@@ -913,8 +946,11 @@ export function withPanel(Base) {
                     .filter(entry => entry.startsWith(`${group}:`))
                     .map(entry => screen.panelLayoutItems.get(entry.slice(group.length + 1)))
                     .filter(Boolean);
-                for (const actor of actors)
-                    actor.get_parent()?.remove_child(actor);
+                for (const actor of actors) {
+                    const parent = getActorParent(actor);
+                    if (parent)
+                        removeActorFromParent(actor, parent);
+                }
                 actors.forEach((actor, index) => content.insert_child_at_index(actor, index));
             }
         }
@@ -1018,7 +1054,7 @@ export function withPanel(Base) {
                 if (present.has(key))
                     continue;
                 button.statusMenuController?.destroy();
-                screen.statusNotifierBox.remove_child(button);
+                removeActorFromParent(button, screen.statusNotifierBox);
                 button.destroy();
                 screen.statusNotifierButtons.delete(key);
             }
@@ -1086,8 +1122,14 @@ export function withPanel(Base) {
                     applyPanelButtonMetrics(button, screen.panelButtonMetrics);
                 if (button.get_parent() !== screen.statusNotifierBox ||
                     screen.statusNotifierBox.get_children().indexOf(button) !== index) {
-                    button.get_parent()?.remove_child(button);
-                    screen.statusNotifierBox.insert_child_at_index(button, index);
+                    const parent = getActorParent(button);
+                    if (parent)
+                        removeActorFromParent(button, parent);
+                    try {
+                        screen.statusNotifierBox.insert_child_at_index(button, index);
+                    } catch {
+                        // The status notifier box may have been disposed during teardown.
+                    }
                 }
             }
             screen.statusNotifierBox.visible = items.length > 0;
