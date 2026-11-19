@@ -264,11 +264,6 @@ export function withPanel(Base) {
                 if (!open)
                     return;
                 this._populateNotificationMenu(menu);
-                if (screen.notificationScroll) {
-                    const area = Main.layoutManager.getWorkAreaForMonitor(screen.monitor.index);
-                    const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-                    screen.notificationScroll.set_style(`max-height: ${Math.max(1, Math.floor(area.height / scale) - 40)}px;`);
-                }
                 alignMenuRows(menu.box, Clutter);
             });
             Main.panel.menuManager.addMenu(menu);
@@ -366,7 +361,7 @@ export function withPanel(Base) {
             screen.calendarMenu = menu;
 
             const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL,
-                style_class: 'g-os-calendar-content'});
+                style_class: 'popup-menu-content g-os-calendar-content'});
             screen.calendar = dateMenu._calendar;
             screen.calendarEventSource = dateMenu._eventSource;
             screen.calendarContent = content;
@@ -499,11 +494,6 @@ export function withPanel(Base) {
                 menuManager: Main.panel.menuManager, uiGroup: Main.uiGroup,
                 registrar: this._menuRegistrar, timestamp: () => global.get_current_time(), stylePrefix: 'g-os',
                 getButtonMetrics: () => screen.panelButtonMetrics ?? null,
-                getMenuBounds: () => {
-                    const area = Main.layoutManager.getWorkAreaForMonitor(screen.monitor.index);
-                    const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-                    return {width: Math.floor(area.width / scale), height: Math.floor(area.height / scale)};
-                },
             });
         }
 
