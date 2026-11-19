@@ -20,6 +20,7 @@ import {applyNativeMenuTheme} from './menuTheme.js';
 import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 import {CleanupManager} from '../core/cleanupManager.js';
 import {calculatePanelButtonMetrics, calculatePanelLabelFontSize, applyPanelButtonMetrics, createPanelButton, createPanelMenuButton} from './panelButton.js';
 
@@ -761,44 +762,23 @@ export function withPanel(Base) {
             if (!actor || screen.interactionDnd.hasSource(actor))
                 return;
             actor._panelLayoutItemId = id;
-            // GNOME Shell emits drag-begin before asking the delegate for its
-            // drag actor. Capture the clone while the source is still parented;
-            // _beginPanelShadowDrag then replaces it with the visible placeholder.
-            let dragActor: St.Widget | null = null;
-            const createDragActor = () => {
-                const [width, height] = actor.get_size();
-                const container = new St.Widget({
-                    layout_manager: new Clutter.BinLayout(),
-                    style_class: 'g-os-panel-dnd-actor',
-                    width,
-                    height,
-                    reactive: false,
-                });
-                container.add_child(new Clutter.Clone({source: actor, reactive: false}));
-                return container;
-            };
-            const finishDrag = success => {
-                this._finishPanelShadowDrag(screen, success);
-                dragActor = null;
-            };
-            screen.interactionDnd.registerSource(actor, {
-                panelLayoutItem: {screen, id},
-                getDragActor: () => dragActor ?? createDragActor(),
-                getDragActorSource: () => screen.panelDragState?.actor === actor
-                    ? screen.panelDragState.placeholder : actor,
-            }, {
-                onBegin: () => {
-                    // Build the visual before replacing the source with its placeholder.
-                    dragActor = createDragActor();
-                    this._beginPanelShadowDrag(screen, id, actor);
+            registerShadowDragSource({
+                controller: screen.interactionDnd,
+                actor,
+                St,
+                delegate: {
+                    panelLayoutItem: {screen, id},
+                    getDragActorSource: () => screen.panelDragState?.actor === actor
+                        ? screen.panelDragState.placeholder : actor,
                 },
-                onEnd: success => finishDrag(success),
-                onCancelled: () => finishDrag(false),
-                onDestroy: () => {
-                    if (screen.panelDragState?.actor === actor)
-                        finishDrag(false);
-                    else
-                        dragActor = null;
+                callbacks: {
+                    onBegin: () => this._beginPanelShadowDrag(screen, id, actor),
+                    onEnd: success => this._finishPanelShadowDrag(screen, success),
+                    onCancelled: () => this._finishPanelShadowDrag(screen, false),
+                    onDestroy: () => {
+                        if (screen.panelDragState?.actor === actor)
+                            this._finishPanelShadowDrag(screen, false);
+                    },
                 },
             });
         }
