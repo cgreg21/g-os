@@ -157,7 +157,7 @@ test('menu lifetime is owned by the shared button', () => {
             destroy() { this.destroyed = true; }
         },
     };
-    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu, {
+    const button = createPanelMenuButton(fakeSt, fakeClutter, PopupMenu, fakeUiGroup, {
         iconName: 'applications',
     });
     const menu = button.menu;
