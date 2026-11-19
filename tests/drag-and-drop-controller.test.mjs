@@ -70,7 +70,9 @@ test('topbar and dock share the lifecycle-owned per-screen controller', () => {
 test('generic DND cleanup continues when Shell teardown rejects signal or monitor removal', () => {
     assert.match(source, /DND\.removeDragMonitor\(monitor\)/);
     assert.match(source, /disconnectIfConnected\(draggable, signalId\)/);
-    assert.match(source, /disconnectIfConnected\(actor, actorDestroySignal, true\)/);
+    assert.doesNotMatch(source, /disconnectIfConnected\(actor, actorDestroySignal/);
+    assert.match(source, /Leave the actor's one-shot destroy handler connected/);
+    assert.match(source, /let the destroy signal[\s\S]*?actorDestroySignal = 0;/);
     assert.match(source, /isGObject \|\| emitter instanceof GObject\.Object[\s\S]*?signal_handler_is_connected\(emitter as GObject\.Object, id\)/);
     assert.match(source, /actorDestroySignal = 0;[\s\S]*?callbacks\.onDestroy\?\.\(\)[\s\S]*?dispose\(\)/);
     assert.match(source, /actorDestroySignal = 0;[\s\S]*?dispose\(\);[\s\S]*?this\.targets\.set/);
