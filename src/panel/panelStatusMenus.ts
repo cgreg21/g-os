@@ -4,7 +4,6 @@ export function alignMenuRows(actor, Clutter) {
     if (!actor)
         return;
     if (['popup-menu-item', 'bt-device-item', 'nm-network-item'].some(name => actor.has_style_class_name?.(name))) {
-        actor.set_style('padding-top: 3px; padding-bottom: 3px;');
         for (const child of actor.get_children())
             child.y_align = Clutter.ActorAlign.CENTER;
     }
