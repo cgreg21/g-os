@@ -16,13 +16,8 @@ function logCleanupError(error: unknown, message: string): void {
     }
 }
 
-function disconnectIfConnected(
-    emitter: {disconnect(id: number): void},
-    id: number,
-    isGObject = false,
-): void {
-    if ((isGObject || emitter instanceof GObject.Object) &&
-        !GObject.signal_handler_is_connected(emitter as GObject.Object, id))
+function disconnectIfConnected(emitter: {disconnect(id: number): void}, id: number): void {
+    if (emitter instanceof GObject.Object && !GObject.signal_handler_is_connected(emitter, id))
         return;
     emitter.disconnect(id);
 }
@@ -115,13 +110,11 @@ export class DragAndDropController {
                     logCleanupError(error, 'Unable to disconnect g-os drag signal');
                 }
             }
-            if (actorDestroySignal) {
-                try {
-                    disconnectIfConnected(actor, actorDestroySignal, true);
-                } catch (error) {
-                    logCleanupError(error, 'Unable to disconnect g-os actor destroy signal');
-                }
-            }
+            // Leave the actor's one-shot destroy handler connected. When an
+            // actor is disposed by GNOME, disconnecting from it during teardown
+            // can target an already-finalized St.Button; the destroy signal will
+            // release the handler automatically.
+            actorDestroySignal = 0;
             removeDelegate();
             this.sources.delete(actor);
         };
@@ -193,13 +186,9 @@ export class DragAndDropController {
             if (disposed)
                 return;
             disposed = true;
-            if (actorDestroySignal) {
-                try {
-                    actor.disconnect(actorDestroySignal);
-                } catch (error) {
-                    logCleanupError(error, 'Unable to disconnect g-os drop-target destroy signal');
-                }
-            }
+            // The actor owns this one-shot handler; let its destroy signal
+            // release it rather than disconnecting from a possibly disposed actor.
+            actorDestroySignal = 0;
             removeDelegate();
             this.targets.delete(actor);
         };
