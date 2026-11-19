@@ -451,6 +451,34 @@ test('simple widget templates and surface fallbacks handle missing or non-scalar
 });
 
 
+test('widget runtime ignores state and configuration writes after instance disposal', () => {
+    const writes = [];
+    const updates = [];
+    const settings = {
+        get_string: () => '{}',
+        is_writable: () => true,
+        set_string: (...args) => writes.push(args),
+    };
+    const runtime = Object.create(WidgetRuntime.prototype);
+    runtime.env = {St: {}, Gio: {}, GLib: {}, Clutter: {}};
+    runtime.host = {_settings: settings};
+    runtime.registry = {entries: new Map([['test', {description: {configuration: []}}]])};
+    runtime.updateInstance = (...args) => updates.push(args);
+    const instance = {id: 'instance', widget: 'test', config: {}};
+    const context = runtime.context(instance, {}, {}, []);
+
+    context.context.api.saveState({count: 1});
+    context.context.api.saveConfig({title: 'active'});
+    assert.equal(writes.length, 1);
+    assert.equal(updates.length, 1);
+
+    context.dispose();
+    context.context.api.saveState({count: 2});
+    context.context.api.saveConfig({title: 'stale'});
+    assert.equal(writes.length, 1);
+    assert.equal(updates.length, 1);
+});
+
 test('widget runtime ignores signal and timer callbacks after instance disposal', () => {
     let signalCallback;
     const timerCallbacks = [];
