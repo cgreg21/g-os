@@ -18,6 +18,7 @@ import {GtkGlobalMenu} from './globalMenu.js';
 import {createStatusNotifierPixbuf} from './statusNotifier.js';
 import {DbusMenuClient} from './dbusMenu.js';
 import {resolveInsertionIndex} from '../shared/geometry/insertion.js';
+import {CleanupManager} from '../core/cleanupManager.js';
 
 const PANEL_LAYOUT_GROUPS = ['left', 'center', 'right'];
 const DEFAULT_PANEL_LAYOUT = [
@@ -61,14 +62,16 @@ class StatusNotifierMenu {
         Main.uiGroup.add_child(this.menu.actor);
         this.menu.actor.hide();
         Main.panel.menuManager.addMenu(this.menu);
-        this.modelSignal = this.client.model.connect('items-changed', () => this.refresh());
-        this.openSignal = this.menu.connect('open-state-changed', (_menu, open) => {
+        this.cleanup = new CleanupManager();
+        this.cleanup.addSignal(this.client.model,
+            this.client.model.connect('items-changed', () => this.refresh()));
+        this.cleanup.addSignal(this.menu, this.menu.connect('open-state-changed', (_menu, open) => {
             if (open) {
                 this.client.model.aboutToShow();
                 this.client.refresh();
                 this.refresh();
             }
-        });
+        }));
         this.refresh();
     }
 
@@ -139,8 +142,7 @@ class StatusNotifierMenu {
     destroy() {
         if (!this.menu)
             return;
-        this.menu.disconnect(this.openSignal);
-        this.client.model.disconnect(this.modelSignal);
+        this.cleanup.clear();
         this.menu.close({animate: false});
         Main.panel.menuManager.removeMenu(this.menu);
         this.menu.destroy();
