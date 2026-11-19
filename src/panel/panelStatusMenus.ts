@@ -667,6 +667,8 @@ export function createPowerDeviceClient(Gio) {
     const handlers = new Map();
     let nextHandler = 0;
     const emit = (signal, ...args) => {
+        if (disposed)
+            return;
         for (const [name, callback] of handlers.values()) {
             if (name === signal)
                 callback(client, ...args);
@@ -726,7 +728,7 @@ export function createPowerDeviceClient(Gio) {
         root = Gio.DBusProxy.new_for_bus_sync(Gio.BusType.SYSTEM, Gio.DBusProxyFlags.NONE, null,
             'org.freedesktop.UPower', '/org/freedesktop/UPower', 'org.freedesktop.UPower', null);
         const add = objectPath => {
-            if (devices.has(objectPath))
+            if (disposed || devices.has(objectPath))
                 return;
             try {
                 const device = createDevice(objectPath);
@@ -735,6 +737,8 @@ export function createPowerDeviceClient(Gio) {
             } catch {}
         };
         rootSignal = root.connect('g-signal', (_proxy, _sender, signal, parameters) => {
+            if (disposed)
+                return;
             const [objectPath] = parameters.deep_unpack();
             if (signal === 'DeviceAdded')
                 add(objectPath);
