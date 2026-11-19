@@ -267,3 +267,8 @@ test('topbar and all button content share one spacing constant', async () => {
     assert.doesNotMatch(stylesheet, /\.g-os-panel-zone-content\s*\{[^}]*\bspacing:/s);
     assert.doesNotMatch(stylesheet, /\.macos-global-menu\s*\{[^}]*\bspacing:/s);
 });
+
+test('default metrics use the shared topbar spacing', () => {
+    const metrics = calculatePanelButtonMetrics({panelHeight: 32});
+    assert.equal(metrics.spacing, 6);
+});
