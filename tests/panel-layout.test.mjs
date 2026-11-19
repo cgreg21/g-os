@@ -104,8 +104,10 @@ test('the network panel aggregates Wi-Fi, wired, VPN and mobile native controls'
     const start = menus.indexOf('export class NetworkStatusMenu');
     const end = menus.indexOf('export class RadioStatusMenu', start);
     const source = menus.slice(start, end);
+    const panelNetworkSource = panelSource.slice(panelSource.indexOf("button.statusKind === 'wifi'"),
+        panelSource.indexOf("button.statusKind === 'bluetooth'"));
     for (const feature of ['Wi-Fi', 'Ethernet', 'VPN', 'Réseau mobile'])
-        assert.match(source, new RegExp(feature));
+        assert.match(panelNetworkSource, new RegExp(feature));
     assert.match(source, /content\.mount\(toggle\.menu/);
     assert.match(source, /toggle\.emit\('clicked', 1\)/);
     assert.match(panelSource, /new NetworkStatusMenu\([\s\S]*?network\?\._wirelessToggle[\s\S]*?network\?\._wiredToggle[\s\S]*?network\?\._vpnToggle[\s\S]*?network\?\._mobileToggle/);
