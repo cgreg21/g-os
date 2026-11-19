@@ -174,6 +174,7 @@ export class DebugRuntime {
     }
 
     _highlightActor(actorId) {
+        this._clearHighlight();
         const actor = this._actorsById.get(actorId);
         if (!actor) throw new Error('Actor is no longer present in the latest stage snapshot');
         const stage = this._stageProvider();
