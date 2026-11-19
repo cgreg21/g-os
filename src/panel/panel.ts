@@ -550,6 +550,7 @@ export function withPanel(Base) {
                 text: screen.transferLabel, accessibleName: 'Transferts',
                 canFocus: false, reactive: false,
             });
+            screen.transferButton.bind_property('visible', screen.transferLabel, 'visible', Gio.BindingFlags.SYNC_CREATE);
             screen.panel.add_child(screen.transferButton);
             screen.panel.add_child(new St.Widget({x_expand: true}));
             screen.clock = new St.Label({name: 'g-os-panel-clock', y_align: Clutter.ActorAlign.CENTER,
@@ -879,10 +880,10 @@ export function withPanel(Base) {
 
             screen.appLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             screen.appLabel.y_align = Clutter.ActorAlign.CENTER;
-            screen.appLabel.set_style(`font-size: ${screen.fontSize}px; max-width: ${availableLabelWidth}px; padding: 0 ${buttonPadding}px;`);
+            screen.appLabel.set_style(`font-size: ${screen.fontSize}px; max-width: ${availableLabelWidth}px; padding: 0;`);
             for (const label of [screen.clock, screen.transferLabel]) {
                 label.y_align = Clutter.ActorAlign.CENTER;
-                label.set_style(`font-size: ${screen.fontSize}px; padding: 0 ${buttonPadding}px;`);
+                label.set_style(`font-size: ${screen.fontSize}px; padding: 0;`);
             }
             for (const button of [screen.menuButton.container, screen.appMenuButton.container, screen.transferButton,
                 screen.clockButton, screen.searchButton, screen.preferencesButton,
