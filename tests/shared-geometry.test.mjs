@@ -201,3 +201,11 @@ test('uses each button dimension for magnification growth and anchoring', () => 
     assert.equal(geometry.growth, 96);
     assert.equal(geometry.start, -24);
 });
+
+test('rejects unordered insertion and reorder midpoints', () => {
+    const unordered = [80, 20, 50];
+    assert.equal(resolveInsertionIndex(unordered, 40), null);
+    assert.equal(resolveInsertionIndexWithHysteresis(unordered, 40, 1), null);
+    assert.equal(resolveReorderInsertionIndex(unordered, 40, 0), null);
+    assert.equal(resolveInsertionIndex([20, 20, 50], 20), 0);
+});
