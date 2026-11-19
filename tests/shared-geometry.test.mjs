@@ -117,7 +117,6 @@ test('fits magnification growth into the available viewport and excludes widgets
         engaged: true,
         viewStart: 0,
         viewEnd: 200,
-        iconSize: 48,
     });
     assert.ok(fitted);
     assert.ok(Math.abs(fitted.growth - 26) < 0.000001);
@@ -133,7 +132,6 @@ test('fits magnification growth into the available viewport and excludes widgets
         engaged: true,
         viewStart: 0,
         viewEnd: 400,
-        iconSize: 48,
     });
     assert.ok(excluded);
     assert.deepEqual(excluded.scales, [1.5, 1, 1.5]);
@@ -150,16 +148,15 @@ test('returns neutral geometry when magnification is disengaged and rejects inva
         engaged: false,
         viewStart: 0,
         viewEnd: 200,
-        iconSize: 48,
     });
     assert.deepEqual(neutral, {scales: [1, 1], shifts: [0, 0], growth: 0, start: 0});
     assert.equal(calculateDockMagnificationGeometry({
         centers: [50], buttonSizes: [], excluded: [false], coordinate: 50,
-        maximumScale: 2, radius: 1, engaged: true, viewStart: 0, viewEnd: 100, iconSize: 48,
+        maximumScale: 2, radius: 1, engaged: true, viewStart: 0, viewEnd: 100,
     }), null);
     assert.equal(calculateDockMagnificationGeometry({
         centers: [Number.NaN], buttonSizes: [48], excluded: [false], coordinate: 50,
-        maximumScale: 2, radius: 1, engaged: true, viewStart: 0, viewEnd: 100, iconSize: 48,
+        maximumScale: 2, radius: 1, engaged: true, viewStart: 0, viewEnd: 100,
     }), null);
 });
 
@@ -179,7 +176,6 @@ test('rejects invalid magnification scale, pointer and unsorted centers', () => 
         engaged: true,
         viewStart: 0,
         viewEnd: 400,
-        iconSize: 48,
     };
     assert.equal(calculateDockMagnificationGeometry({...input, maximumScale: 0.8}), null);
     assert.equal(calculateDockMagnificationGeometry({...input, coordinate: Number.NaN}), null);
@@ -198,7 +194,6 @@ test('uses each button dimension for magnification growth and anchoring', () => 
         engaged: true,
         viewStart: 0,
         viewEnd: 400,
-        iconSize: 48,
     });
     assert.ok(geometry);
     assert.deepEqual(geometry.scales, [1.5, 2, 1.5]);
