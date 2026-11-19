@@ -896,113 +896,79 @@ export class NetworkStatusMenu {
 export class RadioStatusMenu {
     [key: string]: any;
     constructor(menu, icon, {toggle, title, St, Clutter, PopupMenu, openSettings, deviceChangeSignal = null}) {
-        this.menu = menu;
-        this.icon = icon;
-        this.toggle = toggle;
-        this.destroyed = false;
-        this.cleanup = new CleanupManager();
+        this.menu = menu; this.icon = icon; this.toggle = toggle; this.St = St; this.Clutter = Clutter;
+        this.destroyed = false; this.cleanup = new CleanupManager(); this.client = toggle?._client;
         this.header = new PopupMenu.PopupSwitchMenuItem(title, Boolean(toggle?.checked));
         this.header.setSensitive(Boolean(toggle) && toggle.visible !== false && toggle.reactive !== false);
-        this.cleanup.addSignal(this.header, this.header.connect('toggled', (actor, checked) => {
-            if (this.destroyed)
-                return;
-            if (toggle && checked !== Boolean(toggle.checked))
-                toggle.emit('clicked', 1);
+        this.cleanup.addSignal(this.header, this.header.connect('toggled', (_actor, checked) => {
+            if (!this.destroyed && toggle && checked !== Boolean(toggle.checked)) toggle.emit('clicked', 1);
         }));
         menu.addMenuItem(this.header);
+        this.connectedLabel = new St.Label({text: 'Périphériques connectés', style_class: 'g-os-status-section-label'});
+        this.connectedGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-grid'});
+        this.otherLabel = new St.Label({text: 'Autres appareils', style_class: 'g-os-status-section-label'});
+        this.otherGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-grid'});
+        this.emptyLabel = new St.Label({text: 'Aucun appareil disponible', style_class: 'g-os-status-empty'});
+        for (const actor of [this.connectedLabel, this.connectedGrid, this.otherLabel, this.otherGrid, this.emptyLabel]) {
+            const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
+            item.add_child(actor); menu.addMenuItem(item);
+        }
         menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        const item = new PopupMenu.PopupBaseMenuItem({reactive: false, can_focus: false});
-        this.holder = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL});
-        item.add_child(this.holder);
-        menu.addMenuItem(item);
-        this.content = new NativeMenuContent(menu, this.holder, {Clutter,
-            onOpen: () => {
-                if (this.destroyed)
-                    return;
-                this._compactNativeContent();
-                toggle?._startScanning?.();
-                toggle?._reorderDeviceItems?.();
-            },
-            onClose: () => {
-                this._restoreNativeContent();
-                toggle?._stopScanning?.();
-            },
-        });
-        if (!toggle) {
-            const unavailable = new PopupMenu.PopupMenuItem('Service indisponible', {reactive: false, can_focus: false});
-            menu.addMenuItem(unavailable);
-        }
-        this.settingsSeparator = new PopupMenu.PopupSeparatorMenuItem();
-        menu.addMenuItem(this.settingsSeparator);
-        this.settingsItem = menu.addAction(`Parametres ${title}`, openSettings);
-        if (deviceChangeSignal && toggle?._client)
-            this.cleanup.addSignal(toggle._client,
-                toggle._client.connect(deviceChangeSignal, () => {
-                    if (!this.destroyed)
-                        this.content.alignDeviceRows();
-                }));
-        if (toggle) {
-            for (const signal of ['notify::checked', 'notify::icon-name', 'notify::visible', 'notify::reactive'])
-                this.cleanup.addSignal(toggle, toggle.connect(signal, () => this.refresh()));
-        }
-        this.cleanup.addSignal(menu, menu.connect('open-state-changed', (actor, open) => {
-            if (open) {
-                const mounted = this.content.mount(toggle?.menu, Boolean(toggle) && toggle.visible !== false);
-                this.settingsItem.visible = !mounted;
-                this.settingsSeparator.visible = !mounted;
-                this.refresh();
-            } else
-                this.content.restore();
-        }));
+        menu.addAction('Paramètres Bluetooth', openSettings);
+        if (toggle) for (const signal of ['notify::checked', 'notify::icon-name', 'notify::visible', 'notify::reactive'])
+            this.cleanup.addSignal(toggle, toggle.connect(signal, () => this.refresh()));
+        if (this.client && deviceChangeSignal)
+            this.cleanup.addSignal(this.client, this.client.connect(deviceChangeSignal, () => this.refresh()));
+        if (this.client)
+            this.cleanup.addSignal(this.client, this.client.connect('device-removed', () => this.refresh()));
+        this.cleanup.addSignal(menu, menu.connect('open-state-changed', () => this.refresh()));
         this.refresh();
     }
-
-    _compactNativeContent() {
-        const nativeMenu = this.toggle?.menu;
-        const nativeHeader = nativeMenu?._header;
-        if (nativeHeader) {
-            this.nativeHeaderWasVisible = nativeHeader.visible;
-            nativeHeader.hide();
-        }
-        const placeholder = this.toggle?._placeholderItem?.label;
-        if (placeholder) {
-            this.originalPlaceholder = placeholder.text;
-            placeholder.text = this.toggle.checked
-                ? 'Aucun appareil disponible'
-                : 'Activez Bluetooth pour connecter un appareil';
+    _tile(device) {
+        const button = new this.St.Button({reactive: true, can_focus: true, track_hover: true, x_expand: true,
+            style_class: 'g-os-status-device-tile',
+            accessible_name: device.connected ? `Déconnecter ${device.alias}` : `Connecter ${device.alias}`});
+        const content = new this.St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL, style_class: 'g-os-status-device-content'});
+        content.add_child(new this.St.Icon({icon_name: device.icon || 'bluetooth-symbolic', icon_size: 22}));
+        content.add_child(new this.St.Label({text: device.alias || 'Périphérique', style_class: 'g-os-status-device-label'}));
+        content.add_child(new this.St.Label({text: device.connected ? 'Connecté' : 'Disponible',
+            style_class: device.connected ? 'g-os-status-device-active' : 'g-os-status-device-muted'}));
+        if (device.connected && Number.isFinite(Number(device.batteryPercentage)))
+            content.add_child(new this.St.Label({text: `${Math.round(device.batteryPercentage)} %`, style_class: 'g-os-status-device-muted'}));
+        button.set_child(content);
+        button.connect('clicked', () => {
+            if (!this.destroyed) this.client?.toggleDevice(device).catch(error => console.error('G-OS Bluetooth device:', error));
+        });
+        return button;
+    }
+    _fill(container, devices) {
+        container.destroy_all_children();
+        for (let index = 0; index < devices.length; index += 2) {
+            const row = new this.St.BoxLayout({orientation: this.Clutter.Orientation.HORIZONTAL, style_class: 'g-os-status-grid-row'});
+            for (const device of devices.slice(index, index + 2)) row.add_child(this._tile(device));
+            if (devices.length % 2 && index + 1 >= devices.length) row.add_child(new this.St.Widget({x_expand: true}));
+            container.add_child(row);
         }
     }
-
-    _restoreNativeContent() {
-        const nativeHeader = this.toggle?.menu?._header;
-        if (nativeHeader && this.nativeHeaderWasVisible)
-            nativeHeader.show();
-        this.nativeHeaderWasVisible = false;
-        const placeholder = this.toggle?._placeholderItem?.label;
-        if (placeholder && this.originalPlaceholder !== undefined)
-            placeholder.text = this.originalPlaceholder;
-        this.originalPlaceholder = undefined;
-    }
-
     refresh() {
-        if (this.destroyed)
-            return;
-        this.header.setToggleState(Boolean(this.toggle?.checked));
+        if (this.destroyed) return;
+        const enabled = Boolean(this.toggle?.checked);
+        this.header.setToggleState(enabled);
         this.header.setSensitive(Boolean(this.toggle) && this.toggle.visible !== false && this.toggle.reactive !== false);
-        if (this.toggle?.icon_name)
-            this.icon.icon_name = this.toggle.icon_name;
+        if (this.toggle?.icon_name) this.icon.icon_name = this.toggle.icon_name;
+        const devices = enabled ? (this.client?.getDevices?.() ?? []) : [];
+        const connected = devices.filter(device => device.connected);
+        const available = devices.filter(device => !device.connected && device.connectable !== false).slice(0, 4);
+        this._fill(this.connectedGrid, connected); this._fill(this.otherGrid, available);
+        this.connectedLabel.visible = connected.length > 0; this.connectedGrid.get_parent().visible = connected.length > 0;
+        this.otherLabel.visible = available.length > 0; this.otherGrid.get_parent().visible = available.length > 0;
+        this.emptyLabel.visible = enabled && connected.length === 0 && available.length === 0;
     }
-
     destroy() {
-        if (this.destroyed)
-            return;
-        this.destroyed = true;
-        this.content.destroy();
-        this._restoreNativeContent();
-        this.cleanup.clear();
+        if (this.destroyed) return;
+        this.destroyed = true; this.cleanup.clear();
     }
 }
-
 export class BatteryStatusMenu {
     [key: string]: any;
     constructor(menu, icon, {powerToggle, profiles, deviceClient, batteryKind, levelLabel, showLevel = false,
