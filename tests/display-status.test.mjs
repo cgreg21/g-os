@@ -238,6 +238,15 @@ test('destroyed sound menus ignore queued volume and mute interactions', () => {
     assert.equal(controller.toggleMute(), undefined);
 });
 
+test('destroyed display menus ignore queued brightness and night-light updates', () => {
+    const controller = Object.create(DisplayStatusMenu.prototype);
+    controller.destroyed = true;
+    assert.equal(controller._refreshNightLight(), undefined);
+    assert.equal(controller._updateBrightness(90), undefined);
+    assert.equal(controller._disableBrightness(), undefined);
+    assert.equal(controller.brightness, undefined);
+});
+
 test('sound slider reaches amplified volume only while the system allows it', () => {
     let amplificationEnabled = false;
     const soundSettings = new MockEmitter();
