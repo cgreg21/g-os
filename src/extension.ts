@@ -113,7 +113,7 @@ export default class GOsExtension extends ExtensionComponents {
         this._dockCoverageWindows = new Map();
         this._runningAppSignals = new Map();
         this._attentionWindows = new Map();
-        this._workspaceSignals = [];
+        this._workspaceCleanup = null;
         this._notificationSources = new Map();
         this._launcherEntries = new Map();
         this._activeTransfers = new Map();
