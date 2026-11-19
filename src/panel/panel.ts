@@ -426,6 +426,17 @@ export function withPanel(Base) {
 
             // Personnalisation
             button.menu.addAction('Préférences', () => this.openPreferences());
+            const lookupExtensionsApp = () => this._appSystem.lookup_app('org.gnome.Extensions.desktop') ??
+                this._appSystem.lookup_app('gnome-extensions-app.desktop');
+            const extensions = button.menu.addAction('Gérer les extensions', () => {
+                const app = lookupExtensionsApp();
+                if (!app)
+                    return;
+                Main.overview.hide();
+                app.activate();
+            });
+            const updateExtensions = () => extensions.setSensitive(Boolean(lookupExtensionsApp()));
+            updateExtensions();
 
             button.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
@@ -466,17 +477,6 @@ export function withPanel(Base) {
 
         _populateAppMenu(button) {
             applyNativeMenuTheme(button.menu, 'g-os-popup');
-            const lookupExtensionsApp = () => this._appSystem.lookup_app('org.gnome.Extensions.desktop') ??
-                this._appSystem.lookup_app('gnome-extensions-app.desktop');
-            const extensions = button.menu.addAction('Gérer les extensions', () => {
-                const app = lookupExtensionsApp();
-                if (!app)
-                    return;
-                Main.overview.hide();
-                app.activate();
-            });
-            const updateExtensions = () => extensions.setSensitive(Boolean(lookupExtensionsApp()));
-            updateExtensions();
             const quit = button.menu.addAction('Quitter l’application', () => {
                 quit.targetApp?.request_quit();
             });
