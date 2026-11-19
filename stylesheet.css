@@ -81,3 +81,10 @@
 .g-os-dnd-drag-actor {
     -st-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
+
+/* Keep the Bluetooth popup compact; the native GNOME menu still supplies
+   its controls, rows, separators and theme colors. */
+.g-os-bluetooth-popup {
+    width: 420px;
+    max-width: 420px;
+}
