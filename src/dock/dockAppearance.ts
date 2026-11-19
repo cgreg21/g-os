@@ -479,7 +479,6 @@ export function withDockAppearance(Base) {
                 engaged,
                 viewStart,
                 viewEnd,
-                iconSize: size,
             });
             if (!geometry)
                 return;
