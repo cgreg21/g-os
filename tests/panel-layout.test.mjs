@@ -269,5 +269,5 @@ test('network menu keeps connection, service grid, traffic and inline details in
     assert.ok(network.includes('g-os-status-device-grid'));
     assert.ok(network.includes('_toggleInlineContent(toggle)'));
     assert.ok(network.includes('insert_child_at_index(inline'));
-    assert.ok(!network.includes('this.body.destroy_all_children();'));
+    assert.ok(!network.includes('showDetail(toggle)'));
 });
