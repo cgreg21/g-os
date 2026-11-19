@@ -402,7 +402,7 @@ export function withDockFolders(Base) {
 
         async _readDockFolderContents(folder, cancellable): Promise<DockFolderEntry[]> {
             const cacheKey = `dock-folder-contents:${folder.get_uri()}`;
-            const cached = this._cache?.get<DockFolderEntry[]>(cacheKey);
+            const cached = this._cache?.get(cacheKey) as DockFolderEntry[] | undefined;
             if (cached !== undefined)
                 return cached;
 
