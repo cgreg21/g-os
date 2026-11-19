@@ -17,40 +17,8 @@
 	spacing: 0px;
 }
 
-.macos-global-menu-button {
-	padding: 0 6px;
-}
-
 .g-os-active-app {
 	max-width: 180px;
-}
-
-.g-os-status-button {
-	min-width: 24px;
-	min-height: 0px;
-	padding: 0;
-}
-
-.g-os-battery-level {
-	font-size: 0.9em;
-}
-
-.g-os-status-notifier-items {
-	spacing: 6px;
-}
-
-.g-os-panel-button-content {
-	spacing: 6px;
-}
-
-.g-os-global-menu {
-	spacing: 6px;
-}
-
-.g-os-status-notifier-button {
-	min-width: 24px;
-	min-height: 0px;
-	padding: 0;
 }
 
 .g-os-notification-dot {
