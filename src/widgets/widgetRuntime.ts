@@ -4,6 +4,7 @@ import {errorMessage} from '../shared/errorMessage.js';
 import {createSimpleWidget} from './simpleWidget.js';
 import {FluxSession, createFluxWidget} from './fluxWidget.js';
 import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
+import {DelegateManager} from '../shared/interaction/delegateManager.js';
 
 function widgetColor(value, strength = 1) {
     const match = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})([\da-f]{2})?$/i.exec(value ?? '');
@@ -65,18 +66,17 @@ export class WidgetRuntime {
         this.styles = new Map();
         this.errors = {};
         this.generation = 0;
-        this.dropTargets = [];
+        this.dropTargetDelegates = new DelegateManager();
+        this.dropTargetDisposers = [];
         this.fluxSessions = new Map();
         for (const actor of [environment.Main.layoutManager._backgroundGroup, environment.Main.uiGroup].filter(Boolean)) {
-            const previous = actor._delegate;
-            const delegate = Object.create(previous ?? null);
-            delegate.handleDragOver = (source, ...args) => source?.widgetDesktopPlacement
-                ? environment.DND.DragMotionResult.MOVE_DROP
-                : previous?.handleDragOver?.(source, ...args) ?? environment.DND.DragMotionResult.CONTINUE;
-            delegate.acceptDrop = (source, ...args) => source?.widgetDesktopPlacement
-                ? true : previous?.acceptDrop?.(source, ...args) ?? false;
-            actor._delegate = delegate;
-            this.dropTargets.push({actor, previous, delegate});
+            this.dropTargetDisposers.push(this.dropTargetDelegates.add(actor, {
+                handleDragOver: (source, ...args) => source?.widgetDesktopPlacement
+                    ? environment.DND.DragMotionResult.MOVE_DROP
+                    : actor._delegate?.handleDragOver?.(source, ...args) ?? environment.DND.DragMotionResult.CONTINUE,
+                acceptDrop: (source, ...args) => source?.widgetDesktopPlacement
+                    ? true : actor._delegate?.acceptDrop?.(source, ...args) ?? false,
+            }));
         }
         this.reloadCatalog();
     }
@@ -855,11 +855,9 @@ export class WidgetRuntime {
         for (const shared of this.fluxSessions.values())
             shared.session.destroy();
         this.fluxSessions.clear();
-        for (const {actor, previous, delegate} of this.dropTargets) {
-            if (actor._delegate === delegate)
-                actor._delegate = previous;
-        }
-        this.dropTargets = [];
+        for (const dispose of this.dropTargetDisposers.splice(0).reverse())
+            dispose();
+        this.dropTargetDelegates = null;
         this.generation++;
         this.destroyDesktop();
         this.timeClock?.run_dispose();
