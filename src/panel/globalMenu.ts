@@ -1,3 +1,20 @@
+/**
+ * Detach an actor only while it is still owned by the expected parent.
+ * Popup/menu teardown can otherwise attempt to remove an actor twice.
+ */
+export function removeGlobalMenuActor(actor, expectedParent) {
+    if (!actor || !expectedParent)
+        return false;
+    try {
+        if (actor.get_parent() !== expectedParent)
+            return false;
+        expectedParent.remove_child(actor);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 import {DbusMenuClient} from './dbusMenu.js';
 import {alignMenuRows} from './panelStatusMenus.js';
 import {CleanupManager} from '../core/cleanupManager.js';
@@ -67,11 +84,27 @@ export class GtkGlobalMenu {
 
     _clearButtons() {
         for (const {button, menu} of this.buttons) {
-            menu.close({animate: false});
-            this.menuManager.removeMenu(menu);
-            menu.destroy();
-            this.container.remove_child(button);
-            button.destroy();
+            try {
+                menu.close({animate: false});
+            } catch {
+                // A menu may already be closing as its owning window disappears.
+            }
+            try {
+                this.menuManager.removeMenu(menu);
+            } catch {
+                // Menu-manager teardown can race with extension shutdown.
+            }
+            try {
+                menu.destroy();
+            } catch {
+                // Continue releasing the remaining global-menu actors.
+            }
+            removeGlobalMenuActor(button, this.container);
+            try {
+                button.destroy();
+            } catch {
+                // The button may already have been disposed by its parent.
+            }
         }
         this.buttons = [];
         this.submenus = [];
