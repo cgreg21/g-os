@@ -116,3 +116,49 @@ test('continues cancelling tasks when the backend reports a removal failure', ()
         globalThis.logError = originalLogError;
     }
 });
+
+
+test('supports backends that complete a task synchronously', () => {
+    const backend = {
+        timeout(_delay, callback) {
+            assert.equal(callback(), false);
+            return 1;
+        },
+        idle(callback) {
+            assert.equal(callback(), false);
+            return 2;
+        },
+        remove() {},
+    };
+    const scheduler = new TaskScheduler(backend);
+    const calls = [];
+    scheduler.timeout('timeout', 1, () => calls.push('timeout'));
+    scheduler.idle('idle', () => calls.push('idle'));
+    assert.deepEqual(calls, ['timeout', 'idle']);
+    assert.equal(scheduler.size, 0);
+});
+
+test('synchronous task completion preserves a task rescheduled by its callback', () => {
+    let synchronous = true;
+    let nextId = 0;
+    const backend = {
+        timeout(_delay, callback) {
+            const id = ++nextId;
+            if (synchronous)
+                callback();
+            return id;
+        },
+        idle(callback) { return this.timeout(0, callback); },
+        remove() {},
+    };
+    const scheduler = new TaskScheduler(backend);
+    const calls = [];
+    scheduler.timeout('refresh', 1, () => {
+        calls.push('first');
+        synchronous = false;
+        scheduler.timeout('refresh', 1, () => calls.push('second'));
+    });
+    assert.deepEqual(calls, ['first']);
+    assert.equal(scheduler.size, 1);
+    assert.equal(nextId, 2);
+});
