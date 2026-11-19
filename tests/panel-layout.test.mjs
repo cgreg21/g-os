@@ -70,3 +70,23 @@ test('topbar opts into the native GNOME Shell panel theme when styling is enable
     assert.match(createPanelSource, /if \(this\._settings\.get_boolean\('panel-style'\)\) \{[\s\S]*?add_style_class_name\('panel'\)[\s\S]*?add_style_class_name\('g-os-panel'\)/);
     assert.match(panelSource, /style_class: 'g-os-secondary-panel'/);
 });
+
+
+test('panel actor cleanup verifies the current parent before removing children', async () => {
+    const panel = await readFile(new URL('../src/panel/panel.ts', import.meta.url), 'utf8');
+    assert.match(panel, /function removeActorFromParent\(actor, parent = getActorParent\(actor\)\)[\s\S]*?getActorParent\(actor\) !== parent[\s\S]*?parent\.remove_child\(actor\)/);
+    assert.match(panel, /removeActorFromParent\(state\.banner, state\.container\)/);
+    assert.match(panel, /removeActorFromParent\(state\.container, state\.parent\)/);
+    assert.match(panel, /removeActorFromParent\(button, screen\.statusNotifierBox\)/);
+    assert.match(panel, /removeActorFromParent\(actor, parent\)/);
+});
+
+test('native status menu content restores only actors it can safely reparent', async () => {
+    const menus = await readFile(new URL('../src/panel/panelStatusMenus.ts', import.meta.url), 'utf8');
+    const start = menus.indexOf('class NativeMenuContent');
+    const end = menus.indexOf('export class RadioStatusMenu', start);
+    const source = menus.slice(start, end);
+    assert.match(source, /if \(index < 0 \|\| !removeActorFromParent\(actor, parent\)\)/);
+    assert.match(source, /if \(currentParent && currentParent !== parent\)\s+removeActorFromParent\(actor, currentParent\)/);
+    assert.match(source, /if \(!getActorParent\(actor\)\)[\s\S]*?parent\.insert_child_at_index\(actor, index\)/);
+});
