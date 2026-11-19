@@ -3,6 +3,7 @@ import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import Gio from 'gi://Gio';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {CleanupManager} from '../core/cleanupManager.js';
 
 type MediaState = {
     player: any;
@@ -34,11 +35,10 @@ type MediaSource = {connect(signal: string, callback: () => void): number};
 export function withMediaWidgets(Base) {
     return class extends Base {
         _stopMediaTracking() {
-            for (const id of this._mediaSourceSignals ?? [])
-                this._mediaSource?.disconnect(id);
-            this._mediaSourceSignals = [];
-            for (const [player, id] of this._mediaPlayers ?? [])
-                player.disconnect(id);
+            this._mediaSourceCleanup?.clear();
+            this._mediaSourceCleanup = null;
+            for (const cleanup of this._mediaPlayers?.values() ?? [])
+                cleanup.clear();
             this._mediaPlayers?.clear();
             this._mediaSource = null;
             this._selectedMediaPlayer = null;
@@ -54,20 +54,25 @@ export function withMediaWidgets(Base) {
                 this._stopMediaTracking();
                 this._mediaSource = source;
                 if (source) {
+                    const cleanup = new CleanupManager();
                     for (const signal of ['player-added', 'player-removed'])
-                        this._mediaSourceSignals.push((source as MediaSource).connect(signal, () => this._syncMediaPlayers()));
+                        cleanup.addSignal(source, (source as MediaSource).connect(signal, () => this._syncMediaPlayers()));
+                    this._mediaSourceCleanup = cleanup;
                 }
             }
             const players = source?.players ?? [];
-            for (const [player, id] of this._mediaPlayers) {
+            for (const [player, cleanup] of this._mediaPlayers) {
                 if (!players.includes(player)) {
-                    player.disconnect(id);
                     this._mediaPlayers.delete(player);
+                    cleanup.clear();
                 }
             }
             for (const player of players) {
-                if (!this._mediaPlayers.has(player))
-                    this._mediaPlayers.set(player, player.connect('changed', () => this._refreshMediaWidgets()));
+                if (!this._mediaPlayers.has(player)) {
+                    const cleanup = new CleanupManager();
+                    cleanup.addSignal(player, player.connect('changed', () => this._refreshMediaWidgets()));
+                    this._mediaPlayers.set(player, cleanup);
+                }
             }
             this._refreshMediaWidgets();
         }
