@@ -185,7 +185,7 @@ test('display controls read and write screen brightness and night-light settings
 
     controller.temperatureSlider.value = 0.5;
     assert.equal(settingsValues['night-light-temperature'], 5500);
-    controller.nightLightSwitch.state = true;
+    controller.nightLightItem.emit('toggled', true);
     assert.equal(settingsValues['night-light-enabled'], true);
 
     controller.brightnessSlider.value = 0.75;
