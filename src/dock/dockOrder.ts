@@ -5,6 +5,7 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {readAppFolders, writeAppFolders} from '../shared/appFolders.js';
 import {resolveReorderInsertionIndex} from '../shared/geometry/insertion.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 
 export function withDockOrder(Base) {
     return class extends Base {
@@ -203,7 +204,11 @@ export function withDockOrder(Base) {
                     this._queueDockHide(screen);
                 }
             };
-            screen.interactionDnd.registerSource(button, {}, {
+            registerShadowDragSource({
+                controller: screen.interactionDnd,
+                actor: button,
+                St,
+                callbacks: {
                 onBegin: () => {
                     cancelled = false;
                     this._updateDockMagnification(screen, null, true);
@@ -294,7 +299,9 @@ export function withDockOrder(Base) {
                     if (screen.reorder?.button === button)
                         finish(true);
                 },
-            }, {}, screen.lifecycle);
+                },
+                lifecycle: screen.lifecycle,
+            });
             screen.lifecycle.add(() => {
                 if (screen.reorder?.button === button)
                     finish(true);
