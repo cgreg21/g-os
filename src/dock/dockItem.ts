@@ -1,8 +1,11 @@
+import Clutter from 'gi://Clutter';
 import {CleanupManager} from '../core/cleanupManager.js';
 
 /**
- * Shared behavior for dock actors without replacing GNOME's native actor
- * classes. Rendering and activation remain owned by AppIcon or St.Button.
+ * Shared interaction contract for dock items.
+ *
+ * GNOME actor classes remain untouched: AppIcon keeps its native app behavior,
+ * while St.Button keeps its own activation and accessibility behavior.
  */
 export class DockItem {
     private static readonly instances = new WeakMap<object, DockItem>();
@@ -10,6 +13,7 @@ export class DockItem {
     readonly actor: any;
     readonly screen: any;
     private readonly cleanup = new CleanupManager();
+    private readonly boundMenus = new WeakSet<object>();
     private tooltipUpdater: ((coordinates?: [number, number] | null) => void) | null = null;
     private contextMenu: any = null;
     private disposed = false;
@@ -17,11 +21,6 @@ export class DockItem {
     private constructor(actor: any, screen: any) {
         this.actor = actor;
         this.screen = screen;
-
-        // Use GNOME Shell's own dash item styling instead of recreating its
-        // button appearance in the extension stylesheet.
-        if (!actor.has_style_class_name?.('app-well-app'))
-            actor.add_style_class_name?.('app-well-app');
 
         const destroySignal = actor.connect('destroy', () => this.dispose());
         this.cleanup.add(() => {
@@ -60,6 +59,37 @@ export class DockItem {
         this.actor.dockContextMenu = menu;
         if (property)
             this.actor[property] = menu;
+        return this;
+    }
+
+    /**
+     * Give every custom dock menu the same keyboard and pointer entry points.
+     * Menu contents and open/close policy remain owned by the feature creating it.
+     */
+    bindContextMenu(menu: any): this {
+        if (!menu || this.disposed || this.boundMenus.has(menu))
+            return this;
+
+        this.boundMenus.add(menu);
+
+        const click = new Clutter.ClickGesture({
+            required_button: Clutter.BUTTON_SECONDARY,
+            recognize_on_press: true,
+        });
+        click.connect('recognize', () => {
+            if (!this.disposed)
+                menu.toggle();
+        });
+        this.actor.add_action(click);
+        this.cleanup.add(() => this.actor.remove_action(click));
+
+        const popupSignal = this.actor.connect('popup-menu', () => {
+            if (!this.disposed)
+                menu.open();
+            return Clutter.EVENT_STOP;
+        });
+        this.cleanup.addSignal(this.actor, popupSignal);
+
         return this;
     }
 
