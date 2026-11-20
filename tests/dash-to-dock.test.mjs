@@ -22,7 +22,7 @@ test('Dash to Dock source lives in the G-Os dock source tree and is bundled', as
 
 test('G-Os keeps its legacy dock disabled outside test mode', async () => {
     const source = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
-    assert.match(source, /const DASH_TO_DOCK_UUID = 'dash-to-dock@micxgx\\.gmail\\.com'/);
-    assert.match(source, /_setLegacyDockEnabled\\(keepLegacyDock\\)/);
-    assert.match(source, /_requestDashToDock\\(true\\)/);
+    assert.ok(source.includes("const DASH_TO_DOCK_UUID = 'dash-to-dock@micxgx.gmail.com'"));
+    assert.ok(source.includes('_setLegacyDockEnabled(keepLegacyDock)'));
+    assert.ok(source.includes('_requestDashToDock(true)'));
 });
