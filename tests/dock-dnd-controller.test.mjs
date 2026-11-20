@@ -9,7 +9,7 @@ const dockFoldersSource = await readFile(new URL('../src/dock/dockFolders.ts', i
 const dockItemSource = await readFile(new URL('../src/dock/dockItem.ts', import.meta.url), 'utf8');
 
 test('dock items own shared menu, tooltip and DND integration', () => {
-    assert.match(dockItemSource, /bindContextMenu\\(menu, Clutter\\)/);
+    assert.match(dockItemSource, /bindContextMenu\\(menu: any, Clutter: any\\)/);
     assert.match(dockItemSource, /registerDragSource\\(/);
     assert.match(dockItemSource, /registerDropTarget\\(/);
     assert.match(dockItemSource, /registerShadowDragSource\\(/);
