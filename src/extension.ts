@@ -784,7 +784,8 @@ export default class GOsExtension extends ExtensionComponents {
         }
 
         _applySettings(keys = null) {
-            print(`G-Os apply settings: ${keys ? [...keys].join(',') : 'all'}`);
+            const invocation = this._applySettingsInvocation = (this._applySettingsInvocation ?? 0) + 1;
+            print(`G-Os apply settings #${invocation}: ${keys ? [...keys].join(',') : 'all'}\\n${new Error().stack}`);
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
