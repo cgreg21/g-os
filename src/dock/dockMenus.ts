@@ -35,13 +35,7 @@ export function withDockMenus(Base) {
                     this._queueDockHide(screen);
                 }
             });
-            const click = new Clutter.ClickGesture({
-                required_button: Clutter.BUTTON_SECONDARY,
-                recognize_on_press: true,
-            });
-            click.connect('recognize', () => menu.toggle());
-            button.add_action(click);
-            button.connect('popup-menu', () => menu.open());
+            DockItem.for(button, screen).setContextMenu(menu).bindContextMenu(menu);
             button.connect('destroy', () => {
                 disposed = true;
                 onDestroy();
