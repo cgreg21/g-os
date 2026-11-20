@@ -3,15 +3,16 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 EXTENSION_ID="g-os@greg.local"
-XDOCK_ID="xdock@github.com"
+DASH_TO_DOCK_ID="dash-to-dock@micxgx.gmail.com"
 EXTENSIONS_DIR="$HOME/.local/share/gnome-shell/extensions"
 TARGET_DIR="$EXTENSIONS_DIR/$EXTENSION_ID"
-XDOCK_TARGET_DIR="$EXTENSIONS_DIR/$XDOCK_ID"
+DASH_TO_DOCK_TARGET_DIR="$EXTENSIONS_DIR/$DASH_TO_DOCK_ID"
 
 cd "$ROOT_DIR"
 
-if [[ ! -f "$ROOT_DIR/vendor/xdock/metadata.json" ]]; then
-  git submodule update --init --recursive
+if [[ ! -f "$ROOT_DIR/vendor/dash-to-dock/metadata.json" ]]; then
+  echo "[build-deploy] Sources Dash to Dock absentes du dépôt." >&2
+  exit 1
 fi
 
 echo "[build-deploy] Build de l’extension…"
@@ -25,16 +26,15 @@ mkdir -p "$EXTENSIONS_DIR"
 if command -v gnome-extensions >/dev/null 2>&1; then
   echo "[build-deploy] Désactivation des extensions avant remplacement…"
   gnome-extensions disable "$EXTENSION_ID" >/dev/null 2>&1 || true
-  gnome-extensions disable "$XDOCK_ID" >/dev/null 2>&1 || true
+  gnome-extensions disable "$DASH_TO_DOCK_ID" >/dev/null 2>&1 || true
 fi
 
 rm -rf "${TARGET_DIR:?}"
 mkdir -p "$TARGET_DIR"
 cp -a "$ROOT_DIR/dist/." "$TARGET_DIR/"
-rm -rf "${TARGET_DIR:?}/$XDOCK_ID"
-rm -rf "${XDOCK_TARGET_DIR:?}"
-mkdir -p "$XDOCK_TARGET_DIR"
-cp -a "$ROOT_DIR/dist/$XDOCK_ID/." "$XDOCK_TARGET_DIR/"
+rm -rf "${DASH_TO_DOCK_TARGET_DIR:?}"
+mkdir -p "$DASH_TO_DOCK_TARGET_DIR"
+cp -a "$ROOT_DIR/dist/$DASH_TO_DOCK_ID/." "$DASH_TO_DOCK_TARGET_DIR/"
 
 if command -v gnome-extensions >/dev/null 2>&1; then
   if ! gnome-extensions enable "$EXTENSION_ID" >/dev/null 2>&1; then
@@ -43,4 +43,4 @@ if command -v gnome-extensions >/dev/null 2>&1; then
 fi
 
 echo "[build-deploy] G-Os déployé dans $TARGET_DIR"
-echo "[build-deploy] XDock compagnon déployé dans $XDOCK_TARGET_DIR"
+echo "[build-deploy] Dash to Dock déployé dans $DASH_TO_DOCK_TARGET_DIR"

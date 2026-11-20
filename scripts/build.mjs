@@ -9,21 +9,21 @@ mkdirSync('dist/schemas', {recursive: true});
 for (const file of ['metadata.json', 'stylesheet.css', 'config.json'])
     cpSync(file, `dist/${file}`);
 cpSync('icons', 'dist/icons', {recursive: true});
-const xdockSource = 'vendor/xdock';
-const xdockTarget = 'dist/xdock@github.com';
-rmSync(xdockTarget, {recursive: true, force: true});
-cpSync(xdockSource, xdockTarget, {
-    recursive: true,
-    filter: path => !/(^|\/)(\.git|\.github|docs|test|po|lint|node_modules)(\/|$)/.test(path) &&
-        !path.endsWith('.map'),
-});
-cpSync('vendor/xdock/schemas/org.gnome.shell.extensions.xdock.gschema.xml',
-    `${xdockTarget}/schemas/org.gnome.shell.extensions.xdock.gschema.xml`);
-const xdockSchema = spawnSync('glib-compile-schemas', [`${xdockTarget}/schemas`], {stdio: 'inherit'});
-if (xdockSchema.error)
-    throw xdockSchema.error;
-if (xdockSchema.status !== 0)
-    process.exit(xdockSchema.status ?? 1);
+const dashToDockSource = 'vendor/dash-to-dock';
+const dashToDockTarget = 'dist/dash-to-dock@micxgx.gmail.com';
+rmSync(dashToDockTarget, {recursive: true, force: true});
+cpSync(dashToDockSource, dashToDockTarget, {recursive: true});
+const dashToDockStylesheet = spawnSync('sassc', ['--omit-map-comment',
+    `${dashToDockSource}/_stylesheet.scss`, `${dashToDockTarget}/stylesheet.css`], {stdio: 'inherit'});
+if (dashToDockStylesheet.error)
+    throw dashToDockStylesheet.error;
+if (dashToDockStylesheet.status !== 0)
+    process.exit(dashToDockStylesheet.status ?? 1);
+const dashToDockSchema = spawnSync('glib-compile-schemas', [`${dashToDockTarget}/schemas`], {stdio: 'inherit'});
+if (dashToDockSchema.error)
+    throw dashToDockSchema.error;
+if (dashToDockSchema.status !== 0)
+    process.exit(dashToDockSchema.status ?? 1);
 cpSync('schemas', 'dist/schemas', {
     recursive: true,
     filter: path => !path.endsWith('gschemas.compiled'),

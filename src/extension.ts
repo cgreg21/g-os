@@ -46,7 +46,7 @@ import {create as createCalendarWidget} from './widgets/calendar/widget.js';
 import {create as createMediaWidget} from './widgets/media/widget.js';
 
 const laters = global.compositor.get_laters();
-const XDOCK_UUID = 'xdock@github.com';
+const DASH_TO_DOCK_UUID = 'dash-to-dock@micxgx.gmail.com';
 
 const ExtensionComponents: any = [withDockVisibility, withDockOrder, withMediaWidgets, withDockFolders,
     withDockAppearance, withPanel, withDesktopWidgets, withDesktopIcons, withDockMenus, withDockActivity]
@@ -95,10 +95,10 @@ export default class GOsExtension extends ExtensionComponents {
             this._appSystem = Shell.AppSystem.get_default();
             this._favorites = AppFavorites.getAppFavorites();
         this._settings = this.getSettings();
-        this._xdockRequested = false;
-        this._xdockManaged = false;
-        this._xdockStateInitialized = false;
-        this._xdockRequestGeneration = 0;
+        this._dashToDockRequested = false;
+        this._dashToDockManaged = false;
+        this._dashToDockStateInitialized = false;
+        this._dashToDockRequestGeneration = 0;
         this._startDebugRuntimeMonitor();
         this._cache = new GOSCache(256, 5 * 60 * 1000);
         this._statusNotifierHost = new StatusNotifierHost({Gio, GLib,
@@ -374,8 +374,8 @@ export default class GOsExtension extends ExtensionComponents {
 
     disable() {
             this._stopDebugRuntimeMonitor();
-            if (this._xdockRequested || this._xdockManaged)
-                this._requestXDock(false);
+            if (this._dashToDockRequested || this._dashToDockManaged)
+                this._requestDashToDock(false);
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
@@ -502,8 +502,8 @@ export default class GOsExtension extends ExtensionComponents {
                 if (!dash?.showAppsButton)
                     return;
                 this._overviewDash = dash;
-                const useXDock = this._shouldUseXDock();
-                if (useXDock || this._isDockTestMode())
+                const useDashToDock = this._shouldUseDashToDock();
+                if (useDashToDock || this._isDockTestMode())
                     dash.hide();
                 else
                     dash.show();
@@ -543,41 +543,40 @@ export default class GOsExtension extends ExtensionComponents {
             return Boolean(GLib.getenv('G_OS_FEATURE_TEST') || GLib.getenv('G_OS_EXPLORATORY_TEST'));
         }
 
-        _shouldUseXDock() {
-            return Boolean(this._settings?.get_boolean('show-dock') &&
-                GLib.getenv('WAYLAND_DISPLAY') && !this._isDockTestMode());
+        _shouldUseDashToDock() {
+            return Boolean(this._settings?.get_boolean('show-dock') && !this._isDockTestMode());
         }
 
-        _syncXDock() {
-            const shouldEnable = this._shouldUseXDock();
+        _syncDashToDock() {
+            const shouldEnable = this._shouldUseDashToDock();
             const keepLegacyDock = this._isDockTestMode();
             this._setLegacyDockEnabled(keepLegacyDock);
-            if (this._xdockStateInitialized && this._xdockRequested === shouldEnable)
+            if (this._dashToDockStateInitialized && this._dashToDockRequested === shouldEnable)
                 return;
 
-            const wasRequested = this._xdockRequested || this._xdockManaged || !this._xdockStateInitialized;
-            this._xdockStateInitialized = true;
-            this._xdockRequested = shouldEnable;
+            const wasRequested = this._dashToDockRequested || this._dashToDockManaged || !this._dashToDockStateInitialized;
+            this._dashToDockStateInitialized = true;
+            this._dashToDockRequested = shouldEnable;
             if (!shouldEnable) {
                 if (wasRequested)
-                    this._requestXDock(false);
+                    this._requestDashToDock(false);
                 return;
             }
 
-            this._requestXDock(true);
+            this._requestDashToDock(true);
         }
 
-        _requestXDock(enabled) {
-            const generation = ++this._xdockRequestGeneration;
+        _requestDashToDock(enabled) {
+            const generation = ++this._dashToDockRequestGeneration;
             if (!enabled)
-                this._xdockManaged = false;
+                this._dashToDockManaged = false;
 
             Gio.DBus.session.call(
                 'org.gnome.Shell.Extensions',
                 '/org/gnome/Shell/Extensions',
                 'org.gnome.Shell.Extensions',
                 enabled ? 'EnableExtension' : 'DisableExtension',
-                new GLib.Variant('(s)', [XDOCK_UUID]),
+                new GLib.Variant('(s)', [DASH_TO_DOCK_UUID]),
                 new GLib.VariantType('(b)'),
                 Gio.DBusCallFlags.NONE,
                 10000,
@@ -586,21 +585,21 @@ export default class GOsExtension extends ExtensionComponents {
                     try {
                         const response = connection.call_finish(result).deep_unpack() as [boolean];
                         const success = response[0];
-                        if (generation !== this._xdockRequestGeneration)
+                        if (generation !== this._dashToDockRequestGeneration)
                             return;
                         if (enabled) {
                             if (!success)
-                                throw new Error('GNOME Shell Extension Manager rejected XDock activation');
-                            this._xdockManaged = true;
+                                throw new Error('GNOME Shell Extension Manager rejected Dash to Dock activation');
+                            this._dashToDockManaged = true;
                             this._setLegacyDockEnabled(false);
                         }
                     } catch (error) {
-                        if (generation !== this._xdockRequestGeneration)
+                        if (generation !== this._dashToDockRequestGeneration)
                             return;
                         if (enabled)
-                            this._xdockManaged = false;
+                            this._dashToDockManaged = false;
                         logError(error instanceof Error ? error : new Error(String(error)),
-                            `G-Os: ${enabled ? 'enable' : 'disable'} XDock failed`);
+                            `G-Os: ${enabled ? 'enable' : 'disable'} DashToDock failed`);
                     }
                 });
         }
@@ -774,7 +773,7 @@ export default class GOsExtension extends ExtensionComponents {
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
             this._settingsApplyKeys = null;
-            this._syncXDock();
+            this._syncDashToDock();
             if (this._applyLiveSettings(keys))
                 return;
             this._normalizeDockAppFolders();

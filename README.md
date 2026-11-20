@@ -407,19 +407,18 @@ GNOME 51 locale.
 
 
 
-## Dock Wayland : compagnon XDock
+## Dock : intégration de Dash to Dock
 
-Sur Wayland, G-Os utilise temporairement **XDock**, un fork communautaire de Dash to Dock compatible GNOME Shell 49 à 51. Le code source est suivi dans `vendor/xdock` comme sous-module Git, séparé du code de G-Os et conservé sous sa licence GPL-2.0.
+Le code source de **Dash to Dock 110** est intégré directement dans `vendor/dash-to-dock`, sans sous-module Git. Il provient du projet amont `micheleg/dash-to-dock`, est compatible GNOME Shell 51 et conserve sa licence GPL-2.0-or-later (`vendor/dash-to-dock/COPYING`). Le Dock G-Os historique reste dans le dépôt mais demeure temporairement désactivé pendant cette intégration.
 
-Le Dock G-Os historique reste dans le dépôt mais est désactivé temporairement pendant cette intégration. Sous Wayland, XDock prend sa place. Sous X11, aucun dock de remplacement n'est activé, car le fork ne prend en charge que Wayland. Si XDock est absent ou ne démarre pas, le Dock G-Os ne se réactive pas automatiquement.
+Le build compile la feuille SCSS et le schéma GSettings de Dash to Dock, puis l'installe avec G-Os. G-Os demande au gestionnaire d'extensions GNOME d'activer ou de désactiver l'extension amont `dash-to-dock@micxgx.gmail.com` selon la préférence « Afficher le Dock ». Dash to Dock conserve ses propres préférences.
 
-Après un clone ou une mise à jour :
+Après un clone ou une mise à jour, aucune initialisation de sous-module n'est nécessaire :
 
-```sh
-git submodule update --init --recursive
+```bash
 npm ci
 npm run build
 npm run build:deploy
 ```
 
-Le déploiement installe G-Os et XDock dans deux répertoires d’extensions GNOME distincts. G-Os demande au gestionnaire d’extensions GNOME d’activer XDock lorsque l’option d’affichage du Dock est activée. XDock conserve ses propres préférences et son propre schéma GSettings. Après une première installation dans une session déjà ouverte, une reconnexion GNOME est nécessaire pour que Shell découvre le nouvel UUID du compagnon.
+Le déploiement place les deux extensions dans des répertoires GNOME distincts, conformément à leur UUID et à leur cycle de vie GNOME indépendant.
