@@ -418,6 +418,7 @@ export function withDockVisibility(Base) {
         }
 
         _setDockReservationRegistered(screen, registered) {
+            registered = registered && !screen.legacyDockDisabled;
             const reservation = screen.dockReservation;
             if (!reservation || screen.dockReservationRegistered === registered)
                 return;
