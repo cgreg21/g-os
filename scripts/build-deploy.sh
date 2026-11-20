@@ -34,11 +34,7 @@ if command -v gnome-extensions >/dev/null 2>&1; then
   echo "[build-deploy] Recharge des extensions GNOME…"
   gnome-extensions disable "$EXTENSION_ID" >/dev/null 2>&1 || true
   gnome-extensions disable "$XDOCK_ID" >/dev/null 2>&1 || true
-  if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
-    gnome-extensions enable "$EXTENSION_ID" >/dev/null 2>&1 || true
-  else
-    gnome-extensions enable "$EXTENSION_ID" >/dev/null 2>&1 || true
-  fi
+  gnome-extensions enable "$EXTENSION_ID" >/dev/null 2>&1 || true
 fi
 
 echo "[build-deploy] G-Os déployé dans $TARGET_DIR"
