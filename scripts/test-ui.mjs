@@ -521,35 +521,9 @@ async function runNative(test, context) {
     Object.assign(env, scriptEnv);
     const scriptArguments = ['--headless', '--force-animations', '--virtual-monitor', '1280x720',
         '--wayland-display', `g-os-test-${process.pid}`, '--automation-script', visualScript];
-    const debugShell = process.env.G_OS_GNOME_SHELL_GDB === '1';
-    const gdbScript = join(tempRoot, 'gnome-shell.gdb');
-    if (debugShell) {
-        await writeFile(gdbScript, [
-            'set pagination off',
-            'set breakpoint pending on',
-            'start',
-            'break st_scroll_view_get_preferred_height',
-            'commands 2',
-            'silent',
-            'if (void*)clutter_actor_get_stage((void*)$rdi) == 0',
-            'printf "DETACHED StScrollView=%p name=%s parent=%p\\n", $rdi, (char*)clutter_actor_get_name((void*)$rdi), (void*)clutter_actor_get_parent((void*)$rdi)',
-            'bt 18',
-            'quit 1',
-            'end',
-            'continue',
-            'end',
-            'continue',
-            'thread apply all bt 32',
-            'quit 1',
-        ].join('\n'));
-    }
-    const shellCommand = debugShell ? 'gdb' : 'gnome-shell';
-    const shellArguments = debugShell
-        ? ['--batch', '--quiet', '-x', gdbScript, '--args', 'gnome-shell', ...scriptArguments]
-        : ['gnome-shell', ...scriptArguments];
     const commandArguments = ['--', 'bash', '-c',
         `gsettings set org.gnome.shell enabled-extensions "[\\"${extensionId}\\"]" && exec "$@"`,
-        '--', shellCommand, ...shellArguments];
+        '--', 'gnome-shell', ...scriptArguments];
     const started = Date.now();
     let result;
     try {
