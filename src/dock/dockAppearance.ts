@@ -349,12 +349,14 @@ export function withDockAppearance(Base) {
                     this._queueDockMagnification(screen, screen.magnificationPoint, false, following);
                     return Clutter.EVENT_PROPAGATE;
                 }));
+                // Reset only when the pointer actually leaves the dock actor.
+                // Hover notifications can flicker while crossing child actors.
                 screen.lifecycle.addSignal(screen.dockContainer,
-                    screen.dockContainer.connect('notify::hover', () => {
-                    if (!screen.dockContainer.hover) {
-                        screen.magnificationPoint = null;
-                        this._queueDockMagnification(screen);
-                    }
+                    screen.dockContainer.connect('leave-event', () => {
+                    screen.magnificationPoint = null;
+                    screen.magnificationFilteredCoordinate = undefined;
+                    this._queueDockMagnification(screen, null, true);
+                    return Clutter.EVENT_PROPAGATE;
                 }));
                 const motion = St.Settings.get();
                 const signal = motion.connect('notify', () => this._queueDockMagnification(screen));
@@ -451,10 +453,12 @@ export function withDockAppearance(Base) {
             // not only over the background actor. Restricting magnification
             // to the background makes the effect drop out while crossing an
             // icon, then re-engage in the gap between two icons.
-            const pointerInsideDock = point && screen.dockContainer.hover &&
-                screen.dockContainer.visible !== false;
-            let coordinate = pointerInsideDock ? point[axis] :
-                !screen.dockContainer.hover && hoveredButton
+            // The motion event belongs to the dock container; trust its
+            // stage coordinates instead of the hover flag, which can flicker
+            // when crossing between child icon actors.
+            let coordinate = point && screen.dockContainer.visible !== false
+                ? point[axis]
+                : !screen.dockContainer.hover && hoveredButton
                 ? centers[buttons.indexOf(hoveredButton)] : null;
             // Filter pointer movement before deriving icon scales. This avoids
             // restarting actor transitions for every raw motion event, which
