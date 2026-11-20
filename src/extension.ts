@@ -114,7 +114,6 @@ export default class GOsExtension extends ExtensionComponents {
                 this._settings.set_int('dock-hover-animation', 1);
         this._screens = [];
         this._settingsApplySource = 0;
-        this._monitorSettingsApplySource = 0;
         this._desktopWidgets = new Map();
         this._widgetAreaSource = 0;
         this._mediaPlayers = new Map();
@@ -209,7 +208,7 @@ export default class GOsExtension extends ExtensionComponents {
             });
             // Monitor changes can arrive while Mutter is allocating chrome actors. Defer
             // screen teardown/recreation until the current layout pass has completed.
-            this._connect(Main.layoutManager, 'monitors-changed', () => this._queueMonitorSettingsApply());
+            this._connect(Main.layoutManager, 'monitors-changed', () => this._queueSettingsApply());
             this._connect(global.display, 'workareas-changed', () => {
                 if (this._widgetAreaSource)
                     return;
@@ -380,9 +379,6 @@ export default class GOsExtension extends ExtensionComponents {
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
-            if (this._monitorSettingsApplySource)
-                GLib.source_remove(this._monitorSettingsApplySource);
-            this._monitorSettingsApplySource = 0;
             this._settingsApplyKeys = null;
             this._destroyDesktopWidgetMenu();
             this._stopMediaTracking();
@@ -642,18 +638,7 @@ export default class GOsExtension extends ExtensionComponents {
             }
         }
 
-        _queueMonitorSettingsApply() {
-            if (this._monitorSettingsApplySource)
-                GLib.source_remove(this._monitorSettingsApplySource);
-            this._monitorSettingsApplySource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
-                this._monitorSettingsApplySource = 0;
-                this._queueSettingsApply();
-                return GLib.SOURCE_REMOVE;
-            });
-        }
-
         _queueSettingsApply(key = null) {
-            print(`G-Os queue settings apply: ${key ?? 'all'}`);
             if (!this._settings)
                 return;
             (this._settingsApplyKeys ??= new Set()).add(key);
@@ -784,8 +769,6 @@ export default class GOsExtension extends ExtensionComponents {
         }
 
         _applySettings(keys = null) {
-            const invocation = this._applySettingsInvocation = (this._applySettingsInvocation ?? 0) + 1;
-            print(`G-Os apply settings #${invocation}: ${keys ? [...keys].join(',') : 'all'}\\n${new Error().stack}`);
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
@@ -873,12 +856,7 @@ export default class GOsExtension extends ExtensionComponents {
                         hscrollbar_policy: position === 0 ? St.PolicyType.EXTERNAL : St.PolicyType.NEVER,
                         vscrollbar_policy: position === 0 ? St.PolicyType.NEVER : St.PolicyType.EXTERNAL,
                     });
-                    screen.dockContainer.set_name('g-os-dock-scroll');
                     screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
-                    print(`G-Os dock scroll after addChrome: parent=${Boolean(screen.dockContainer.get_parent())}`);
-                    screen.lifecycle.addSignal(screen.dockContainer, screen.dockContainer.connect('parent-set', (_actor, oldParent) => {
-                        print(`G-Os dock scroll parent-set: old=${Boolean(oldParent)} new=${Boolean(screen.dockContainer?.get_parent())}`);
-                    }));
                     screen.dockContainer.set_child(dockContent);
                     if (screen.legacyDockDisabled) {
                         screen.dockContainer.hide();
@@ -1148,7 +1126,6 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.dockViewport = null;
                 }
                 if (screen.dockContainer) {
-                    print(`G-Os destroying dock scroll: parent=${Boolean(screen.dockContainer.get_parent())}`);
                     Main.ctrlAltTabManager.removeGroup?.(screen.dockContainer);
                     const dockContainerParent = screen.dockContainer.get_parent();
                     if (dockContainerParent)
