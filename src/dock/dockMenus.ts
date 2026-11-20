@@ -7,6 +7,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
 import {errorMessage} from '../shared/errorMessage.js';
+import {DockItem} from './dockItem.js';
 
 export function withDockMenus(Base) {
     return class extends Base {
@@ -18,7 +19,7 @@ export function withDockMenus(Base) {
             menu.actor.hide();
             Main.panel.menuManager.addMenu(menu);
             screen.shortcutMenus.push(menu);
-            button.shortcutMenu = menu;
+            DockItem.for(button, screen).setContextMenu(menu);
             button.shouldShowTooltip = () => button.hover && !menu.isOpen;
             let disposed = false;
             menu.connect('open-state-changed', (actor, open) => {
