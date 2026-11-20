@@ -611,7 +611,7 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
 const widgetRuntimeSource = await readFile(new URL('../src/widgets/widgetRuntime.ts', import.meta.url), 'utf8');
 
 test('widget catalog refresh is queued once after dynamic imports settle', () => {
-    assert.match(widgetRuntimeSource, /const pendingImports = entries\\.filter/);
-    assert.match(widgetRuntimeSource, /completedImports === pendingImports[\\s\\S]*?this\\.host\\._queueSettingsApply\\('widget-catalog'\\)/);
-    assert.doesNotMatch(widgetRuntimeSource, /this\\.host\\._applySettings\\(\\)/);
+    assert.match(widgetRuntimeSource, /const pendingImports = entries\.filter/);
+    assert.match(widgetRuntimeSource, /completedImports === pendingImports[\s\S]*?this\.host\._queueSettingsApply\('widget-catalog'\)/);
+    assert.doesNotMatch(widgetRuntimeSource, /this\.host\._applySettings\(\)/);
 });
