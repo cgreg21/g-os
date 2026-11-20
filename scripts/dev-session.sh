@@ -13,6 +13,23 @@ export XDG_CACHE_HOME="$DEV_HOME/cache"
 export XDG_STATE_HOME="$DEV_HOME/state"
 export GSETTINGS_BACKEND=dconf
 
+# Install both extension directories before Shell scans its extension paths.
+# The XDock companion must be registered before G-Os requests its activation.
+echo "Building and staging G-Os plus its XDock companion..."
+npm run build
+EXTENSIONS_DIR="$XDG_DATA_HOME/gnome-shell/extensions"
+GOS_STAGE="$EXTENSIONS_DIR/.g-os@greg.local.staging"
+XDOCK_STAGE="$EXTENSIONS_DIR/.xdock@github.com.staging"
+mkdir -p "$EXTENSIONS_DIR"
+rm -rf "$GOS_STAGE" "$XDOCK_STAGE"
+mkdir -p "$GOS_STAGE" "$XDOCK_STAGE"
+cp -a "$ROOT/dist/." "$GOS_STAGE/"
+rm -rf "$GOS_STAGE/xdock@github.com"
+cp -a "$ROOT/dist/xdock@github.com/." "$XDOCK_STAGE/"
+rm -rf "$EXTENSIONS_DIR/g-os@greg.local" "$EXTENSIONS_DIR/xdock@github.com"
+mv "$GOS_STAGE" "$EXTENSIONS_DIR/g-os@greg.local"
+mv "$XDOCK_STAGE" "$EXTENSIONS_DIR/xdock@github.com"
+
 echo "Starting an isolated GNOME Shell 51 DevKit session."
 echo "Private GNOME profile: $DEV_HOME"
 echo "Your regular GNOME session and extension profile are not modified."
