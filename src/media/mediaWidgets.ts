@@ -152,6 +152,7 @@ export function withMediaWidgets(Base) {
                     orientation: Clutter.Orientation.HORIZONTAL, x_expand: true});
                 const coverButton = new St.Button({child: cover, can_focus: true, track_hover: true,
                     accessible_name: 'Ouvrir le lecteur', style_class: 'g-os-media-cover'});
+                DockItem.for(coverButton, screen).setIdentity('media:cover', 'media-control');
                 coverButton.connect('clicked', () => this._mediaAction('raise'));
                 this._attachTooltip(screen, coverButton, 'Ouvrir le lecteur', {magnify: false, scroll: false});
                 header.add_child(coverButton);
@@ -180,6 +181,7 @@ export function withMediaWidgets(Base) {
                         accessible_name: name, track_hover: true, width: compact ? 18 : 20,
                         height: compact ? Math.min(iconSize - 4, 24) : 28,
                         child: new St.Icon({icon_name: icon, icon_size: compact ? 12 : 16})});
+                    DockItem.for(button, screen).setIdentity(`media:${action}`, 'media-control');
                     button.connect('clicked', () => action === 'cycle'
                         ? this._cycleMediaPlayer() : this._mediaAction(action));
                     if (screen)
