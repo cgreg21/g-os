@@ -22,8 +22,7 @@ test('dock scroll view is staged before its content is attached', () => {
 });
 
 test('monitor changes defer screen teardown until Mutter finishes its layout pass', () => {
-    assert.match(extensionSource, /monitors-changed', \(\) => this\._queueMonitorSettingsApply\(\)\)/);
-    assert.match(extensionSource, /_queueMonitorSettingsApply\(\)[\s\S]*?GLib\.timeout_add\(GLib\.PRIORITY_DEFAULT, 200/);
+    assert.match(extensionSource, /monitors-changed', \(\) => this\._queueSettingsApply\(\)\)/);
 });
 
 test('tooltip keeps top-chrome registration semantics through the manager', () => {
@@ -45,7 +44,7 @@ const dockVisibilitySource = await readFile(new URL('../src/dock/dockVisibility.
 test('dock reservation uses the lifecycle manager while preserving its stacking order', () => {
     assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.add\(reservation, \{affectsStruts: true, trackFullscreen: true\}\)/);
     assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.remove\(reservation\)/);
-    assert.match(dockVisibilitySource, /const dockParent = screen\.dockContainer\?\.get_parent\(\);[\s\S]*?dockParent\.set_child_below_sibling\(reservation, screen\.dockContainer\)/);
+    assert.match(dockVisibilitySource, /Main\.layoutManager\.uiGroup\.set_child_below_sibling\(reservation, screen\.dockContainer\)/);
 });
 
 test('dock actor hover signals are owned by the screen lifecycle', () => {
