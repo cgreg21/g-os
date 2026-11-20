@@ -430,9 +430,9 @@ async function prepareNativeEnvironment(outputDirectory) {
     const runtimeHome = join(tempRoot, 'runtime');
     const extensionDirectory = join(dataHome, 'gnome-shell', 'extensions', extensionId);
     const applicationsDirectory = join(dataHome, 'applications');
+    await mkdir(applicationsDirectory, {recursive: true});
     await Promise.all([
         mkdir(configHome, {recursive: true}),
-        mkdir(applicationsDirectory, {recursive: true}),
         mkdir(cacheHome, {recursive: true}),
         mkdir(runtimeHome, {recursive: true, mode: 0o700}),
         mkdir(dirname(extensionDirectory), {recursive: true}),
