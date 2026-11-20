@@ -22,7 +22,8 @@ test('dock scroll view is staged before its content is attached', () => {
 });
 
 test('monitor changes defer screen teardown until Mutter finishes its layout pass', () => {
-    assert.match(extensionSource, /monitors-changed', \(\) => this\._queueSettingsApply\(\)\)/);
+    assert.match(extensionSource, /monitors-changed', \(\) => this\._queueMonitorSettingsApply\(\)\)/);
+    assert.match(extensionSource, /_queueMonitorSettingsApply\(\)[\s\S]*?GLib\.timeout_add\(GLib\.PRIORITY_DEFAULT, 200/);
 });
 
 test('tooltip keeps top-chrome registration semantics through the manager', () => {
