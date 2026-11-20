@@ -105,6 +105,15 @@ export class WidgetRuntime {
         if (this.host._settings.is_writable('widget-errors'))
             this.host._settings.set_string('widget-errors', '{}');
         const {entries, errors} = this.catalog(this.host.dir);
+        const pendingImports = entries.filter(({description, builtin}) =>
+            description.language !== 'simple' && description.language !== 'flux' &&
+            !(builtin && this.builtins[description.id])).length;
+        let completedImports = 0;
+        const completeImport = () => {
+            completedImports++;
+            if (completedImports === pendingImports && generation === this.generation && this.host._settings)
+                this.host._queueSettingsApply('widget-catalog');
+        };
         const liveStyles = new Set(entries.filter(entry => entry.directory && entry.description.css)
             .map(entry => entry.directory.resolve_relative_path(entry.description.css).get_uri()));
         if (this.styles.size > 0) {
@@ -164,10 +173,12 @@ export class WidgetRuntime {
                         throw new Error('widget.js doit exporter create(context)');
                     this.registry.entries.get(description.id).create = module.create;
                     delete this.errors[description.id];
-                    this.host._applySettings();
+                    completeImport();
                 }).catch(error => {
-                    if (generation === this.generation && this.host._settings)
+                    if (generation === this.generation && this.host._settings) {
                         this.report(description.id, error);
+                        completeImport();
+                    }
                 });
             }
         }
