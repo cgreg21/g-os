@@ -346,11 +346,11 @@ async function checkLargeMagnification() {
         const inside = position === 0
             ? [buttonX + buttonWidth / 2, backgroundY + backgroundHeight / 2]
             : [backgroundX + backgroundWidth / 2, buttonY + buttonHeight / 2];
-        const outside = position === 0 ? [inside[0], backgroundY - 2] :
-            position === 1 ? [backgroundX + backgroundWidth + 2, inside[1]] : [backgroundX - 2, inside[1]];
-        screen.magnificationPoint = outside;
-        screen.dockContainer.hover = true;
-        extension._updateDockMagnification(screen, outside, false, true);
+        // Magnification intentionally follows the pointer across the entire Dock,
+        // not only over its background. Reset it by leaving the Dock itself.
+        screen.magnificationPoint = null;
+        screen.dockContainer.hover = false;
+        extension._updateDockMagnification(screen, null, false, false);
         await waitUntil(() => Math.abs(button.scale_x - 1) <= 0.02,
             `normal scale outside magnification background at position ${position}`);
         if (Math.abs(button.scale_x - 1) > 0.02)
