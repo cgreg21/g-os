@@ -6,7 +6,6 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {readAppFolders, writeAppFolders} from '../shared/appFolders.js';
 import {resolveReorderInsertionIndex} from '../shared/geometry/insertion.js';
 import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
-import {DockItem} from './dockItem.js';
 
 export function withDockOrder(Base) {
     return class extends Base {
@@ -38,7 +37,6 @@ export function withDockOrder(Base) {
                         button._delegate = {getDragActorSource: () => icon};
                     }
                 }
-                DockItem.for(button, screen).setDragSource(button._delegate);
                 this._attachDockReorder(screen, button,
                     () => screen.dock.get_children().filter(candidate => candidate.dockFocusKey),
                     targetIndex => this._commitDockOrder(screen, button, targetIndex));
