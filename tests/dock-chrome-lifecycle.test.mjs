@@ -87,7 +87,7 @@ test('dock reparenting resynchronizes hover animations after restoring the actor
 });
 
 test('dock appearance settings synchronize radius, background, border and shadow classes', () => {
-    assert.ok(dockAppearanceSource.includes("g-os-dock-radius-${this._settings.get_int('dock-border-radius')}`));
+    assert.ok(dockAppearanceSource.includes("g-os-dock-radius-${this._settings.get_int('dock-border-radius')}"));
     assert.match(dockAppearanceSource, /g-os-dock-background-subtle/);
     assert.match(dockAppearanceSource, /g-os-dock-background-opaque/);
     assert.match(dockAppearanceSource, /g-os-dock-background-transparent/);
