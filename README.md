@@ -422,4 +422,4 @@ npm run build
 npm run build:deploy
 ```
 
-Le déploiement installe G-Os et le compagnon XDock dans deux répertoires d’extensions GNOME distincts. G-Os demande ensuite au gestionnaire d’extensions GNOME d’activer XDock lorsque le Dock est activé dans ses préférences.
+Le déploiement installe G-Os et le compagnon XDock dans deux répertoires d’extensions GNOME distincts. G-Os demande ensuite au gestionnaire d’extensions GNOME d’activer XDock lorsque le Dock est activé dans ses préférences. Après une première installation dans une session déjà ouverte, une reconnexion GNOME est nécessaire pour que Shell découvre le nouvel UUID du compagnon.
