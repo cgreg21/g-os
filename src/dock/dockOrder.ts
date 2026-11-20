@@ -78,7 +78,7 @@ export function withDockOrder(Base) {
                         this._deferDockDrop(screen, () => this._groupDockApplications(sourceId, targetId, folderId, screen));
                     return true;
                 },
-            }, screen.lifecycle);
+            });
         }
 
         _deferDockDrop(screen, callback, surviveScreenDisposal = false) {
