@@ -5,6 +5,7 @@ import {errorMessage} from '../shared/errorMessage.js';
 import {createSimpleWidget} from './simpleWidget.js';
 import {FluxSession, createFluxWidget} from './fluxWidget.js';
 import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
+import {DockItem} from '../dock/dockItem.js';
 import {DelegateManager} from '../shared/interaction/delegateManager.js';
 
 function widgetColor(value, strength = 1) {
@@ -840,7 +841,8 @@ export class WidgetRuntime {
             const description = this.registry.entries.get(instance.widget)?.description;
             actor.widgetConfig = description ? widgetConfiguration(description, instance.config) : {};
             actor.dockWidgetType = instance.widget;
-            actor.dockFocusKey = instance.legacy ? `widget:${instance.widget}` : `widget-instance:${instance.id}`;
+            DockItem.for(actor, screen).setIdentity(
+                instance.legacy ? `widget:${instance.widget}` : `widget-instance:${instance.id}`, 'widget');
             if (actor.dockWidgetPrimary)
                 this.host._updateDockWidget(actor);
         }
