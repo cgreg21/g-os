@@ -712,7 +712,7 @@ export default class GOsExtension extends ExtensionComponents {
                     topChromeActor = screen.tooltip;
                     screen.lifecycle.chrome?.add(screen.tooltip);
                     screen.dock = new St.BoxLayout({
-                        style_class: 'dash-background g-os-dock',
+                        style_class: 'dash-background',
                         clip_to_view: false,
                         style: `padding-top: ${this._settings.get_int('dock-padding-top')}px; ` +
                             `padding-bottom: ${this._settings.get_int('dock-padding-bottom')}px; ` +
@@ -722,7 +722,6 @@ export default class GOsExtension extends ExtensionComponents {
                         reactive: false,
                         orientation: position === 0 ? Clutter.Orientation.HORIZONTAL : Clutter.Orientation.VERTICAL,
                     });
-                    screen.dock.add_style_class_name(this._dockRadiusClass());
                     if (position !== 0)
                         screen.dock.add_style_class_name('g-os-dock-vertical');
                     let dockContent = screen.dock;
