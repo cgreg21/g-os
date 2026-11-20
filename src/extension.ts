@@ -568,7 +568,8 @@ export default class GOsExtension extends ExtensionComponents {
                 this._xdockSettings.set_boolean('apply-custom-theme', false);
                 this._xdockSettings.set_boolean('custom-background-color', false);
             } catch (error) {
-                logError(error, 'G-Os: could not synchronize XDock settings');
+                logError(error instanceof Error ? error : new Error(String(error)),
+                    'G-Os: could not synchronize XDock settings');
             }
         }
 
@@ -633,7 +634,8 @@ export default class GOsExtension extends ExtensionComponents {
                             Main.notifyError('XDock indisponible',
                                 'Le compagnon XDock n’est pas installé ou n’a pas pu démarrer. Le Dock G-Os classique est réactivé.');
                         }
-                        logError(error, `G-Os: ${enabled ? 'enable' : 'disable'} XDock failed`);
+                        logError(error instanceof Error ? error : new Error(String(error)),
+                            `G-Os: ${enabled ? 'enable' : 'disable'} XDock failed`);
                     }
                 });
         }
