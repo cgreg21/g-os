@@ -17,8 +17,9 @@ if (("${#missing[@]}" > 0)); then
     exit 1
 fi
 
-if [[ ! -f "$ROOT/vendor/xdock/metadata.json" ]]; then
-    git submodule update --init --recursive
+if [[ ! -f "$ROOT/src/dock/dashToDock/metadata.json" ]]; then
+    echo "Dash to Dock sources are missing from src/dock/dashToDock/." >&2
+    exit 1
 fi
 
 NODE_MAJOR="$(node -p 'Number(process.versions.node.split(".")[0])')"
