@@ -112,8 +112,8 @@ export class DockItem {
         return registerShadowDragSource({
             ...options,
             controller: this.screen.interactionDnd,
-            actor: options.actor ?? this.actor,
-            lifecycle: options.lifecycle ?? this.screen.lifecycle,
+            actor: this.actor,
+            lifecycle: this.screen.lifecycle,
         });
     }
 
