@@ -9,7 +9,7 @@ mkdirSync('dist/schemas', {recursive: true});
 for (const file of ['metadata.json', 'stylesheet.css', 'config.json'])
     cpSync(file, `dist/${file}`);
 cpSync('icons', 'dist/icons', {recursive: true});
-const dashToDockSource = 'vendor/dash-to-dock';
+const dashToDockSource = 'src/dock/dashToDock';
 const dashToDockTarget = 'dist/dash-to-dock@micxgx.gmail.com';
 rmSync(dashToDockTarget, {recursive: true, force: true});
 cpSync(dashToDockSource, dashToDockTarget, {recursive: true});
