@@ -14,7 +14,7 @@ const xdockTarget = 'dist/xdock@github.com';
 rmSync(xdockTarget, {recursive: true, force: true});
 cpSync(xdockSource, xdockTarget, {
     recursive: true,
-    filter: path => !/(^|\\/)(\\.git|\\.github|docs|test|po|lint|node_modules)(\\/|$)/.test(path) &&
+    filter: path => !/(^|\/)(\.git|\.github|docs|test|po|lint|node_modules)(\/|$)/.test(path) &&
         !path.endsWith('.map'),
 });
 cpSync('vendor/xdock/schemas/org.gnome.shell.extensions.xdock.gschema.xml',
