@@ -569,7 +569,8 @@ export default class GOsExtension extends ExtensionComponents {
                 null,
                 (connection, result) => {
                     try {
-                        const [success] = connection.call_finish(result).deep_unpack();
+                        const response = connection.call_finish(result).deep_unpack() as [boolean];
+                        const success = response[0];
                         if (generation !== this._xdockRequestGeneration)
                             return;
                         if (enabled) {
