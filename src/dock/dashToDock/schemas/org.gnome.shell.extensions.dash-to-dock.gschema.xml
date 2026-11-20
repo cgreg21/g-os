@@ -641,4 +641,40 @@
       <description>If an application provides a counter through the Unity API, then such value will be used. Otherwise the counter will be summed with the unread notification numbers (if enabled)</description>
     </key>
   </schema>
+
+    <key type="b" name="magnification-enabled">
+      <default>true</default>
+      <summary>Enable icon magnification</summary>
+      <description>Magnify dock icons as the pointer moves across the dock</description>
+    </key>
+    <key type="d" name="magnification-scale">
+      <range min="1.0" max="2.0"/>
+      <default>1.35</default>
+      <summary>Maximum icon magnification</summary>
+      <description>Maximum scale of the icon under the pointer</description>
+    </key>
+    <key type="d" name="magnification-lift">
+      <range min="0.0" max="24.0"/>
+      <default>6.0</default>
+      <summary>Icon lift</summary>
+      <description>Additional outward movement of magnified icons, in pixels</description>
+    </key>
+    <key type="i" name="magnification-duration">
+      <range min="60" max="600"/>
+      <default>180</default>
+      <summary>Magnification animation duration</summary>
+      <description>Duration of the magnification transition, in milliseconds</description>
+    </key>
+    <key type="i" name="magnification-reach">
+      <range min="1" max="3"/>
+      <default>2</default>
+      <summary>Magnification reach</summary>
+      <description>Number of neighboring icons affected by the pointer wave</description>
+    </key>
+    <key type="b" name="magnification-dynamic-spacing">
+      <default>true</default>
+      <summary>Dynamic icon spacing</summary>
+      <description>Move neighboring icons apart as the hovered icon grows</description>
+    </key>
+
 </schemalist>
