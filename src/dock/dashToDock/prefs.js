@@ -175,6 +175,118 @@ function setShortcut(settings) {
     }
 }
 
+
+function buildMagnificationPage(notebook, settings) {
+    const page = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 18,
+        margin_start: 24,
+        margin_end: 24,
+        margin_top: 24,
+        margin_bottom: 24,
+    });
+
+    const title = new Gtk.Label({
+        label: __('Icon magnification'),
+        xalign: 0,
+        halign: Gtk.Align.START,
+    });
+    title.add_css_class('title-2');
+    page.append(title);
+
+    const description = new Gtk.Label({
+        label: __('Configure the Flourish magnification effect integrated into Dash to Dock.'),
+        xalign: 0,
+        wrap: true,
+        halign: Gtk.Align.START,
+    });
+    description.add_css_class('dim-label');
+    page.append(description);
+
+    const enabledRow = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 12,
+    });
+    const enabledLabel = new Gtk.Label({
+        label: __('Enable magnification'),
+        xalign: 0,
+        hexpand: true,
+    });
+    const enabledSwitch = new Gtk.Switch({valign: Gtk.Align.CENTER});
+    settings.bind('magnification-enabled', enabledSwitch, 'active',
+        Gio.SettingsBindFlags.DEFAULT);
+    enabledRow.append(enabledLabel);
+    enabledRow.append(enabledSwitch);
+    page.append(enabledRow);
+
+    const addScale = (labelText, key, min, max, step, digits, format = value => value.toFixed(digits)) => {
+        const row = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 6,
+        });
+        const heading = new Gtk.Box({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            spacing: 12,
+        });
+        const label = new Gtk.Label({
+            label: labelText,
+            xalign: 0,
+            hexpand: true,
+        });
+        const valueLabel = new Gtk.Label({xalign: 1});
+        const scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, min, max, step);
+        scale.set_draw_value(false);
+        scale.set_hexpand(true);
+        scale.set_value(settings.get_value(key).unpack());
+        const update = () => {
+            const value = scale.get_value();
+            valueLabel.set_label(format(value));
+            settings.set_value(key, key === 'magnification-duration'
+                ? new GLib.Variant('i', Math.round(value))
+                : new GLib.Variant('d', value));
+        };
+        scale.connect('value-changed', update);
+        settings.connect(`changed::${key}`, () => {
+            const value = settings.get_value(key).unpack();
+            if (Math.abs(scale.get_value() - value) > 0.0001)
+                scale.set_value(value);
+        });
+        valueLabel.set_label(format(scale.get_value()));
+        heading.append(label);
+        heading.append(valueLabel);
+        row.append(heading);
+        row.append(scale);
+        page.append(row);
+    };
+
+    addScale(__('Maximum magnification'), 'magnification-scale', 1, 2, 0.01, 2,
+        value => `${value.toFixed(2)}×`);
+    addScale(__('Icon lift'), 'magnification-lift', 0, 24, 1, 0,
+        value => `${Math.round(value)} px`);
+    addScale(__('Animation duration'), 'magnification-duration', 60, 600, 10, 0,
+        value => `${Math.round(value)} ms`);
+    addScale(__('Neighbor reach'), 'magnification-reach', 1, 3, 1, 0,
+        value => Math.round(value).toString());
+
+    const spacingRow = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 12,
+    });
+    const spacingLabel = new Gtk.Label({
+        label: __('Dynamic spacing between icons'),
+        xalign: 0,
+        hexpand: true,
+    });
+    const spacingSwitch = new Gtk.Switch({valign: Gtk.Align.CENTER});
+    settings.bind('magnification-dynamic-spacing', spacingSwitch, 'active',
+        Gio.SettingsBindFlags.DEFAULT);
+    spacingRow.append(spacingLabel);
+    spacingRow.append(spacingSwitch);
+    page.append(spacingRow);
+
+    notebook.append_page(page, new Gtk.Label({label: __('Magnification')}));
+}
+
 const DockSettings = GObject.registerClass({
     Implements: [Gtk.BuilderScope],
 }, class DashToDockSettings extends GObject.Object {
@@ -194,6 +306,7 @@ const DockSettings = GObject.registerClass({
         this._builder.add_from_file(`${extensionPreferences.path}/Settings.ui`);
 
         const notebook = this._builder.get_object('settings_notebook');
+        buildMagnificationPage(notebook, this._settings);
         const group = new Adw.PreferencesGroup();
         group.add(notebook);
         this.page = new Adw.PreferencesPage();
