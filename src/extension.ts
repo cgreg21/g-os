@@ -534,7 +534,36 @@ export default class GOsExtension extends ExtensionComponents {
                 }
             }
 
+        _syncXDockSettings() {
+            if (!this._xdockSettings || !this._settings)
+                return;
+
+            const positions = [2, 3, 1]; // XDock enum: bottom, left, right
+            const position = this._settings.get_int('dock-position');
+            const autohide = this._settings.get_boolean('dock-autohide');
+            const intellihide = this._settings.get_boolean('dock-hide-when-covered');
+            const reserveSpace = this._settings.get_boolean('reserve-dock-space');
+
+            try {
+                this._xdockSettings.set_enum('dock-position', positions[position] ?? 2);
+                this._xdockSettings.set_boolean('multi-monitor', true);
+                this._xdockSettings.set_boolean('autohide', autohide);
+                this._xdockSettings.set_boolean('intellihide', intellihide);
+                this._xdockSettings.set_boolean('dock-fixed', reserveSpace && !autohide && !intellihide);
+                this._xdockSettings.set_int('dock-edge-margin', this._settings.get_int('dock-edge-margin'));
+                this._xdockSettings.set_double('hide-delay',
+                    this._settings.get_int('dock-hide-delay') / 1000);
+                this._xdockSettings.set_boolean('show-running', this._settings.get_boolean('show-running-apps'));
+                this._xdockSettings.set_boolean('show-favorites', true);
+                this._xdockSettings.set_boolean('apply-custom-theme', false);
+                this._xdockSettings.set_boolean('custom-background-color', false);
+            } catch (error) {
+                logError(error, 'G-Os: could not synchronize XDock settings');
+            }
+        }
+
         _syncXDock() {
+            this._syncXDockSettings();
             const shouldEnable = Boolean(this._settings?.get_boolean('show-dock') &&
                 GLib.getenv('WAYLAND_DISPLAY'));
             if (this._xdockStateInitialized && this._xdockRequested === shouldEnable)
@@ -768,6 +797,7 @@ export default class GOsExtension extends ExtensionComponents {
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
             this._settingsApplyKeys = null;
+            this._syncXDock();
             if (this._applyLiveSettings(keys))
                 return;
             this._normalizeDockAppFolders();
@@ -781,7 +811,6 @@ export default class GOsExtension extends ExtensionComponents {
             this._hideNativePanel();
             this._applyNotificationPosition?.();
 
-            this._syncXDock();
             this._destroyScreens();
             if (this._settings.get_boolean('global-menu-enabled') && this._settings.get_boolean('global-menu-dbus-enabled')) {
                 if (!this._menuRegistrar) {
