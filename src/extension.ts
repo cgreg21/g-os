@@ -46,6 +46,7 @@ import {create as createCalendarWidget} from './widgets/calendar/widget.js';
 import {create as createMediaWidget} from './widgets/media/widget.js';
 
 const laters = global.compositor.get_laters();
+const XDOCK_UUID = 'xdock@github.com';
 
 const ExtensionComponents: any = [withDockVisibility, withDockOrder, withMediaWidgets, withDockFolders,
     withDockAppearance, withPanel, withDesktopWidgets, withDesktopIcons, withDockMenus, withDockActivity]
@@ -369,6 +370,7 @@ export default class GOsExtension extends ExtensionComponents {
 
     disable() {
             this._stopDebugRuntimeMonitor();
+            this._requestXDock(false);
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
@@ -528,6 +530,99 @@ export default class GOsExtension extends ExtensionComponents {
                 }
             }
 
+        _syncXDock() {
+            const shouldEnable = Boolean(this._settings?.get_boolean('show-dock') &&
+                GLib.getenv('WAYLAND_DISPLAY'));
+            if (this._xdockRequested === shouldEnable)
+                return;
+
+            const wasRequested = this._xdockRequested || this._xdockManaged;
+            this._xdockRequested = shouldEnable;
+            if (!shouldEnable) {
+                this._setLegacyDockEnabled(true);
+                if (wasRequested)
+                    this._requestXDock(false);
+                return;
+            }
+
+            // Keep the legacy dock hidden while the companion extension starts.
+            this._setLegacyDockEnabled(false);
+            this._requestXDock(true);
+        }
+
+        _requestXDock(enabled) {
+            const generation = ++this._xdockRequestGeneration;
+            if (!enabled)
+                this._xdockManaged = false;
+
+            Gio.DBus.session.call(
+                'org.gnome.Shell',
+                '/org/gnome/Shell/Extensions',
+                'org.gnome.Shell.Extensions',
+                enabled ? 'EnableExtension' : 'DisableExtension',
+                new GLib.Variant('(s)', [XDOCK_UUID]),
+                new GLib.VariantType('(s)'),
+                Gio.DBusCallFlags.NONE,
+                10000,
+                null,
+                (connection, result) => {
+                    try {
+                        const [status] = connection.call_finish(result).deep_unpack();
+                        if (generation !== this._xdockRequestGeneration)
+                            return;
+                        if (enabled) {
+                            if (status !== 'enabled' && status !== 'already-enabled')
+                                throw new Error(`Extension Manager returned: ${status}`);
+                            this._xdockManaged = true;
+                            this._setLegacyDockEnabled(false);
+                        }
+                    } catch (error) {
+                        if (generation !== this._xdockRequestGeneration)
+                            return;
+                        if (enabled) {
+                            this._xdockManaged = false;
+                            this._xdockRequested = false;
+                            this._setLegacyDockEnabled(true);
+                            Main.notifyError('XDock indisponible',
+                                'Le compagnon XDock n’est pas installé ou n’a pas pu démarrer. Le Dock G-Os classique est réactivé.');
+                        }
+                        logError(error, `G-Os: ${enabled ? 'enable' : 'disable'} XDock failed`);
+                    }
+                });
+        }
+
+        _setLegacyDockEnabled(enabled) {
+            for (const screen of this._screens ?? []) {
+                screen.legacyDockDisabled = !enabled;
+                const dock = screen.dockContainer;
+                if (!dock)
+                    continue;
+                if (!enabled) {
+                    this._cancelDockHide(screen);
+                    dock.reactive = false;
+                    dock.track_hover = false;
+                    dock.opacity = 0;
+                    dock.hide();
+                    screen.tooltip?.hide();
+                    screen.edge?.hide();
+                    screen.dockReservation?.hide();
+                    screen.magnificationBackground?.hide();
+                    continue;
+                }
+
+                dock.show();
+                dock.opacity = 255;
+                dock.reactive = true;
+                dock.track_hover = true;
+                screen.edge?.show();
+                screen.dockReservation?.show();
+                if (this._settings?.get_boolean('dock-autohide'))
+                    this._hideDock(screen, true);
+                else
+                    this._revealDock(screen);
+            }
+        }
+
         _queueSettingsApply(key = null) {
             if (!this._settings)
                 return;
@@ -676,6 +771,7 @@ export default class GOsExtension extends ExtensionComponents {
             this._hideNativePanel();
             this._applyNotificationPosition?.();
 
+            this._syncXDock();
             this._destroyScreens();
             if (this._settings.get_boolean('global-menu-enabled') && this._settings.get_boolean('global-menu-dbus-enabled')) {
                 if (!this._menuRegistrar) {
@@ -697,6 +793,7 @@ export default class GOsExtension extends ExtensionComponents {
                 const screen: ExtensionScreen = {monitor, position, dockDocked: false,
                     dockViewport: null as St.Viewport | null,
                     popupSide: [St.Side.TOP, St.Side.LEFT, St.Side.RIGHT][position],
+                    legacyDockDisabled: this._xdockRequested,
                     hoverAnimationUpdates: new Set(),
                     lifecycle: new LifecycleScope(undefined, chrome),
                     dockAdjustmentCleanup: new CleanupManager(),
@@ -746,6 +843,12 @@ export default class GOsExtension extends ExtensionComponents {
                     });
                     screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
                     screen.dockContainer.set_child(dockContent);
+                    if (screen.legacyDockDisabled) {
+                        screen.dockContainer.hide();
+                        screen.dockContainer.opacity = 0;
+                        screen.dockContainer.reactive = false;
+                        screen.dockContainer.track_hover = false;
+                    }
                     screen.lifecycle.addSignal(screen.dockContainer,
                         screen.dockContainer.connect('notify::hover', () => {
                             for (const update of screen.hoverAnimationUpdates)
@@ -769,6 +872,8 @@ export default class GOsExtension extends ExtensionComponents {
                         this._settings.get_boolean('dock-hide-when-covered')) {
                         screen.edge = new St.Widget({reactive: true, track_hover: true, width: 10, height: 10});
                         screen.lifecycle.chrome?.add(screen.edge, {trackFullscreen: true});
+                        if (screen.legacyDockDisabled)
+                            screen.edge.hide();
                         screen.lifecycle.addSignal(screen.edge,
                             screen.edge.connect('notify::hover', () => {
                                 if (screen.edge.hover) {
@@ -788,6 +893,10 @@ export default class GOsExtension extends ExtensionComponents {
                             }));
                         if (this._settings.get_boolean('dock-autohide'))
                             this._hideDock(screen);
+                    }
+                    if (screen.legacyDockDisabled) {
+                        screen.dockReservation?.hide();
+                        screen.tooltip.hide();
                     }
                     Main.ctrlAltTabManager.addGroup(screen.dockContainer,
                         `Dock - écran ${monitor.index + 1}`, 'shell-focus-dash-symbolic', {
