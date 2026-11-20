@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
 DEV_HOME="${G_OS_DEV_HOME:-$HOME/.local/share/g-os-dev}"
 
 bash "$ROOT/scripts/dev-check.sh"
