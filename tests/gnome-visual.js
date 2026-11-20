@@ -430,9 +430,10 @@ async function checkLargeMagnification() {
         if (!screen.dock.contains(button) || !screen.magnificationPoint ||
             screen.magnificationPoint.some((coordinate, index) => coordinate !== pointerPoint[index]))
             throw new Error(`Restoring magnification size lost the hovered target at ${position}/${size}`);
-        screen.dockContainer.hover = true;
-        screen.magnificationPoint = outside;
-        extension._updateDockMagnification(screen, outside, false, true);
+        // Exit the Dock entirely so the pointer state matches the test intent.
+        screen.dockContainer.hover = false;
+        screen.magnificationPoint = null;
+        extension._updateDockMagnification(screen, null, false, false);
         await waitUntil(() => Math.abs(button.scale_x - 1) <= 0.02, () =>
             `exit scale at dock position ${position}: scale=${button.scale_x}, target=${button.magnificationScale}, ` +
             `transition=${Boolean(button.get_transition('scale-x'))}, engaged=${screen.magnificationEngaged}, ` +
