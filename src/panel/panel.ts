@@ -937,19 +937,19 @@ export function withPanel(Base) {
             });
             placeholder.set_size(width, height);
             placeholder.y_expand = true;
-            screen.panelDragState = {id, actor, parent, index, placeholder};
+            screen.panelDragState = {id, actor, parent, index, placeholder, visible: actor.visible};
             try {
                 parent.insert_child_at_index(placeholder, index);
-                // Shell callbacks can change the source parent while a drag starts.
-                // Never remove an actor from a parent it no longer belongs to.
-                if (getActorParent(actor) === parent)
-                    parent.remove_child(actor);
+                // Keep the source in the stage while dragging. A detached StButton
+                // can still be measured by Mutter during a frame relayout.
+                actor.hide();
             } catch (error) {
                 screen.panelDragState = null;
                 const currentParent = getActorParent(placeholder);
                 if (currentParent)
                     currentParent.remove_child(placeholder);
                 placeholder.destroy();
+                actor.visible = screen.panelDragState?.visible ?? true;
                 throw error;
             }
         }
@@ -964,7 +964,7 @@ export function withPanel(Base) {
             const placeholderParent = getActorParent(state.placeholder);
             if (placeholderParent)
                 placeholderParent.remove_child(state.placeholder);
-            if (!success && !getActorParent(state.actor)) {
+            if (!getActorParent(state.actor)) {
                 try {
                     const parentChildren = state.parent.get_children();
                     state.parent.insert_child_at_index(state.actor,
@@ -973,6 +973,7 @@ export function withPanel(Base) {
                     // The original parent may have been disposed with its panel.
                 }
             }
+            state.actor.visible = state.visible;
             state.placeholder.destroy();
         }
 
