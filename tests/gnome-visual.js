@@ -526,7 +526,15 @@ async function checkLargeMagnification() {
         screen.dockContainer.hover = true;
         screen.magnificationPoint = edgePoint;
         extension._updateDockMagnification(screen, edgePoint, false, true);
-        await waitUntil(() => edgeButton.scale_x > 1.01, `edge magnification at dock position ${position}`);
+        await waitUntil(() => edgeButton.scale_x > 1.01, () =>
+            `edge magnification at dock position ${position}: scale=${edgeButton.scale_x}, ` +
+            `target=${edgeButton.magnificationScale}, engaged=${screen.magnificationEngaged}, ` +
+            `point=${screen.magnificationPoint}, edgePoint=${edgePoint}, ` +
+            `dockHovered=${screen.dockContainer.hover}, reorder=${screen.reorder}, ` +
+            `fullscreen=${screen.monitor.inFullscreen}, animations=${St.Settings.get().enable_animations}, ` +
+            `max=${settings.get_int('dock-magnify-max')}, radius=${settings.get_int('dock-magnify-icons')}, ` +
+            `dock=${screen.dockContainer.get_transformed_position()},${screen.dockContainer.get_transformed_size()}`);
+
         await Scripting.waitLeisure();
         for (const candidate of visibleDockButtons) {
             const candidateIcon = candidate.icon?.icon ?? candidate.get_child();
