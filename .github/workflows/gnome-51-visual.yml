@@ -21,18 +21,22 @@ jobs:
       CI: "true"
       G_DEBUG: fatal-criticals
       GJS_DEBUG_OUTPUT: stderr
-      GJS_DEBUG_TOPICS: "JS ERROR;JS LOG"
+      GJS_DEBUG_TOPICS: "JS ERROR;JS LOG;JS PROMISE"
+      G_ENABLE_DIAGNOSTIC: "1"
       NODE_OPTIONS: "--trace-warnings --trace-uncaught --unhandled-rejections=strict"
       MALLOC_CHECK_: "3"
+      MALLOC_PERTURB_: "165"
       G_SLICE: always-malloc
     steps:
       - name: Install GNOME Shell 51 and debugging tools
         run: |
-          dnf install -y dbus-daemon glib2 gnome-shell git gdb strace lsof procps-ng iproute jq util-linux nodejs npm sassc
+          dnf install -y dbus-daemon glib2 gnome-shell gjs git gdb strace lsof procps-ng iproute jq util-linux valgrind nodejs npm sassc
           gnome-shell --version
           gnome-shell --version | grep -E 'GNOME Shell 51([. ]|$)'
           gdb --version | head -n 1
           strace --version | head -n 1
+          gjs --version
+          valgrind --version | head -n 1
       - name: Start the system D-Bus required by GNOME Shell
         run: |
           mkdir -p /run/dbus
@@ -78,6 +82,14 @@ jobs:
           set -euo pipefail
           ulimit -c unlimited
           npm run test:ui -- --run all 2>&1 | tee .cache/ci-diagnostics/full-regression.log
+      - name: Audit GNOME logs and require every scenario report
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .cache/ci-diagnostics
+          npm run debug:gnome-logs -- "$XDG_CACHE_HOME/g-os-extension/test-runs" --require-all \
+            2>&1 | tee .cache/ci-diagnostics/gnome-log-audit.txt
       - name: Collect native crash backtraces
         if: failure()
         shell: bash
