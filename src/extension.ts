@@ -370,7 +370,8 @@ export default class GOsExtension extends ExtensionComponents {
 
     disable() {
             this._stopDebugRuntimeMonitor();
-            this._requestXDock(false);
+            if (this._xdockRequested || this._xdockManaged)
+                this._requestXDock(false);
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
@@ -599,6 +600,7 @@ export default class GOsExtension extends ExtensionComponents {
                     continue;
                 if (!enabled) {
                     this._cancelDockHide(screen);
+                    this._setDockReservationRegistered(screen, false);
                     dock.reactive = false;
                     dock.track_hover = false;
                     dock.opacity = 0;
@@ -616,6 +618,7 @@ export default class GOsExtension extends ExtensionComponents {
                 dock.track_hover = true;
                 screen.edge?.show();
                 screen.dockReservation?.show();
+                this._positionDock(false, screen);
                 if (this._settings?.get_boolean('dock-autohide'))
                     this._hideDock(screen, true);
                 else
