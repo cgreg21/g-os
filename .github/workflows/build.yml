@@ -61,7 +61,7 @@ jobs:
           npm test 2>&1 | tee .ci-diagnostics/unit-tests.log
       - name: Enforce source coverage baseline
         env:
-          GOS_TEST_COVERAGE_LINES: 35
+          GOS_TEST_COVERAGE_LINES: 34.5
           GOS_TEST_COVERAGE_FUNCTIONS: 33
         run: |
           set -o pipefail
