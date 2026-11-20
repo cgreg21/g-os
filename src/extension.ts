@@ -503,8 +503,7 @@ export default class GOsExtension extends ExtensionComponents {
                 if (!dash?.showAppsButton)
                     return;
                 this._overviewDash = dash;
-                const useXDock = Boolean(this._settings?.get_boolean('show-dock') &&
-                    GLib.getenv('WAYLAND_DISPLAY'));
+                const useXDock = this._shouldUseXDock();
                 if (!useXDock)
                     dash.hide();
                 const appDisplay = Main.overview._overview?.controls?.appDisplay;
@@ -538,6 +537,13 @@ export default class GOsExtension extends ExtensionComponents {
                     appDisplay._compareItems = this._overviewAppDisplayCompareItemsOverride;
                 }
             }
+
+        _shouldUseXDock() {
+            return Boolean(this._settings?.get_boolean('show-dock') &&
+                GLib.getenv('WAYLAND_DISPLAY') &&
+                !GLib.getenv('G_OS_FEATURE_TEST') &&
+                !GLib.getenv('G_OS_EXPLORATORY_TEST'));
+        }
 
         _syncXDockSettings() {
             if (!this._xdockSettings || !this._settings)
@@ -575,8 +581,7 @@ export default class GOsExtension extends ExtensionComponents {
 
         _syncXDock() {
             this._syncXDockSettings();
-            const shouldEnable = Boolean(this._settings?.get_boolean('show-dock') &&
-                GLib.getenv('WAYLAND_DISPLAY'));
+            const shouldEnable = this._shouldUseXDock();
             if (this._xdockStateInitialized && this._xdockRequested === shouldEnable)
                 return;
 
