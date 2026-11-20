@@ -17,9 +17,9 @@ test('G-Os only hides its legacy dock while the XDock handover is pending or act
     const extension = await readFile(new URL('../src/extension.ts', import.meta.url), 'utf8');
     const visibility = await readFile(new URL('../src/dock/dockVisibility.ts', import.meta.url), 'utf8');
 
-    assert.match(extension, /org\\.gnome\\.Shell\\.Extensions/);
+    assert.match(extension, /org\.gnome\.Shell\.Extensions/);
     assert.match(extension, /EnableExtension/);
-    assert.match(extension, /new GLib\\.VariantType\\('\(b\)'\)/);
+    assert.match(extension, /new GLib\.VariantType\\('\(b\)'\)/);
     assert.match(extension, /_setLegacyDockEnabled\(false\)/);
     assert.match(extension, /Le Dock G-Os classique est réactivé/);
     assert.match(visibility, /screen\.legacyDockDisabled/);
