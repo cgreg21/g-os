@@ -856,6 +856,7 @@ export default class GOsExtension extends ExtensionComponents {
                         hscrollbar_policy: position === 0 ? St.PolicyType.EXTERNAL : St.PolicyType.NEVER,
                         vscrollbar_policy: position === 0 ? St.PolicyType.NEVER : St.PolicyType.EXTERNAL,
                     });
+                    screen.dockContainer.set_name('g-os-dock-scroll');
                     screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
                     screen.dockContainer.set_child(dockContent);
                     if (screen.legacyDockDisabled) {
