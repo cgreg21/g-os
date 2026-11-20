@@ -447,10 +447,13 @@ export function withDockAppearance(Base) {
             const [backgroundX, backgroundY] = background?.get_transformed_position() ?? [0, 0];
             const [backgroundWidth, backgroundHeight] = background?.get_transformed_size() ?? [0, 0];
             const hoveredButton = buttons.find(button => button.hover);
-            const onBackground = point && screen.dockContainer.hover && background?.visible !== false &&
-                point[0] >= backgroundX && point[0] < backgroundX + backgroundWidth &&
-                point[1] >= backgroundY && point[1] < backgroundY + backgroundHeight;
-            let coordinate = onBackground ? point[axis] :
+            // Keep the pointer coordinate active over the entire dock,
+            // not only over the background actor. Restricting magnification
+            // to the background makes the effect drop out while crossing an
+            // icon, then re-engage in the gap between two icons.
+            const pointerInsideDock = point && screen.dockContainer.hover &&
+                screen.dockContainer.visible !== false;
+            let coordinate = pointerInsideDock ? point[axis] :
                 !screen.dockContainer.hover && hoveredButton
                 ? centers[buttons.indexOf(hoveredButton)] : null;
             // Filter pointer movement before deriving icon scales. This avoids
