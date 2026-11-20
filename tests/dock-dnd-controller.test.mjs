@@ -13,7 +13,7 @@ test('dock items own shared menu, tooltip and DND integration', () => {
     assert.ok(dockItemSource.includes('registerDragSource('));
     assert.ok(dockItemSource.includes('registerDropTarget('));
     assert.ok(dockItemSource.includes('registerShadowDragSource('));
-    assert.match(dockItemSource, /screen\\.lifecycle\\?\\.add\\(\\(\\) => this\\.dispose\\(\\)\\)/);
+    assert.ok(dockItemSource.includes('screen.lifecycle?.add(() => this.dispose())'));
 });
 
 test('each screen owns and destroys one shared interaction controller', () => {
