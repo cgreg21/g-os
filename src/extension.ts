@@ -551,6 +551,11 @@ export default class GOsExtension extends ExtensionComponents {
                 this._xdockSettings.set_boolean('intellihide', intellihide);
                 this._xdockSettings.set_boolean('dock-fixed', reserveSpace && !autohide && !intellihide);
                 this._xdockSettings.set_int('dock-edge-margin', this._settings.get_int('dock-edge-margin'));
+                this._xdockSettings.set_int('dash-max-icon-size',
+                    Math.max(16, Math.min(64, this._settings.get_int('icon-size') +
+                        this._settings.get_int('dock-icon-padding') * 2)));
+                this._xdockSettings.set_int('dock-margin-size', this._settings.get_int('dock-window-margin'));
+                this._xdockSettings.set_int('custom-border-radius', -1);
                 this._xdockSettings.set_double('hide-delay',
                     this._settings.get_int('dock-hide-delay') / 1000);
                 this._xdockSettings.set_boolean('show-running', this._settings.get_boolean('show-running-apps'));
