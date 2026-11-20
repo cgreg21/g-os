@@ -12,21 +12,65 @@ permissions:
 
 jobs:
   extension:
+    name: Build, static analysis and tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: npm
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.24.x"
+          cache: true
       - name: Install system tools
-        run: sudo apt-get update && sudo apt-get install -y libglib2.0-bin sassc shellcheck
-      - name: Validate development scripts
         run: |
-          bash -n scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/build-deploy.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
-          shellcheck scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/build-deploy.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
-      - run: npm ci
-      - run: npm run build
-      - name: Validate debugger source maps
-        run: node scripts/check-debug-artifacts.mjs
-      - run: npm test
+          sudo apt-get update
+          sudo apt-get install -y libglib2.0-bin sassc shellcheck
+      - name: Validate GitHub Actions workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color .github/workflows/*.yml
+      - name: Validate shell and JavaScript sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t shell_scripts < <(find scripts -type f -name '*.sh' -print | sort)
+          if (('${#shell_scripts[@]}' > 0)); then
+            bash -n "${shell_scripts[@]}"
+            shellcheck "${shell_scripts[@]}"
+          fi
+          find scripts tests -type f \\( -name '*.mjs' -o -name '*.js' \\) -print0 |
+            xargs -0 -r -n1 node --check
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+      - name: Build extension and schemas
+        run: npm run build
+      - name: Validate debugger artifacts and source maps
+        run: npm run debug:check
+      - name: Run unit and regression tests
+        run: |
+          mkdir -p .ci-diagnostics
+          set -o pipefail
+          npm test 2>&1 | tee .ci-diagnostics/unit-tests.log
+      - name: Enforce 100 percent source coverage
+        run: |
+          set -o pipefail
+          npm run test:coverage 2>&1 | tee .ci-diagnostics/coverage.log
+      - name: Upload build and test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-diagnostics-node-${{ matrix.node-version }}
+          path: |
+            .ci-diagnostics/**
+            dist/**/*.map
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14

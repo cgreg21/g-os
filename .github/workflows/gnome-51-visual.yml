@@ -1,4 +1,4 @@
-name: GNOME Shell 51 visual tests
+name: GNOME Shell 51 full regression tests
 
 on:
   push:
@@ -10,21 +10,29 @@ permissions:
   contents: read
 
 jobs:
-  panel-visual:
-    name: Panel menus and screenshots (GNOME 51)
+  gnome-51-regression:
+    name: Full GNOME Shell 51 regression suite
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     container:
       image: fedora:45
     env:
       XDG_CACHE_HOME: ${{ github.workspace }}/.cache
       CI: "true"
       G_DEBUG: fatal-criticals
+      GJS_DEBUG_OUTPUT: stderr
+      GJS_DEBUG_TOPICS: "JS ERROR;JS LOG"
+      NODE_OPTIONS: "--trace-warnings --trace-uncaught --unhandled-rejections=strict"
+      MALLOC_CHECK_: "3"
+      G_SLICE: always-malloc
     steps:
-      - name: Install GNOME Shell 51 runtime
+      - name: Install GNOME Shell 51 and debugging tools
         run: |
-          dnf install -y dbus-daemon glib2 gnome-shell git mutter-devkit nodejs npm sassc
+          dnf install -y dbus-daemon glib2 gnome-shell git gdb strace lsof procps-ng iproute jq util-linux nodejs npm sassc
           gnome-shell --version
           gnome-shell --version | grep -E 'GNOME Shell 51([. ]|$)'
+          gdb --version | head -n 1
+          strace --version | head -n 1
       - name: Start the system D-Bus required by GNOME Shell
         run: |
           mkdir -p /run/dbus
@@ -38,16 +46,63 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Install Node dependencies
+      - name: Install locked Node dependencies
         run: npm ci
-      - name: Run native panel tests and capture screenshots
-        run: npm run test:ui -- --run panel
-      - name: Upload GNOME screenshots, reports and logs
+      - name: Capture GNOME runtime and host diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .cache/ci-diagnostics
+          {
+            echo "=== Runtime ==="
+            date --utc --iso-8601=seconds
+            uname -a
+            cat /etc/fedora-release
+            gnome-shell --version
+            node --version
+            npm --version
+            glib-compile-schemas --version
+            echo "=== Memory and storage ==="
+            free -h
+            df -h
+            echo "=== Process limits ==="
+            ulimit -a
+            echo "=== Core dump configuration ==="
+            cat /proc/sys/kernel/core_pattern
+            echo "=== GNOME schemas ==="
+            gsettings list-schemas | sort
+          } > .cache/ci-diagnostics/runtime.txt 2>&1
+      - name: Run every unit and native GNOME scenario
+        shell: bash
+        run: |
+          set -euo pipefail
+          ulimit -c unlimited
+          npm run test:ui -- --run all 2>&1 | tee .cache/ci-diagnostics/full-regression.log
+      - name: Collect native crash backtraces
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p .cache/ci-diagnostics/backtraces
+          for directory in /var/lib/systemd/coredump /tmp "$GITHUB_WORKSPACE"; do
+            if [[ -d "$directory" ]]; then
+              while IFS= read -r -d '' core; do
+                name=$(basename "$core")
+                gdb --batch --quiet -ex "set pagination off" -ex "thread apply all bt full" \
+                  /usr/bin/gnome-shell "$core" \
+                  > ".cache/ci-diagnostics/backtraces/${name}.txt" 2>&1 || true
+              done < <(find "$directory" -maxdepth 5 -type f \\( -name 'core' -o -name 'core.*' \\) -print0 2>/dev/null)
+            fi
+          done
+          ps auxww > .cache/ci-diagnostics/processes.txt 2>&1 || true
+          ss -tulpn > .cache/ci-diagnostics/sockets.txt 2>&1 || true
+      - name: Upload full GNOME reports, screenshots and diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: gnome-51-panel-visual-results
-          path: .cache/g-os-extension/test-runs/**
+          name: gnome-51-full-regression-results
+          path: |
+            .cache/g-os-extension/test-runs/**
+            .cache/ci-diagnostics/**
           include-hidden-files: true
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: 30
