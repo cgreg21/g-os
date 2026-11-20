@@ -25,7 +25,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libglib2.0-bin shellcheck
       - name: Validate development scripts
         run: |
-          bash -n scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
+          bash -n scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/build-deploy.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
           shellcheck scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
       - run: npm ci
       - run: npm run build
