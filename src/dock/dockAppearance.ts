@@ -236,6 +236,7 @@ export function withDockAppearance(Base) {
             });
             screen.lifecycle.chrome?.add(screen.magnificationBackground, {trackFullscreen: true});
             Main.uiGroup.set_child_below_sibling(screen.magnificationBackground, screen.dockContainer);
+            this._syncDockAppearance(screen);
             const update = () => {
                 if (screen.disposed || screen.magnificationBackgroundSource)
                     return;
@@ -257,6 +258,27 @@ export function withDockAppearance(Base) {
         }
 
         _syncDockAppearance(screen) {
+            if (!screen.dock || !screen.magnificationBackground)
+                return;
+            const radiusClass = `g-os-dock-radius-${this._settings.get_int('dock-border-radius')}`;
+            const backgroundClasses = ['', 'g-os-dock-background-subtle', 'g-os-dock-background-opaque',
+                'g-os-dock-background-transparent'];
+            const backgroundClass = backgroundClasses[this._settings.get_int('dock-background-style')] ?? '';
+            for (const actor of [screen.dock, screen.magnificationBackground]) {
+                if (screen.dockRadiusClass)
+                    actor.remove_style_class_name(screen.dockRadiusClass);
+                actor.add_style_class_name(radiusClass);
+                if (screen.dockBackgroundStyleClass)
+                    actor.remove_style_class_name(screen.dockBackgroundStyleClass);
+                if (backgroundClass)
+                    actor.add_style_class_name(backgroundClass);
+            }
+            screen.dockRadiusClass = radiusClass;
+            screen.dockBackgroundStyleClass = backgroundClass;
+            screen.magnificationBackground[ this._settings.get_boolean('dock-show-border')
+                ? 'remove_style_class_name' : 'add_style_class_name']('g-os-dock-no-border');
+            screen.magnificationBackground[ this._settings.get_boolean('dock-show-shadow')
+                ? 'remove_style_class_name' : 'add_style_class_name']('g-os-dock-no-shadow');
             this._setDockInteraction(screen, screen.dockContainer.visible !== false &&
                 screen.dockContainer.opacity > 0);
         }

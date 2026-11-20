@@ -86,6 +86,16 @@ test('dock reparenting resynchronizes hover animations after restoring the actor
     assert.match(dockAppearanceSource, /if \(!button\.get_stage\(\)\)\s*return/);
 });
 
+test('dock appearance settings synchronize radius, background, border and shadow classes', () => {
+    assert.match(dockAppearanceSource, /g-os-dock-radius-\\$\\{this\\._settings\.get_int\('dock-border-radius'\)\\}/);
+    assert.match(dockAppearanceSource, /g-os-dock-background-subtle/);
+    assert.match(dockAppearanceSource, /g-os-dock-background-opaque/);
+    assert.match(dockAppearanceSource, /g-os-dock-background-transparent/);
+    assert.match(dockAppearanceSource, /g-os-dock-no-border/);
+    assert.match(dockAppearanceSource, /g-os-dock-no-shadow/);
+    assert.match(dockAppearanceSource, /this\._syncDockAppearance\(screen\)/);
+});
+
 test('dock magnification releases settings signals and pending work through the screen lifecycle', () => {
     assert.match(dockAppearanceSource, /screen\.lifecycle\.addSignal\(motion, signal\)/);
     assert.match(dockAppearanceSource, /screen\.lifecycle\.add\(\(\) => \{[\s\S]*?laters\.remove\(screen\.magnificationUpdateSource\)/);
