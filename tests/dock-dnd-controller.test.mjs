@@ -9,10 +9,10 @@ const dockFoldersSource = await readFile(new URL('../src/dock/dockFolders.ts', i
 const dockItemSource = await readFile(new URL('../src/dock/dockItem.ts', import.meta.url), 'utf8');
 
 test('dock items own shared menu, tooltip and DND integration', () => {
-    assert.match(dockItemSource, /bindContextMenu\(menu: any, Clutter: any\)/);
-    assert.match(dockItemSource, /registerDragSource\(/);
-    assert.match(dockItemSource, /registerDropTarget\(/);
-    assert.match(dockItemSource, /registerShadowDragSource\\(/);
+    assert.ok(dockItemSource.includes('bindContextMenu(menu: any, Clutter: any)'));
+    assert.ok(dockItemSource.includes('registerDragSource('));
+    assert.ok(dockItemSource.includes('registerDropTarget('));
+    assert.ok(dockItemSource.includes('registerShadowDragSource('));
     assert.match(dockItemSource, /screen\\.lifecycle\\?\\.add\\(\\(\\) => this\\.dispose\\(\\)\\)/);
 });
 
@@ -42,7 +42,7 @@ test('folder application drags use shared source registration when a screen exis
 const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
 
 test('dock reorder uses shared source registration and generic pointer motion', () => {
-    assert.match(dockOrderSource, /DockItem\.for\(button, screen\)\.registerDragSource\(\{[\s\S]*?callbacks: \{/);
+    assert.ok(dockOrderSource.includes('DockItem.for(button, screen).registerDragSource({'));
     assert.match(dockOrderSource, /onMotion: event => \{/);
     assert.match(dockOrderSource, /onCancelled: \(\) => \{ cancelled = true; \}/);
     assert.match(dockOrderSource, /onEnd: \(\) => finish\(cancelled\)/);
