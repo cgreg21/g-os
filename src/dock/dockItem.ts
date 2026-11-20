@@ -71,6 +71,18 @@ export class DockItem {
 
         this.boundMenus.add(menu);
 
+        const previousTooltipGate = this.actor.shouldShowTooltip;
+        const tooltipGate = () => this.actor.hover && !menu.isOpen;
+        this.actor.shouldShowTooltip = tooltipGate;
+        this.cleanup.add(() => {
+            if (this.actor.shouldShowTooltip !== tooltipGate)
+                return;
+            if (previousTooltipGate === undefined)
+                delete this.actor.shouldShowTooltip;
+            else
+                this.actor.shouldShowTooltip = previousTooltipGate;
+        });
+
         const click = new Clutter.ClickGesture({
             required_button: Clutter.BUTTON_SECONDARY,
             recognize_on_press: true,
