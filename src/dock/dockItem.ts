@@ -1,4 +1,3 @@
-import Clutter from 'gi://Clutter';
 import {CleanupManager} from '../core/cleanupManager.js';
 
 /**
@@ -66,7 +65,7 @@ export class DockItem {
      * Give every custom dock menu the same keyboard and pointer entry points.
      * Menu contents and open/close policy remain owned by the feature creating it.
      */
-    bindContextMenu(menu: any): this {
+    bindContextMenu(menu: any, Clutter: any): this {
         if (!menu || this.disposed || this.boundMenus.has(menu))
             return this;
 
