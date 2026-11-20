@@ -534,10 +534,11 @@ export default class GOsExtension extends ExtensionComponents {
         _syncXDock() {
             const shouldEnable = Boolean(this._settings?.get_boolean('show-dock') &&
                 GLib.getenv('WAYLAND_DISPLAY'));
-            if (this._xdockRequested === shouldEnable)
+            if (this._xdockStateInitialized && this._xdockRequested === shouldEnable)
                 return;
 
-            const wasRequested = this._xdockRequested || this._xdockManaged;
+            const wasRequested = this._xdockRequested || this._xdockManaged || !this._xdockStateInitialized;
+            this._xdockStateInitialized = true;
             this._xdockRequested = shouldEnable;
             if (!shouldEnable) {
                 this._setLegacyDockEnabled(true);
