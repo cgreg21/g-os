@@ -318,11 +318,25 @@ export function withDockAppearance(Base) {
                 return;
             if (!screen.magnificationConnected) {
                 screen.magnificationConnected = true;
-                screen.lifecycle.addSignal(screen.dockContainer,
-                    screen.dockContainer.connect('motion-event', (actor, event) => {
-                    const following = screen.magnificationPoint !== null;
-                    screen.magnificationPoint = event.get_coords();
-                    this._queueDockMagnification(screen, screen.magnificationPoint, false, following);
+                // A non-reactive ScrollView does not reliably receive motion events
+                // while pointer tracking is enabled. Observe stage motion instead so
+                // magnification continues across child buttons and gaps in the Dock.
+                screen.lifecycle.addSignal(global.stage,
+                    global.stage.connect('motion-event', (_stage, event) => {
+                    if (screen.disposed || screen.dockContainer.visible === false)
+                        return Clutter.EVENT_PROPAGATE;
+                    const [x, y] = event.get_coords();
+                    const [dockX, dockY] = screen.dockContainer.get_transformed_position();
+                    const [dockWidth, dockHeight] = screen.dockContainer.get_transformed_size();
+                    const insideDock = x >= dockX && x < dockX + dockWidth &&
+                        y >= dockY && y < dockY + dockHeight;
+                    if (insideDock) {
+                        const following = screen.magnificationPoint !== null;
+                        screen.magnificationPoint = [x, y];
+                        this._queueDockMagnification(screen, screen.magnificationPoint, false, following);
+                    } else if (screen.magnificationPoint !== null) {
+                        this._queueDockMagnification(screen, null, true);
+                    }
                     return Clutter.EVENT_PROPAGATE;
                 }));
                 // Reset only when the pointer actually leaves the dock actor.
