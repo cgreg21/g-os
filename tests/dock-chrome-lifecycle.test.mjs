@@ -44,7 +44,7 @@ const dockVisibilitySource = await readFile(new URL('../src/dock/dockVisibility.
 test('dock reservation uses the lifecycle manager while preserving its stacking order', () => {
     assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.add\(reservation, \{affectsStruts: true, trackFullscreen: true\}\)/);
     assert.match(dockVisibilitySource, /screen\.lifecycle\.chrome\?\.remove\(reservation\)/);
-    assert.match(dockVisibilitySource, /Main\.layoutManager\.uiGroup\.set_child_below_sibling\(reservation, screen\.dockContainer\)/);
+    assert.match(dockVisibilitySource, /const dockParent = screen\.dockContainer\?\.get_parent\(\);[\s\S]*?dockParent\.set_child_below_sibling\(reservation, screen\.dockContainer\)/);
 });
 
 test('dock actor hover signals are owned by the screen lifecycle', () => {
