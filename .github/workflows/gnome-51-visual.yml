@@ -20,6 +20,7 @@ jobs:
       CI: "true"
       G_DEBUG: fatal-criticals
       G_OS_GNOME_SHELL_GDB: "1"
+      G_OS_GNOME_SHELL_GDB: "1"
     steps:
       - name: Install GNOME Shell 51 runtime
         run: |
