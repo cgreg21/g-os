@@ -288,6 +288,7 @@ export function withPanel(Base) {
             if (menu._boxPointer?.bin) {
                 const scroll = new St.ScrollView({vscrollbar_policy: St.PolicyType.AUTOMATIC,
                     hscrollbar_policy: St.PolicyType.NEVER});
+                scroll.set_name('g-os-notification-scroll');
                 menu._boxPointer.bin.set_child(null);
                 menu._boxPointer.bin.set_child(scroll);
                 setChildWhenMapped(scroll, menu.box);
