@@ -68,7 +68,28 @@ echo "Changes are debounced, rebuilt and deployed into the isolated profile."
 echo "GNOME Shell restarts after a successful deployment to reload ES modules."
 echo "Press Ctrl+C to stop."
 
-WATCH_INCLUDE='(^|/)(src/.*|schemas/[^/]*\.gschema\.xml|config\.json|metadata\.json|stylesheet\.css|icons/.*|widgets/.*)$'
+WATCH_INCLUDE='(^|/)(src/.*|schemas/[^/]*\.gschema\.xml|config\.json|metadata\.json|stylesheet\.css|icons/.*|widgets/.*|vendor/xdock/.*)
+
+while true; do
+    inotifywait -q -r \
+        --include "$WATCH_INCLUDE" \
+        -e close_write,create,delete,move \
+        "$ROOT" >/dev/null
+
+    sleep 0.5
+    while inotifywait -q -t 0.2 -r \
+        --include "$WATCH_INCLUDE" \
+        -e close_write,create,delete,move \
+        "$ROOT" >/dev/null 2>&1; do
+        sleep 0.2
+    done
+
+    if install_extension; then
+        # GJS caches imported ES modules for the Shell process lifetime.
+        exit 75
+    fi
+done
+
 
 while true; do
     inotifywait -q -r \
