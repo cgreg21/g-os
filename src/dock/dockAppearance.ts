@@ -7,6 +7,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {DockWindowPreview} from './windowPreviews.js';
 import {calculateDockMagnificationGeometry} from '../shared/geometry/magnification.js';
+import {DockItem} from './dockItem.js';
 
 const laters = global.compositor.get_laters();
 
@@ -63,7 +64,7 @@ export function withDockAppearance(Base) {
                     Math.round(Math.max(monitor.x, Math.min(x, monitor.x + monitor.width - width))),
                     Math.round(Math.max(monitor.y, Math.min(y, monitor.y + monitor.height - height))));
             };
-            button.updateDockTooltip = update;
+            DockItem.for(button, screen).setTooltip(update);
             button.connect('notify::hover', () => update());
             button.connect('key-focus-in', () => update(scroll ? this._scrollDockButtonIntoView(screen, button) : null));
             button.connect('key-focus-out', () => update());
