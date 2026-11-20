@@ -9,9 +9,9 @@ const dockFoldersSource = await readFile(new URL('../src/dock/dockFolders.ts', i
 const dockItemSource = await readFile(new URL('../src/dock/dockItem.ts', import.meta.url), 'utf8');
 
 test('dock items own shared menu, tooltip and DND integration', () => {
-    assert.match(dockItemSource, /bindContextMenu\\(menu: any, Clutter: any\\)/);
-    assert.match(dockItemSource, /registerDragSource\\(/);
-    assert.match(dockItemSource, /registerDropTarget\\(/);
+    assert.match(dockItemSource, /bindContextMenu\(menu: any, Clutter: any\)/);
+    assert.match(dockItemSource, /registerDragSource\(/);
+    assert.match(dockItemSource, /registerDropTarget\(/);
     assert.match(dockItemSource, /registerShadowDragSource\\(/);
     assert.match(dockItemSource, /screen\\.lifecycle\\?\\.add\\(\\(\\) => this\\.dispose\\(\\)\\)/);
 });
@@ -22,7 +22,7 @@ test('each screen owns and destroys one shared interaction controller', () => {
 });
 
 test('application grouping targets are registered with the shared controller', () => {
-    assert.match(dockOrderSource, /screen\.interactionDnd\.registerTarget\(button,[\s\S]*?handleDragOver:[\s\S]*?acceptDrop:/);
+    assert.match(dockOrderSource, /DockItem\.for\(button, screen\)\.registerDropTarget\([\s\S]*?handleDragOver:[\s\S]*?acceptDrop:/);
     assert.doesNotMatch(dockOrderSource, /button\._delegate\.handleDragOver\s*=/);
     assert.doesNotMatch(dockOrderSource, /button\._delegate\.acceptDrop\s*=/);
 });
@@ -42,7 +42,7 @@ test('folder application drags use shared source registration when a screen exis
 const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
 
 test('dock reorder uses shared source registration and generic pointer motion', () => {
-    assert.match(dockOrderSource, /DockItem\\.for\\(button, screen\\)\\.registerDragSource\\(\\{[\\s\\S]*?callbacks: \\{/);
+    assert.match(dockOrderSource, /DockItem\.for\(button, screen\)\.registerDragSource\(\{[\s\S]*?callbacks: \{/);
     assert.match(dockOrderSource, /onMotion: event => \{/);
     assert.match(dockOrderSource, /onCancelled: \(\) => \{ cancelled = true; \}/);
     assert.match(dockOrderSource, /onEnd: \(\) => finish\(cancelled\)/);
