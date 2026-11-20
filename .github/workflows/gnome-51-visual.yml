@@ -90,7 +90,7 @@ jobs:
                 gdb --batch --quiet -ex "set pagination off" -ex "thread apply all bt full" \
                   /usr/bin/gnome-shell "$core" \
                   > ".cache/ci-diagnostics/backtraces/${name}.txt" 2>&1 || true
-              done < <(find "$directory" -maxdepth 5 -type f \\( -name 'core' -o -name 'core.*' \\) -print0 2>/dev/null)
+              done < <(find "$directory" -maxdepth 5 -type f \( -name 'core' -o -name 'core.*' \) -print0 2>/dev/null)
             fi
           done
           ps auxww > .cache/ci-diagnostics/processes.txt 2>&1 || true
