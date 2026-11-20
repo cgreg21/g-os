@@ -38,6 +38,7 @@ import {CoverflowController, createCoverflowSwitcher} from './switcher/coverflow
 import {withDesktopWidgets} from './desktop/desktopWidgets.js';
 import {withDesktopIcons} from './desktop/desktopIcons.js';
 import {withDockMenus} from './dock/dockMenus.js';
+import {DockItem} from './dock/dockItem.js';
 import {withDockActivity} from './dock/dockActivity.js';
 import {readWidgetCatalog} from './widgets/widgetCatalog.js';
 import {create as createClockWidget} from './widgets/clock/widget.js';
@@ -1205,7 +1206,7 @@ export default class GOsExtension extends ExtensionComponents {
                         popupMenuSide: screen.popupSide,
                     }) as AppDisplay.AppIcon & DockAppMetadata;
                     button.add_style_class_name('g-os-dock-item');
-                    button.dockFocusKey = `app:${app.get_id()}`;
+                    DockItem.for(button, screen).setIdentity(`app:${app.get_id()}`, 'application');
                     button.accessible_name = this._appDescription(app, screen);
                     if (app.state === Shell.AppState.STARTING)
                         button.add_style_pseudo_class('starting');
@@ -1341,7 +1342,7 @@ export default class GOsExtension extends ExtensionComponents {
             }) as St.Button & DockButtonMetadata;
             showApps.set_child(new St.Icon({gicon: this._launcherIcon('dock'), fallback_gicon: this._gnomeLogo, icon_size: iconSize}));
             showApps.set_style(`padding: ${iconPadding}px;`);
-            showApps.dockFocusKey = 'shortcut:applications';
+            DockItem.for(showApps, screen).setIdentity('shortcut:applications', 'launcher');
             showApps.connect('clicked', () => Main.overview.showApps());
             this._attachLaunchpadMenu(screen, showApps);
             this._attachTooltip(screen, showApps, 'Applications');
@@ -1782,7 +1783,7 @@ export default class GOsExtension extends ExtensionComponents {
                 accessible_name: type === 'media' ? 'Lecteur média' : type === 'clock' ? 'Horloge' : 'Date',
                 can_focus: true, reactive: true, track_hover: true}) as St.Button & DockButtonMetadata;
             button.set_size(horizontal ? length : thickness, horizontal ? thickness : length);
-            button.dockFocusKey = `widget:${type}`;
+            DockItem.for(button, screen).setIdentity(`widget:${type}`, 'widget');
             button.dockWidgetType = type;
             button.dockWidgetSquare = square;
             button.dockWidgetPrimary = primary;
@@ -1878,7 +1879,7 @@ export default class GOsExtension extends ExtensionComponents {
                 child: iconActor,
             }) as St.Button & DockButtonMetadata;
             button.set_style(`padding: ${this._settings.get_int('dock-icon-padding')}px;`);
-            button.dockFocusKey = `shortcut:${focusKey ?? (typeof icon === 'string' ? icon : name)}`;
+            DockItem.for(button, screen).setIdentity(`shortcut:${focusKey ?? (typeof icon === 'string' ? icon : name)}`, 'shortcut');
             this._attachTooltip(screen, button, name);
             button.connect('clicked', callback);
             screen.dock.add_child(button);
