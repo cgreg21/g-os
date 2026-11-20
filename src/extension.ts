@@ -114,6 +114,7 @@ export default class GOsExtension extends ExtensionComponents {
                 this._settings.set_int('dock-hover-animation', 1);
         this._screens = [];
         this._settingsApplySource = 0;
+        this._monitorSettingsApplySource = 0;
         this._desktopWidgets = new Map();
         this._widgetAreaSource = 0;
         this._mediaPlayers = new Map();
@@ -208,7 +209,7 @@ export default class GOsExtension extends ExtensionComponents {
             });
             // Monitor changes can arrive while Mutter is allocating chrome actors. Defer
             // screen teardown/recreation until the current layout pass has completed.
-            this._connect(Main.layoutManager, 'monitors-changed', () => this._queueSettingsApply());
+            this._connect(Main.layoutManager, 'monitors-changed', () => this._queueMonitorSettingsApply());
             this._connect(global.display, 'workareas-changed', () => {
                 if (this._widgetAreaSource)
                     return;
@@ -379,6 +380,9 @@ export default class GOsExtension extends ExtensionComponents {
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
+            if (this._monitorSettingsApplySource)
+                GLib.source_remove(this._monitorSettingsApplySource);
+            this._monitorSettingsApplySource = 0;
             this._settingsApplyKeys = null;
             this._destroyDesktopWidgetMenu();
             this._stopMediaTracking();
@@ -636,6 +640,16 @@ export default class GOsExtension extends ExtensionComponents {
                 else
                     this._revealDock(screen);
             }
+        }
+
+        _queueMonitorSettingsApply() {
+            if (this._monitorSettingsApplySource)
+                GLib.source_remove(this._monitorSettingsApplySource);
+            this._monitorSettingsApplySource = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+                this._monitorSettingsApplySource = 0;
+                this._queueSettingsApply();
+                return GLib.SOURCE_REMOVE;
+            });
         }
 
         _queueSettingsApply(key = null) {
