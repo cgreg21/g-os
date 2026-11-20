@@ -1393,7 +1393,13 @@ async function checkCurrentGlobalMenus() {
 
 async function checkFeatureScenario() {
     await waitForExtension();
-    Main.overview.hide();
+    // Avoid forcing a redundant Overview teardown when the headless session
+    // has already started on the desktop; detached StScrollView actors can
+    // otherwise be measured during the no-op hide transition.
+    if (Main.overview.visible) {
+        Main.overview.hide();
+        await waitUntil(() => !Main.overview.visible, 'closed Overview state');
+    }
     loadShellTheme();
     await Scripting.sleep(400);
     const feature = GLib.getenv('G_OS_FEATURE_TEST');
