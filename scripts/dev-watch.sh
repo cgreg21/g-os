@@ -32,7 +32,7 @@ install_extension() {
 
     echo "==> Staging compiled files in $EXTENSION_DIR..."
     mkdir -p "$EXTENSIONS_DIR"
-    rm -rf "$STAGING_DIR" "$XDOCK_STAGING_DIR"
+    rm -rf "${STAGING_DIR:?}" "${XDOCK_STAGING_DIR:?}"
     mkdir -p "$STAGING_DIR" "$XDOCK_STAGING_DIR"
     cp -a "$ROOT/dist/." "$STAGING_DIR/"
     rm -rf "${STAGING_DIR:?}/$XDOCK_UUID"
@@ -41,7 +41,7 @@ install_extension() {
     echo "==> Activating G-Os in the isolated Shell..."
     gnome-extensions disable "$UUID" >/dev/null 2>&1 || true
     gnome-extensions disable "$XDOCK_UUID" >/dev/null 2>&1 || true
-    rm -rf "$EXTENSION_DIR" "$XDOCK_DIR"
+    rm -rf "${EXTENSION_DIR:?}" "${XDOCK_DIR:?}"
     mv "$STAGING_DIR" "$EXTENSION_DIR"
     mv "$XDOCK_STAGING_DIR" "$XDOCK_DIR"
 
