@@ -99,7 +99,7 @@ export function withDockVisibility(Base) {
             const windows = global.get_window_actors().map(actor => actor.meta_window)
                 .filter(window => this._dockCoverageWindows.has(window));
             for (const screen of this._screens) {
-                if (!screen.dockContainer)
+                if (!screen.dockContainer || screen.legacyDockDisabled)
                     continue;
                 const docked = slideForMaximized && !screen.monitor.inFullscreen &&
                     windows.some(window => this._windowMaximizedOnScreen(screen, window));
@@ -139,6 +139,8 @@ export function withDockVisibility(Base) {
         }
 
         _dockHasFocus(screen) {
+            if (screen.legacyDockDisabled)
+                return false;
             const focus = global.stage.get_key_focus();
             return (screen.appButtons ?? []).some(button => button.windowPreview?.isOpen) ||
                 Boolean(focus && screen.dockContainer?.contains(focus));
@@ -185,7 +187,7 @@ export function withDockVisibility(Base) {
         }
 
         _revealDock(screen) {
-            if (screen.disposed || !screen.dockContainer || screen.monitor.inFullscreen)
+            if (screen.disposed || screen.legacyDockDisabled || !screen.dockContainer || screen.monitor.inFullscreen)
                 return;
             this._cancelDockHide(screen);
             const dock = screen.dockContainer;
@@ -256,6 +258,13 @@ export function withDockVisibility(Base) {
         }
 
         _hideDock(screen, immediate = false) {
+            if (screen.legacyDockDisabled) {
+                this._cancelDockHide(screen);
+                screen.dockContainer?.hide();
+                screen.tooltip?.hide();
+                screen.magnificationBackground?.hide();
+                return;
+            }
             for (const button of screen.appButtons ?? [])
                 button.windowPreview?.close();
             this._cancelDockHide(screen);
@@ -303,7 +312,7 @@ export function withDockVisibility(Base) {
         }
 
         _queueDockHide(screen) {
-            if (screen.disposed || !screen.edge || screen.hideSource)
+            if (screen.disposed || screen.legacyDockDisabled || !screen.edge || screen.hideSource)
                 return;
             screen.hideSource = GLib.timeout_add(GLib.PRIORITY_DEFAULT,
                 this._settings.get_int('dock-hide-delay'), () => {
