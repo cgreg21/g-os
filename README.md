@@ -409,7 +409,7 @@ GNOME 51 locale.
 
 ## Dock Wayland : compagnon XDock
 
-Sur Wayland, G-Os utilise temporairement **XDock**, un fork communautaire de Dash to Dock compatible GNOME Shell 49 à 51. Le code source est suivi dans `vendor/xdock` comme sous-module Git, séparé du code de G-Os et conservé sous sa licence GPL-2.0-or-later.
+Sur Wayland, G-Os utilise temporairement **XDock**, un fork communautaire de Dash to Dock compatible GNOME Shell 49 à 51. Le code source est suivi dans `vendor/xdock` comme sous-module Git, séparé du code de G-Os et conservé sous sa licence GPL-2.0.
 
 Le Dock G-Os historique reste dans le dépôt, mais il est masqué et libère sa réservation d’espace lorsque XDock est activé. Si le compagnon XDock est absent ou ne démarre pas, G-Os réactive automatiquement son Dock historique. Sous X11, le Dock historique reste utilisé, XDock annonçant une prise en charge Wayland uniquement.
 
