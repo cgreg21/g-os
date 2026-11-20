@@ -39,9 +39,12 @@ test('dock chrome actors are no longer removed manually during screen teardown',
     assert.match(teardown, /screen\.lifecycle\.destroy\(\{preserveChromeActor: screen\.panel\}\)/);
     const restoreNative = teardown.indexOf('this._restoreNativePanelItems?.(screen)');
     const destroyControls = teardown.indexOf('for (const child of screen.panel?.get_children() ?? [])');
+    const destroyDock = teardown.indexOf('screen.dock.destroy()');
+    const destroyViewport = teardown.indexOf('if (screen.dockViewport)');
     const releaseChrome = teardown.indexOf('screen.lifecycle.chrome?.destroy()');
     const destroyPanel = teardown.indexOf('screen.panel.destroy()', releaseChrome);
     assert.ok(restoreNative >= 0 && destroyControls > restoreNative);
+    assert.ok(destroyDock > destroyControls && destroyViewport > destroyDock);
     assert.ok(releaseChrome > destroyControls && destroyPanel > releaseChrome);
 });
 

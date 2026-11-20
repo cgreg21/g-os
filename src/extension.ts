@@ -1114,6 +1114,12 @@ export default class GOsExtension extends ExtensionComponents {
                     Main.panel.menuManager.removeMenu(button.statusMenu);
                     button.statusMenu.destroy();
                 }
+                // Dispose dock children while the JS runtime is active. Detaching the
+                // dock actor without destroying it leaves AppIcon destroy callbacks for GC.
+                if (screen.dock) {
+                    screen.dock.destroy();
+                    screen.dock = null;
+                }
                 if (screen.dockViewport) {
                     if (screen.dock && screen.dock.get_parent() === screen.dockViewport)
                         screen.dockViewport.remove_child(screen.dock);
