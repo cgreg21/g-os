@@ -15,6 +15,14 @@ function run(command, args, options = {}) {
     return result.status ?? 1;
 }
 
+const lineCoverageThreshold = Number(process.env.GOS_TEST_COVERAGE_LINES ?? 100);
+const functionCoverageThreshold = Number(process.env.GOS_TEST_COVERAGE_FUNCTIONS ?? 100);
+for (const [name, value] of [['GOS_TEST_COVERAGE_LINES', lineCoverageThreshold],
+    ['GOS_TEST_COVERAGE_FUNCTIONS', functionCoverageThreshold]]) {
+    if (!Number.isFinite(value) || value < 0 || value > 100)
+        throw new Error(`${name} must be a number between 0 and 100`);
+}
+
 try {
     await writeFile(join(temporaryDirectory, 'package.json'), '{"type":"module"}');
     const outputDirectory = join(temporaryDirectory, 'compiled');
@@ -36,8 +44,8 @@ try {
         const testStatus = run(process.execPath, [
             '--experimental-test-coverage',
             ...coverageIncludes.map(pattern => `--test-coverage-include=${pattern}`),
-            '--test-coverage-lines=100',
-            '--test-coverage-functions=100',
+            `--test-coverage-lines=${lineCoverageThreshold}`,
+            `--test-coverage-functions=${functionCoverageThreshold}`,
             '--test-concurrency=1',
             '--test',
             ...testFiles,

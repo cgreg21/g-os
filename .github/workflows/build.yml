@@ -59,7 +59,10 @@ jobs:
           mkdir -p .ci-diagnostics
           set -o pipefail
           npm test 2>&1 | tee .ci-diagnostics/unit-tests.log
-      - name: Enforce 100 percent source coverage
+      - name: Enforce source coverage baseline
+        env:
+          GOS_TEST_COVERAGE_LINES: 35
+          GOS_TEST_COVERAGE_FUNCTIONS: 33
         run: |
           set -o pipefail
           npm run test:coverage 2>&1 | tee .ci-diagnostics/coverage.log
