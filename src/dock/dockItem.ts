@@ -1,5 +1,6 @@
 import {CleanupManager} from '../core/cleanupManager.js';
-import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
+import {registerShadowDragSource, type ShadowDragSourceOptions} from '../shared/interaction/shadowDragSource.js';
+import type {DropTargetDelegate} from '../shared/interaction/dragAndDrop.js';
 
 /**
  * Shared interaction contract for dock items.
@@ -105,7 +106,7 @@ export class DockItem {
         return this;
     }
 
-    registerDragSource(options: any): () => void {
+    registerDragSource(options: Omit<ShadowDragSourceOptions, 'controller' | 'actor' | 'lifecycle'>): () => void {
         if (this.disposed || !this.screen.interactionDnd)
             return () => {};
         return registerShadowDragSource({
@@ -116,7 +117,7 @@ export class DockItem {
         });
     }
 
-    registerDropTarget(delegate: any): () => void {
+    registerDropTarget(delegate: DropTargetDelegate): () => void {
         if (this.disposed || !this.screen.interactionDnd)
             return () => {};
         return this.screen.interactionDnd.registerTarget(
