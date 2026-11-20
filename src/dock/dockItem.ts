@@ -1,4 +1,5 @@
 import {CleanupManager} from '../core/cleanupManager.js';
+import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
 
 /**
  * Shared interaction contract for dock items.
@@ -102,6 +103,17 @@ export class DockItem {
         this.cleanup.addSignal(this.actor, popupSignal);
 
         return this;
+    }
+
+    registerDragSource(options: any): () => void {
+        if (this.disposed || !this.screen.interactionDnd)
+            return () => {};
+        return registerShadowDragSource({
+            ...options,
+            controller: this.screen.interactionDnd,
+            actor: options.actor ?? this.actor,
+            lifecycle: options.lifecycle ?? this.screen.lifecycle,
+        });
     }
 
     get menu(): any {
