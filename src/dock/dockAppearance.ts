@@ -354,7 +354,6 @@ export function withDockAppearance(Base) {
                 screen.lifecycle.addSignal(screen.dockContainer,
                     screen.dockContainer.connect('leave-event', () => {
                     screen.magnificationPoint = null;
-                    screen.magnificationFilteredCoordinate = undefined;
                     this._queueDockMagnification(screen, null, true);
                     return Clutter.EVENT_PROPAGATE;
                 }));
@@ -460,17 +459,6 @@ export function withDockAppearance(Base) {
                 ? point[axis]
                 : !screen.dockContainer.hover && hoveredButton
                 ? centers[buttons.indexOf(hoveredButton)] : null;
-            // Filter pointer movement before deriving icon scales. This avoids
-            // restarting actor transitions for every raw motion event, which
-            // causes visible judder when crossing icon boundaries.
-            if (following && coordinate !== null) {
-                const previous = screen.magnificationFilteredCoordinate;
-                screen.magnificationFilteredCoordinate = previous === undefined
-                    ? coordinate : previous + (coordinate - previous) * 0.32;
-                coordinate = screen.magnificationFilteredCoordinate;
-            } else {
-                screen.magnificationFilteredCoordinate = coordinate;
-            }
             const motion = St.Settings.get();
             const reduced = 'ReducedMotion' in St &&
                 (motion.reduced_motion ?? motion.reducedMotion) === St.ReducedMotion.REDUCE;
@@ -504,11 +492,11 @@ export function withDockAppearance(Base) {
             screen.magnificationGrowth = geometry.growth;
             screen.magnificationStart = geometry.start;
             const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-            // While the pointer is moving, update once per redraw from the
-            // filtered coordinate above. Do not restart a timed ease on every
-            // motion event; reserve easing for entering and leaving the dock.
-            const duration = animated && !following
-                ? Math.max(70, Math.min(110, Math.round(
+            // Retarget from the currently rendered value on every pointer
+            // update. A short ease keeps motion continuous without adding the
+            // lag introduced by filtering pointer coordinates.
+            const duration = animated
+                ? following ? 90 : Math.max(70, Math.min(110, Math.round(
                     this._settings.get_int('dock-hover-duration') * 0.9)))
                 : 0;
             this._updateMagnificationBackground(screen, duration);
