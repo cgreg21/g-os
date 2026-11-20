@@ -22,11 +22,11 @@ fi
 
 echo "[build-deploy] Déploiement vers $TARGET_DIR"
 mkdir -p "$EXTENSIONS_DIR"
-rm -rf "$TARGET_DIR"
+rm -rf "${TARGET_DIR:?}"
 mkdir -p "$TARGET_DIR"
 cp -a "$ROOT_DIR/dist/." "$TARGET_DIR/"
-rm -rf "$TARGET_DIR/$XDOCK_ID"
-rm -rf "$XDOCK_TARGET_DIR"
+rm -rf "${TARGET_DIR:?}/$XDOCK_ID"
+rm -rf "${XDOCK_TARGET_DIR:?}"
 mkdir -p "$XDOCK_TARGET_DIR"
 cp -a "$ROOT_DIR/dist/$XDOCK_ID/." "$XDOCK_TARGET_DIR/"
 
