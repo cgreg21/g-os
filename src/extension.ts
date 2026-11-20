@@ -1176,6 +1176,8 @@ export default class GOsExtension extends ExtensionComponents {
                     const existingButton = existingAppButtons.get(app.get_id());
                     if (existingButton?.app === app) {
                         existingAppButtons.delete(app.get_id());
+                        DockItem.for(existingButton, screen).setIdentity(`app:${app.get_id()}`, 'application')
+                            .setContextMenu(existingButton._menu, '_menu');
                         existingButton.accessible_name = this._appDescription(app, screen);
                         existingButton.icon.setIconSize(iconSize);
                         existingButton.set_style(`padding: ${iconPadding}px;`);
@@ -1206,7 +1208,8 @@ export default class GOsExtension extends ExtensionComponents {
                         popupMenuSide: screen.popupSide,
                     }) as AppDisplay.AppIcon & DockAppMetadata;
                     button.add_style_class_name('g-os-dock-item');
-                    DockItem.for(button, screen).setIdentity(`app:${app.get_id()}`, 'application');
+                    DockItem.for(button, screen).setIdentity(`app:${app.get_id()}`, 'application')
+                        .setContextMenu(button._menu, '_menu');
                     button.accessible_name = this._appDescription(app, screen);
                     if (app.state === Shell.AppState.STARTING)
                         button.add_style_pseudo_class('starting');
