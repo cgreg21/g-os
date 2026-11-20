@@ -19,10 +19,11 @@ jobs:
       XDG_CACHE_HOME: ${{ github.workspace }}/.cache
       CI: "true"
       G_DEBUG: fatal-criticals
+      G_OS_GNOME_SHELL_GDB: "1"
     steps:
       - name: Install GNOME Shell 51 runtime
         run: |
-          dnf install -y dbus-daemon glib2 gnome-shell git mutter-devkit nodejs npm sassc
+          dnf install -y dbus-daemon glib2 gnome-shell gdb git mutter-devkit nodejs npm sassc
           gnome-shell --version
           gnome-shell --version | grep -E 'GNOME Shell 51([. ]|$)'
       - name: Start the system D-Bus required by GNOME Shell
