@@ -288,7 +288,6 @@ export function withPanel(Base) {
             if (menu._boxPointer?.bin) {
                 const scroll = new St.ScrollView({vscrollbar_policy: St.PolicyType.AUTOMATIC,
                     hscrollbar_policy: St.PolicyType.NEVER});
-                scroll.set_name('g-os-notification-scroll');
                 menu._boxPointer.bin.set_child(null);
                 menu._boxPointer.bin.set_child(scroll);
                 setChildWhenMapped(scroll, menu.box);
@@ -422,7 +421,6 @@ export function withPanel(Base) {
                 vscrollbar_policy: St.PolicyType.AUTOMATIC,
                 style_class: 'g-os-calendar-scroll',
             });
-            scroll.set_name('g-os-calendar-scroll');
             content.add_child(scroll);
             menu.box.add_child(content);
             setChildWhenMapped(scroll, screen.calendarEventList);
