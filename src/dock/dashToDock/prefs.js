@@ -241,7 +241,7 @@ function buildMagnificationPage(notebook, settings) {
         const update = () => {
             const value = scale.get_value();
             valueLabel.set_label(format(value));
-            settings.set_value(key, key === 'magnification-duration'
+            settings.set_value(key, key === 'magnification-duration' || key === 'magnification-reach'
                 ? new GLib.Variant('i', Math.round(value))
                 : new GLib.Variant('d', value));
         };
