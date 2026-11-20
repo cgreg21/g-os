@@ -35,7 +35,7 @@ export function withDockMenus(Base) {
                     this._queueDockHide(screen);
                 }
             });
-            DockItem.for(button, screen).setContextMenu(menu).bindContextMenu(menu);
+            DockItem.for(button, screen).setContextMenu(menu).bindContextMenu(menu, Clutter);
             button.connect('destroy', () => {
                 disposed = true;
                 onDestroy();
