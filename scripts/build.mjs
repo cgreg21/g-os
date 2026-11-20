@@ -28,6 +28,8 @@ cpSync('schemas', 'dist/schemas', {
     recursive: true,
     filter: path => !path.endsWith('gschemas.compiled'),
 });
+cpSync('vendor/xdock/schemas/org.gnome.shell.extensions.xdock.gschema.xml',
+    'dist/schemas/org.gnome.shell.extensions.xdock.gschema.xml');
 cpSync('widgets', 'dist/widgets', {
     recursive: true,
     filter: path => !path.endsWith('/widget.js'),
