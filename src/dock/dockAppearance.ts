@@ -275,10 +275,16 @@ export function withDockAppearance(Base) {
             }
             screen.dockRadiusClass = radiusClass;
             screen.dockBackgroundStyleClass = backgroundClass;
-            screen.magnificationBackground[ this._settings.get_boolean('dock-show-border')
-                ? 'remove_style_class_name' : 'add_style_class_name']('g-os-dock-no-border');
-            screen.magnificationBackground[ this._settings.get_boolean('dock-show-shadow')
-                ? 'remove_style_class_name' : 'add_style_class_name']('g-os-dock-no-shadow');
+            const toggleClass = (actor, name, enabled) => {
+                if (enabled)
+                    actor.remove_style_class_name(name);
+                else
+                    actor.add_style_class_name(name);
+            };
+            toggleClass(screen.magnificationBackground, 'g-os-dock-no-border',
+                this._settings.get_boolean('dock-show-border'));
+            toggleClass(screen.magnificationBackground, 'g-os-dock-no-shadow',
+                this._settings.get_boolean('dock-show-shadow'));
             this._setDockInteraction(screen, screen.dockContainer.visible !== false &&
                 screen.dockContainer.opacity > 0);
         }

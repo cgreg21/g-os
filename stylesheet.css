@@ -81,13 +81,148 @@
 
 /* G-Os Dock appearance settings */
 .dash-background.g-os-dock-radius-0 {
-    border-radius: 0;
+    border-radius: 0px;
+}
+.dash-background.g-os-dock-radius-1 {
+    border-radius: 1px;
+}
+.dash-background.g-os-dock-radius-2 {
+    border-radius: 2px;
+}
+.dash-background.g-os-dock-radius-3 {
+    border-radius: 3px;
+}
+.dash-background.g-os-dock-radius-4 {
+    border-radius: 4px;
+}
+.dash-background.g-os-dock-radius-5 {
+    border-radius: 5px;
+}
+.dash-background.g-os-dock-radius-6 {
+    border-radius: 6px;
+}
+.dash-background.g-os-dock-radius-7 {
+    border-radius: 7px;
+}
+.dash-background.g-os-dock-radius-8 {
+    border-radius: 8px;
+}
+.dash-background.g-os-dock-radius-9 {
+    border-radius: 9px;
+}
+.dash-background.g-os-dock-radius-10 {
+    border-radius: 10px;
+}
+.dash-background.g-os-dock-radius-11 {
+    border-radius: 11px;
 }
 .dash-background.g-os-dock-radius-12 {
     border-radius: 12px;
 }
+.dash-background.g-os-dock-radius-13 {
+    border-radius: 13px;
+}
+.dash-background.g-os-dock-radius-14 {
+    border-radius: 14px;
+}
+.dash-background.g-os-dock-radius-15 {
+    border-radius: 15px;
+}
+.dash-background.g-os-dock-radius-16 {
+    border-radius: 16px;
+}
+.dash-background.g-os-dock-radius-17 {
+    border-radius: 17px;
+}
+.dash-background.g-os-dock-radius-18 {
+    border-radius: 18px;
+}
+.dash-background.g-os-dock-radius-19 {
+    border-radius: 19px;
+}
+.dash-background.g-os-dock-radius-20 {
+    border-radius: 20px;
+}
+.dash-background.g-os-dock-radius-21 {
+    border-radius: 21px;
+}
+.dash-background.g-os-dock-radius-22 {
+    border-radius: 22px;
+}
+.dash-background.g-os-dock-radius-23 {
+    border-radius: 23px;
+}
+.dash-background.g-os-dock-radius-24 {
+    border-radius: 24px;
+}
+.dash-background.g-os-dock-radius-25 {
+    border-radius: 25px;
+}
+.dash-background.g-os-dock-radius-26 {
+    border-radius: 26px;
+}
+.dash-background.g-os-dock-radius-27 {
+    border-radius: 27px;
+}
 .dash-background.g-os-dock-radius-28 {
     border-radius: 28px;
+}
+.dash-background.g-os-dock-radius-29 {
+    border-radius: 29px;
+}
+.dash-background.g-os-dock-radius-30 {
+    border-radius: 30px;
+}
+.dash-background.g-os-dock-radius-31 {
+    border-radius: 31px;
+}
+.dash-background.g-os-dock-radius-32 {
+    border-radius: 32px;
+}
+.dash-background.g-os-dock-radius-33 {
+    border-radius: 33px;
+}
+.dash-background.g-os-dock-radius-34 {
+    border-radius: 34px;
+}
+.dash-background.g-os-dock-radius-35 {
+    border-radius: 35px;
+}
+.dash-background.g-os-dock-radius-36 {
+    border-radius: 36px;
+}
+.dash-background.g-os-dock-radius-37 {
+    border-radius: 37px;
+}
+.dash-background.g-os-dock-radius-38 {
+    border-radius: 38px;
+}
+.dash-background.g-os-dock-radius-39 {
+    border-radius: 39px;
+}
+.dash-background.g-os-dock-radius-40 {
+    border-radius: 40px;
+}
+.dash-background.g-os-dock-radius-41 {
+    border-radius: 41px;
+}
+.dash-background.g-os-dock-radius-42 {
+    border-radius: 42px;
+}
+.dash-background.g-os-dock-radius-43 {
+    border-radius: 43px;
+}
+.dash-background.g-os-dock-radius-44 {
+    border-radius: 44px;
+}
+.dash-background.g-os-dock-radius-45 {
+    border-radius: 45px;
+}
+.dash-background.g-os-dock-radius-46 {
+    border-radius: 46px;
+}
+.dash-background.g-os-dock-radius-47 {
+    border-radius: 47px;
 }
 .dash-background.g-os-dock-radius-48 {
     border-radius: 48px;
