@@ -95,7 +95,6 @@ export default class GOsExtension extends ExtensionComponents {
             this._appSystem = Shell.AppSystem.get_default();
             this._favorites = AppFavorites.getAppFavorites();
         this._settings = this.getSettings();
-        this._xdockSettings = this.getSettings('org.gnome.shell.extensions.xdock');
         this._xdockRequested = false;
         this._xdockManaged = false;
         this._xdockStateInitialized = false;
@@ -504,8 +503,10 @@ export default class GOsExtension extends ExtensionComponents {
                     return;
                 this._overviewDash = dash;
                 const useXDock = this._shouldUseXDock();
-                if (!useXDock)
+                if (useXDock || this._isDockTestMode())
                     dash.hide();
+                else
+                    dash.show();
                 const appDisplay = Main.overview._overview?.controls?.appDisplay;
                 if (typeof appDisplay?._loadApps !== 'function')
                     return;
@@ -538,50 +539,19 @@ export default class GOsExtension extends ExtensionComponents {
                 }
             }
 
-        _shouldUseXDock() {
-            return Boolean(this._settings?.get_boolean('show-dock') &&
-                GLib.getenv('WAYLAND_DISPLAY') &&
-                !GLib.getenv('G_OS_FEATURE_TEST') &&
-                !GLib.getenv('G_OS_EXPLORATORY_TEST'));
+        _isDockTestMode() {
+            return Boolean(GLib.getenv('G_OS_FEATURE_TEST') || GLib.getenv('G_OS_EXPLORATORY_TEST'));
         }
 
-        _syncXDockSettings() {
-            if (!this._xdockSettings || !this._settings)
-                return;
-
-            const positions = [2, 3, 1]; // XDock enum: bottom, left, right
-            const position = this._settings.get_int('dock-position');
-            const autohide = this._settings.get_boolean('dock-autohide');
-            const intellihide = this._settings.get_boolean('dock-hide-when-covered');
-            const reserveSpace = this._settings.get_boolean('reserve-dock-space');
-
-            try {
-                this._xdockSettings.set_enum('dock-position', positions[position] ?? 2);
-                this._xdockSettings.set_boolean('multi-monitor', true);
-                this._xdockSettings.set_boolean('autohide', autohide);
-                this._xdockSettings.set_boolean('intellihide', intellihide);
-                this._xdockSettings.set_boolean('dock-fixed', reserveSpace && !autohide && !intellihide);
-                this._xdockSettings.set_int('dock-edge-margin', this._settings.get_int('dock-edge-margin'));
-                this._xdockSettings.set_int('dash-max-icon-size',
-                    Math.max(16, Math.min(64, this._settings.get_int('icon-size') +
-                        this._settings.get_int('dock-icon-padding') * 2)));
-                this._xdockSettings.set_int('dock-margin-size', this._settings.get_int('dock-window-margin'));
-                this._xdockSettings.set_int('custom-border-radius', -1);
-                this._xdockSettings.set_double('hide-delay',
-                    this._settings.get_int('dock-hide-delay') / 1000);
-                this._xdockSettings.set_boolean('show-running', this._settings.get_boolean('show-running-apps'));
-                this._xdockSettings.set_boolean('show-favorites', true);
-                this._xdockSettings.set_boolean('apply-custom-theme', false);
-                this._xdockSettings.set_boolean('custom-background-color', false);
-            } catch (error) {
-                logError(error instanceof Error ? error : new Error(String(error)),
-                    'G-Os: could not synchronize XDock settings');
-            }
+        _shouldUseXDock() {
+            return Boolean(this._settings?.get_boolean('show-dock') &&
+                GLib.getenv('WAYLAND_DISPLAY') && !this._isDockTestMode());
         }
 
         _syncXDock() {
-            this._syncXDockSettings();
             const shouldEnable = this._shouldUseXDock();
+            const keepLegacyDock = this._isDockTestMode();
+            this._setLegacyDockEnabled(keepLegacyDock);
             if (this._xdockStateInitialized && this._xdockRequested === shouldEnable)
                 return;
 
@@ -589,15 +559,11 @@ export default class GOsExtension extends ExtensionComponents {
             this._xdockStateInitialized = true;
             this._xdockRequested = shouldEnable;
             if (!shouldEnable) {
-                this._overviewDash?.hide();
-                this._setLegacyDockEnabled(true);
                 if (wasRequested)
                     this._requestXDock(false);
                 return;
             }
 
-            // Keep the legacy dock hidden while the companion extension starts.
-            this._setLegacyDockEnabled(false);
             this._requestXDock(true);
         }
 
@@ -631,12 +597,8 @@ export default class GOsExtension extends ExtensionComponents {
                     } catch (error) {
                         if (generation !== this._xdockRequestGeneration)
                             return;
-                        if (enabled) {
+                        if (enabled)
                             this._xdockManaged = false;
-                            this._xdockRequested = false;
-                            this._overviewDash?.hide();
-                            this._setLegacyDockEnabled(true);
-                        }
                         logError(error instanceof Error ? error : new Error(String(error)),
                             `G-Os: ${enabled ? 'enable' : 'disable'} XDock failed`);
                     }
@@ -847,7 +809,7 @@ export default class GOsExtension extends ExtensionComponents {
                 const screen: ExtensionScreen = {monitor, position, dockDocked: false,
                     dockViewport: null as St.Viewport | null,
                     popupSide: [St.Side.TOP, St.Side.LEFT, St.Side.RIGHT][position],
-                    legacyDockDisabled: this._xdockRequested,
+                    legacyDockDisabled: !this._isDockTestMode(),
                     hoverAnimationUpdates: new Set(),
                     lifecycle: new LifecycleScope(undefined, chrome),
                     dockAdjustmentCleanup: new CleanupManager(),
