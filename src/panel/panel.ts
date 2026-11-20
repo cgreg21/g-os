@@ -422,6 +422,7 @@ export function withPanel(Base) {
                 vscrollbar_policy: St.PolicyType.AUTOMATIC,
                 style_class: 'g-os-calendar-scroll',
             });
+            scroll.set_name('g-os-calendar-scroll');
             content.add_child(scroll);
             menu.box.add_child(content);
             setChildWhenMapped(scroll, screen.calendarEventList);
