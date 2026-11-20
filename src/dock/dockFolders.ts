@@ -8,6 +8,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {readAppFolders, writeAppFolders, folderViewOptions} from '../shared/appFolders.js';
 import {CleanupManager} from '../core/cleanupManager.js';
 import {registerShadowDragSource} from '../shared/interaction/shadowDragSource.js';
+import {DockItem} from './dockItem.js';
 
 type DockFolderButton = St.Button & {
     dockFocusKey: string;
@@ -40,6 +41,7 @@ export function withDockFolders(Base) {
             button.set_style(`padding: ${iconPadding}px;`);
             button.dockFocusKey = `folder:${uri}`;
             button.folderUri = uri;
+            DockItem.for(button, screen).setIdentity(`folder:${uri}`, 'folder');
             this._attachTooltip(screen, button, name);
             button.connect('clicked', () => this._openDockFolder(screen, button, folder));
             screen.folderButtons.push(button);
@@ -77,6 +79,7 @@ export function withDockFolders(Base) {
             button.set_style(`padding: ${iconPadding}px;`);
             button.dockFocusKey = `app-folder:${folder.id}`;
             button.appFolderId = folder.id;
+            DockItem.for(button, screen).setIdentity(`app-folder:${folder.id}`, 'app-folder');
             button._delegate = {getDragActorSource: () => button.get_child()};
             this._attachTooltip(screen, button, folder.name);
             button.connect('clicked', () => {
