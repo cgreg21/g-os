@@ -858,6 +858,10 @@ export default class GOsExtension extends ExtensionComponents {
                     });
                     screen.dockContainer.set_name('g-os-dock-scroll');
                     screen.lifecycle.chrome?.add(screen.dockContainer, {trackFullscreen: true});
+                    print(`G-Os dock scroll after addChrome: parent=${Boolean(screen.dockContainer.get_parent())}`);
+                    screen.lifecycle.addSignal(screen.dockContainer, screen.dockContainer.connect('parent-set', (_actor, oldParent) => {
+                        print(`G-Os dock scroll parent-set: old=${Boolean(oldParent)} new=${Boolean(screen.dockContainer?.get_parent())}`);
+                    }));
                     screen.dockContainer.set_child(dockContent);
                     if (screen.legacyDockDisabled) {
                         screen.dockContainer.hide();
@@ -1127,6 +1131,7 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.dockViewport = null;
                 }
                 if (screen.dockContainer) {
+                    print(`G-Os destroying dock scroll: parent=${Boolean(screen.dockContainer.get_parent())}`);
                     Main.ctrlAltTabManager.removeGroup?.(screen.dockContainer);
                     const dockContainerParent = screen.dockContainer.get_parent();
                     if (dockContainerParent)
