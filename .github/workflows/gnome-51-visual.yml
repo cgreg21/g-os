@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Install GNOME Shell 51 runtime
         run: |
-          dnf install -y dbus-daemon glib2 gnome-shell git mutter-devkit nodejs npm
+          dnf install -y dbus-daemon glib2 gnome-shell git mutter-devkit nodejs npm sassc
           gnome-shell --version
           gnome-shell --version | grep -E 'GNOME Shell 51([. ]|$)'
       - name: Start the system D-Bus required by GNOME Shell
@@ -33,8 +33,6 @@ jobs:
           rm -rf /run/systemd/seats
           test ! -e /run/systemd/seats
       - uses: actions/checkout@v7
-        with:
-          submodules: recursive
       - uses: actions/setup-node@v7
         with:
           node-version: 22
