@@ -42,7 +42,7 @@ test('folder application drags use shared source registration when a screen exis
 const dragAndDropSource = await readFile(new URL('../src/shared/interaction/dragAndDrop.ts', import.meta.url), 'utf8');
 
 test('dock reorder uses shared source registration and generic pointer motion', () => {
-    assert.match(dockOrderSource, /registerShadowDragSource\(\{[\s\S]*?actor: button[\s\S]*?callbacks: \{/);
+    assert.match(dockOrderSource, /DockItem\\.for\\(button, screen\\)\\.registerDragSource\\(\\{[\\s\\S]*?callbacks: \\{/);
     assert.match(dockOrderSource, /onMotion: event => \{/);
     assert.match(dockOrderSource, /onCancelled: \(\) => \{ cancelled = true; \}/);
     assert.match(dockOrderSource, /onEnd: \(\) => finish\(cancelled\)/);
