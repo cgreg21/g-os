@@ -25,7 +25,7 @@ test('G-Os only hides its legacy dock while the XDock handover is pending or act
     assert.match(extension, /EnableExtension/);
     assert.ok(extension.includes("new GLib.VariantType('(b)')"));
     assert.match(extension, /_setLegacyDockEnabled\(false\)/);
-    assert.match(extension, /Le Dock G-Os classique est réactivé/);
+    assert.match(extension, /this\._xdockRequested = false;[\s\S]*?this\._setLegacyDockEnabled\(true\)/);
     assert.match(visibility, /screen\.legacyDockDisabled/);
     assert.match(visibility, /registered = registered && !screen\.legacyDockDisabled/);
 });
