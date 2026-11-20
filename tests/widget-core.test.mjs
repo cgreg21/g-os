@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
 import {
     duplicateWidgetInstance,
     effectiveWidgetInstances,
@@ -605,4 +606,12 @@ test('widget runtime ignores signal and timer callbacks after instance disposal'
     assert.equal(timerCallbacks[0](), false);
     assert.equal(timerCallbacks[1](), false);
     assert.equal(calls, 3);
+});
+
+const widgetRuntimeSource = await readFile(new URL('../src/widgets/widgetRuntime.ts', import.meta.url), 'utf8');
+
+test('widget catalog refresh is queued once after dynamic imports settle', () => {
+    assert.match(widgetRuntimeSource, /const pendingImports = entries\\.filter/);
+    assert.match(widgetRuntimeSource, /completedImports === pendingImports[\\s\\S]*?this\\.host\\._queueSettingsApply\\('widget-catalog'\\)/);
+    assert.doesNotMatch(widgetRuntimeSource, /this\\.host\\._applySettings\\(\\)/);
 });
