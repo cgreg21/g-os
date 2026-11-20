@@ -1,0 +1,500 @@
+import GLib from 'gi://GLib';
+import St from 'gi://St';
+import {InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {ExtensionState} from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+
+import {DASH_TO_DOCK_BUILDS, DockState, ScreenEdge} from '../motion/catalog.js';
+import {Surface, smallHalo} from '../motion/dockLayout.js';
+import {shouldReattachDock} from '../motion/transforms.js';
+import {DockVisibility} from './dockVisibility.js';
+import {DockOverflow} from './dockOverflow.js';
+import {pointerOnSurface, withoutRowMargins} from './geometry.js';
+import {MotionSurface} from './motionSurface.js';
+import {RowLayout} from './rowLayout.js';
+import {SurfaceOutline} from './surfaceOutline.js';
+
+const SMALL_HALO_CLASS = 'flourish-small-halo-dock';
+
+export class DockIntegration {
+    #attachIdleId = 0;
+    #blurBackgrounds = new Map();
+    #generation = 0;
+    #groups = {gaps: new Map()};
+    #injections = null;
+    #layouts = new Set();
+    #manager = null;
+    #managerSignals = [];
+    #managerUuid = null;
+    #onUrgentChanged;
+    #outline;
+    #overflows = new Set();
+    #pendingDocks = new Set();
+    #recipe;
+    #scheduler;
+    #spacing = null;
+    #surface = null;
+    #dockInjections = new InjectionManager();
+    #visibilities = [];
+
+    constructor({
+        scheduler,
+        onUrgentChanged = () => {},
+    }) {
+        this.#scheduler = scheduler;
+        this.#onUrgentChanged = onUrgentChanged;
+        this.#outline = new SurfaceOutline();
+    }
+
+    enable(recipe) {
+        this.#recipe = recipe;
+        this.#surface = new MotionSurface({
+            recipe,
+            onUrgentChanged: this.#onUrgentChanged,
+            scheduler: this.#scheduler,
+        });
+        this.#generation++;
+        Main.layoutManager.connectObject('monitors-changed', () => this.#surface.invalidateGeometry(), this);
+        Main.extensionManager.connectObject('extension-state-changed',
+            (_manager, extension) => {
+                if (!shouldReattachDock({
+                    uuid: extension.uuid,
+                    active: extension.state === ExtensionState.ACTIVE,
+                    attachedUuid: this.#managerUuid,
+                }))
+                    return;
+                this.#detachManager();
+                this.#scheduleAttach();
+            }, this);
+        this.#attach(this.#generation);
+    }
+
+    disable() {
+        this.#generation++;
+        Main.extensionManager.disconnectObject(this);
+        Main.layoutManager.disconnectObject(this);
+        this.#cancelScheduledAttach();
+        Main.layoutManager.uiGroup.remove_style_class_name(SMALL_HALO_CLASS);
+        // The icons stop reporting to Flourish before the urgent replay reaches Dash to Dock.
+        this.#surface.dispose();
+        this.#handBackWiggles();
+        this.#detachManager();
+        this.#outline.destroy();
+        this.#surface = null;
+    }
+
+    setRecipe(recipe) {
+        this.#recipe = recipe;
+        this.#syncOverflow();
+        this.#surface.setRecipe(recipe);
+        this.#syncWiggle();
+    }
+
+    onPointerMotion(x, y, pen) {
+        this.#surface.onPointerMotion(x, y, pen);
+    }
+
+    penLeft() {
+        this.#surface.penLeft();
+    }
+
+    holdPointer(owner, held) {
+        this.#surface.holdPointer(owner, held);
+    }
+
+    #syncOverflow() {
+        const {hover} = this.#recipe;
+        for (const overflow of this.#overflows)
+            overflow.setHover(hover);
+    }
+
+    refreshStyles() {
+        this.#surface.refreshStyles();
+    }
+
+    setGroups(groups) {
+        this.#groups = groups;
+        this.#surface.setGroups(groups);
+        for (const layout of this.#layouts)
+            layout.setGroups(groups);
+    }
+
+    setOutline(style, intensity, light) {
+        this.#outline.setStyle(style, intensity, light);
+    }
+
+    // Null when Layout is off.
+    setSpacing(spacing) {
+        this.#spacing = spacing;
+        this.#syncLayouts();
+    }
+
+    getController(appIcon) {
+        return this.#surface.getController(appIcon);
+    }
+
+    findIcon(app) {
+        return this.#surface.findIcon(app);
+    }
+
+    getDockContext(appIcon) {
+        return this.#surface.getContext(appIcon);
+    }
+
+    // Ubuntu Dock recreates its manager from the same signal; read it after.
+    #scheduleAttach() {
+        this.#cancelScheduledAttach();
+        const generation = ++this.#generation;
+        this.#attachIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            this.#attachIdleId = 0;
+            this.#attach(generation);
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    #cancelScheduledAttach() {
+        if (this.#attachIdleId) {
+            GLib.source_remove(this.#attachIdleId);
+            this.#attachIdleId = 0;
+        }
+    }
+
+    async #attach(generation) {
+        // No dock is a normal setup; extension-state-changed attaches a late one.
+        const extension = lookupDashToDock();
+        if (!extension)
+            return;
+
+        let module;
+        try {
+            module = await import(`file://${extension.path}/extension.js`);
+        } catch (error) {
+            console.warn(`[flourish] cannot import Dash to Dock: ${error.message}`);
+            return;
+        }
+
+        // disable() or a newer attach can run during the import.
+        if (generation !== this.#generation)
+            return;
+
+        this.#manager = module.dockManager;
+        this.#managerUuid = extension.uuid;
+        // DockManager uses Signals.addSignalMethods: no connectObject there.
+        this.#managerSignals = [
+            this.#manager.connect('docks-ready', () => this.#scanDocks()),
+            this.#manager.connect('destroy', () => this.#detachManager()),
+        ];
+        this.#manager.settings.connectObject('changed::dash-max-icon-size', () => this.#syncLayouts(), this);
+        this.#scanDocks();
+    }
+
+    #detachManager() {
+        // A reloaded Dash to Dock has a new prototype.
+        this.#restoreWiggle();
+        this.#disposeDocks();
+        if (!this.#manager)
+            return;
+        for (const id of this.#managerSignals)
+            this.#manager.disconnect(id);
+        this.#managerSignals = [];
+        this.#manager.settings.disconnectObject(this);
+        this.#manager = null;
+        this.#managerUuid = null;
+    }
+
+    #disposeDocks() {
+        for (const layout of this.#layouts)
+            layout.dispose();
+        this.#layouts.clear();
+        this.#dockInjections.clear();
+        for (const dock of this.#pendingDocks)
+            dock.disconnectObject(this);
+        this.#pendingDocks.clear();
+        this.#outline.dispose();
+        for (const background of this.#blurBackgrounds.keys())
+            this.#untrackBlur(background);
+        for (const overflow of [...this.#overflows])
+            overflow.dispose();
+        for (const visibility of this.#visibilities)
+            visibility.dispose();
+        this.#visibilities = [];
+    }
+
+    #scanDocks() {
+        // Dash to Dock announces docks-ready after it replaced every dock.
+        this.#dockInjections.clear();
+        // Nothing public lists the docks.
+        const docks = this.#manager._allDocks;
+        if (this.#recipe.attention.enabled)
+            this.#overrideWiggle(docks[0]?.dash.iconAnimator);
+
+        for (const dock of docks) {
+            // At login Dash to Dock announces its docks before it adds them to the stage.
+            if (dock.get_stage())
+                this.#attachDock(dock);
+            else
+                this.#waitForStage(dock);
+        }
+        this.refreshStyles();
+        this.#syncLayouts();
+    }
+
+    #waitForStage(dock) {
+        this.#pendingDocks.add(dock);
+        dock.connectObject(
+            'parent-set', () => {
+                if (!dock.get_stage())
+                    return;
+                this.#pendingDocks.delete(dock);
+                dock.disconnectObject(this);
+                this.#attachDock(dock);
+                this.refreshStyles();
+                this.#syncLayouts();
+            },
+            'destroy', () => this.#pendingDocks.delete(dock), this);
+    }
+
+    #attachDock(dock) {
+        const box = dock.dash._box;
+        // The dash's parent is the actor the slider moves.
+        const slid = dock.dash.get_parent();
+        const edge = edgeFromSide(dock.position);
+        const getMonitor = () =>
+            Main.layoutManager.monitors[dock.monitorIndex] ?? null;
+        const visibility = new DockVisibility({
+            actor: slid,
+            root: dock,
+            edge,
+            getMonitor,
+            scheduler: this.#scheduler,
+        });
+        const context = {
+            background: this.#manager.settings.extendHeight ? null : dock.dash._background,
+            visibility,
+            pointerActor: slid,
+            isAvailable: () => visibility.state === DockState.SHOWN,
+            containsPointer: (x, y) => pointerOnSurface(slid, box, x, y),
+            getMonitor,
+            dockSettings: this.#manager.settings,
+            labelOffset: '-x-offset',
+        };
+        const overflow = new DockOverflow({
+            actor: slid,
+            row: box,
+            edge,
+            getMonitor,
+            injections: new InjectionManager(),
+            raisedBins: () => this.#surface.controllers
+                .filter(controller => this.#surface.getContext(controller.icon) === context)
+                .map(controller => controller.icon.icon._iconBin),
+            onChanged: () => this.#surface.invalidateGeometry(),
+            onDisposed: disposed => this.#overflows.delete(disposed),
+        });
+        context.getSpacing = () => overflow;
+        if (!this.#surface.addBox(box, edge, context)) {
+            visibility.dispose();
+            return;
+        }
+        if (context.background)
+            this.#trackBlur(dock.dash);
+        if (dock.dash._background)
+            this.#outline.track(dock.dash._background, () => this.#outlineRadius(dock.dash));
+        const layout = new RowLayout({
+            dash: dock.dash,
+            edge,
+            surface: Surface.DOCK,
+            scheduler: this.#scheduler,
+            // Dash to Dock sizes its icons on redisplay only.
+            onChanged: () => dock.dash._adjustIconSize(),
+            onDestroyed: destroyed => this.#layouts.delete(destroyed),
+        });
+        layout.setGroups(this.#groups);
+        this.#layouts.add(layout);
+        // Dash to Dock's dynamic transparency copies the dash container's inline style, the row ends, to its background.
+        this.#dockInjections.overrideMethod(dock._themeManager._transparency, '_updateStyles',
+            original => function () {
+                this._base_actor_style = '';
+                original.call(this);
+            });
+        this.#dockInjections.overrideMethod(dock.dash, '_adjustIconSize',
+            original => withoutRowMargins(original, dock.dash._isHorizontal));
+        this.#visibilities.push(visibility);
+        visibility.subscribe(state => {
+            if (state !== DockState.SHOWN)
+                this.#surface.clearPointer(box);
+        });
+        this.#overflows.add(overflow);
+        overflow.enable();
+        this.#syncOverflow();
+        this.#stopWiggles(dock);
+    }
+
+    // Dash to Dock's size setting, not the size a full row shrinks to.
+    #syncLayouts() {
+        // No dock is a normal setup.
+        const size = this.#manager ? this.#manager.settings.get_int('dash-max-icon-size') : 0;
+        if (this.#manager && this.#spacing !== null && smallHalo(size, this.#spacing.gap))
+            Main.layoutManager.uiGroup.add_style_class_name(SMALL_HALO_CLASS);
+        else
+            Main.layoutManager.uiGroup.remove_style_class_name(SMALL_HALO_CLASS);
+        for (const layout of this.#layouts)
+            layout.update(this.#spacing, size);
+    }
+
+    // Blur My Shell rounds its dynamic blur itself; the outline follows that corner.
+    #outlineRadius(dash) {
+        return this.#blurBackgrounds.get(dash._background)?.rounded?.corner_radius ??
+            dash._background.get_theme_node().get_border_radius(St.Corner.TOPLEFT);
+    }
+
+    #trackBlur(dash) {
+        const background = dash._background;
+        this.#blurBackgrounds.set(background, null);
+        background.connectObject('notify::allocation', () => this.#syncBlur(dash),
+            'destroy', () => this.#untrackBlur(background), this);
+        this.#syncBlur(dash);
+    }
+
+    #syncBlur(dash) {
+        const background = dash._background;
+        const blur = global.blur_my_shell?._dash_to_dock_blur;
+        const info = blur && !blur.is_static
+            ? blur.dashes.find(entry => entry.dash === dash) : null;
+        if (!info) {
+            this.#resetBlur(background);
+            return;
+        }
+        const actor = info.background;
+        const group = info.background_group;
+        if (this.#blurBackgrounds.get(background)?.actor !== actor) {
+            this.#resetBlur(background);
+            const rounded = actor.get_effects()
+                .find(effect => effect.constructor.supports_corner_radius);
+            this.#blurBackgrounds.set(background, {
+                actor,
+                group,
+                rounded,
+                transform: {
+                    scale_x: group.scale_x,
+                    scale_y: group.scale_y,
+                    translation_x: group.translation_x,
+                    translation_y: group.translation_y,
+                },
+            });
+            actor.connectObject('notify::allocation', () => this.#syncBlur(dash),
+                'destroy', () => this.#resetBlur(background, false), this);
+            rounded?.connectObject('notify::corner-radius',
+                () => this.#outline.refresh(background), this);
+            this.#outline.refresh(background);
+        }
+        // Width and height fall back to the preferred size while a relayout is pending.
+        const source = actor.get_allocation_box();
+        const target = background.get_allocation_box();
+        if (source.get_width() <= 0 || source.get_height() <= 0)
+            return;
+        // Background blur samples transformed screen bounds without a new allocation.
+        group.scale_x = target.get_width() / source.get_width();
+        group.scale_y = target.get_height() / source.get_height();
+        group.translation_x = target.x1 - source.x1 * group.scale_x;
+        group.translation_y = target.y1 + dash.get_allocation_box().y1 - source.y1 * group.scale_y;
+    }
+
+    #resetBlur(background, restore = true) {
+        const state = this.#blurBackgrounds.get(background);
+        if (!state)
+            return;
+        state.actor.disconnectObject(this);
+        state.rounded?.disconnectObject(this);
+        if (restore)
+            Object.assign(state.group, state.transform);
+        this.#blurBackgrounds.set(background, null);
+        this.#outline.refresh(background);
+    }
+
+    #untrackBlur(background) {
+        this.#resetBlur(background);
+        background.disconnectObject(this);
+        this.#blurBackgrounds.delete(background);
+    }
+
+    // Attention off leaves the urgent wiggle to Dash to Dock.
+    #syncWiggle() {
+        // No dock is a normal setup.
+        if (!this.#manager)
+            return;
+        if (!this.#recipe.attention.enabled) {
+            this.#handBackWiggles();
+            return;
+        }
+        this.#overrideWiggle(this.#manager._allDocks[0]?.dash.iconAnimator);
+        for (const dock of this.#manager._allDocks)
+            this.#stopWiggles(dock);
+    }
+
+    // The stock wiggle would play on top of the attention motion.
+    #overrideWiggle(animator) {
+        if (this.#injections || !animator)
+            return;
+        this.#injections = new InjectionManager();
+        this.#injections.overrideMethod(Object.getPrototypeOf(animator), 'addAnimation',
+            original => function (target, name) {
+                if (name === 'wiggle')
+                    return undefined;
+                return original.call(this, target, name);
+            });
+    }
+
+    #restoreWiggle() {
+        this.#injections?.clear();
+        this.#injections = null;
+    }
+
+    // Dash to Dock keeps a wiggle registered for the whole urgency.
+    #stopWiggles(dock) {
+        if (!this.#injections)
+            return;
+        for (const icon of urgentIcons(dock)) {
+            dock.dash.iconAnimator.removeAnimation(icon.icon._iconBin, 'wiggle');
+            icon.icon._iconBin.rotation_angle_z = 0;
+        }
+    }
+
+    // Its urgent handler re-adds the wiggle; the swallowed calls never reached it.
+    #handBackWiggles() {
+        if (!this.#injections)
+            return;
+        this.#restoreWiggle();
+        for (const dock of this.#manager._allDocks) {
+            for (const icon of urgentIcons(dock))
+                icon.notify('urgent');
+        }
+    }
+}
+
+// Both builds can be installed at once; only an active one has a dock.
+function lookupDashToDock() {
+    return DASH_TO_DOCK_BUILDS
+        .map(uuid => Main.extensionManager.lookup(uuid))
+        .find(extension => extension?.state === ExtensionState.ACTIVE) ?? null;
+}
+
+// Drag placeholders have no child.
+function urgentIcons(dock) {
+    return dock.dash._box.get_children()
+        .map(container => container.child)
+        .filter(icon => icon?.urgent);
+}
+
+function edgeFromSide(side) {
+    switch (side) {
+        case St.Side.TOP:
+            return ScreenEdge.TOP;
+        case St.Side.LEFT:
+            return ScreenEdge.LEFT;
+        case St.Side.RIGHT:
+            return ScreenEdge.RIGHT;
+        case St.Side.BOTTOM:
+        default:
+            return ScreenEdge.BOTTOM;
+    }
+}
