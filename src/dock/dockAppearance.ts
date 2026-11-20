@@ -486,8 +486,13 @@ export function withDockAppearance(Base) {
             screen.magnificationGrowth = geometry.growth;
             screen.magnificationStart = geometry.start;
             const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-            const duration = animated && (!following || engagementChanged)
-                ? Math.round(this._settings.get_int('dock-hover-duration') * 160 / 180) : 0;
+            // Keep a short transition while the pointer moves between icons.
+            // A zero-duration update on every motion event makes the magnification
+            // wave snap from one icon to the next instead of following the pointer.
+            const hoverDuration = this._settings.get_int('dock-hover-duration');
+            const duration = animated
+                ? Math.max(70, Math.min(110, Math.round(hoverDuration * (following ? 0.55 : 0.9))))
+                : 0;
             this._updateMagnificationBackground(screen, duration);
             buttons.forEach((button, index) => {
                 const shift = shifts[index];
