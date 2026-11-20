@@ -20,7 +20,6 @@ export function withDockMenus(Base) {
             Main.panel.menuManager.addMenu(menu);
             screen.shortcutMenus.push(menu);
             DockItem.for(button, screen).setContextMenu(menu);
-            button.shouldShowTooltip = () => button.hover && !menu.isOpen;
             let disposed = false;
             menu.connect('open-state-changed', (actor, open) => {
                 if (disposed)
