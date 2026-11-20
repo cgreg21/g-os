@@ -631,8 +631,6 @@ export default class GOsExtension extends ExtensionComponents {
                             this._xdockRequested = false;
                             this._overviewDash?.hide();
                             this._setLegacyDockEnabled(true);
-                            Main.notifyError('XDock indisponible',
-                                'Le compagnon XDock n’est pas installé ou n’a pas pu démarrer. Le Dock G-Os classique est réactivé.');
                         }
                         logError(error instanceof Error ? error : new Error(String(error)),
                             `G-Os: ${enabled ? 'enable' : 'disable'} XDock failed`);
