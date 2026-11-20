@@ -498,7 +498,10 @@ export default class GOsExtension extends ExtensionComponents {
                 if (!dash?.showAppsButton)
                     return;
                 this._overviewDash = dash;
-                dash.hide();
+                const useXDock = Boolean(this._settings?.get_boolean('show-dock') &&
+                    GLib.getenv('WAYLAND_DISPLAY'));
+                if (!useXDock)
+                    dash.hide();
                 const appDisplay = Main.overview._overview?.controls?.appDisplay;
                 if (typeof appDisplay?._loadApps !== 'function')
                     return;
@@ -541,6 +544,7 @@ export default class GOsExtension extends ExtensionComponents {
             this._xdockStateInitialized = true;
             this._xdockRequested = shouldEnable;
             if (!shouldEnable) {
+                this._overviewDash?.hide();
                 this._setLegacyDockEnabled(true);
                 if (wasRequested)
                     this._requestXDock(false);
@@ -585,6 +589,7 @@ export default class GOsExtension extends ExtensionComponents {
                         if (enabled) {
                             this._xdockManaged = false;
                             this._xdockRequested = false;
+                            this._overviewDash?.hide();
                             this._setLegacyDockEnabled(true);
                             Main.notifyError('XDock indisponible',
                                 'Le compagnon XDock n’est pas installé ou n’a pas pu démarrer. Le Dock G-Os classique est réactivé.');
