@@ -4,8 +4,12 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+if [[ ! -f "$ROOT/vendor/xdock/metadata.json" ]]; then
+    git submodule update --init --recursive
+fi
+
 missing=()
-for tool in node npm dbus-run-session gnome-shell gnome-extensions gdbus gsettings timeout inotifywait glib-compile-schemas; do
+for tool in git node npm dbus-run-session gnome-shell gnome-extensions gdbus gsettings timeout inotifywait glib-compile-schemas; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         missing+=("$tool")
     fi
