@@ -507,6 +507,7 @@ export class NetworkStatusMenu {
             hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC,
             overlay_scrollbars: true,
         });
+        this.scroll.set_name('g-os-network-scroll');
         this.scroll.set_x_expand(true);
         this.body = new St.BoxLayout({orientation: this.Clutter.Orientation.VERTICAL,
             style_class: 'g-os-network-body',
