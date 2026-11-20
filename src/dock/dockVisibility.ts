@@ -424,7 +424,9 @@ export function withDockVisibility(Base) {
                 return;
             if (registered) {
                 screen.lifecycle.chrome?.add(reservation, {affectsStruts: true, trackFullscreen: true});
-                Main.layoutManager.uiGroup.set_child_below_sibling(reservation, screen.dockContainer);
+                const dockParent = screen.dockContainer?.get_parent();
+                if (dockParent && reservation.get_parent() === dockParent)
+                    dockParent.set_child_below_sibling(reservation, screen.dockContainer);
             } else {
                 screen.lifecycle.chrome?.remove(reservation);
             }
