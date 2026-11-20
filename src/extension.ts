@@ -95,6 +95,11 @@ export default class GOsExtension extends ExtensionComponents {
             this._appSystem = Shell.AppSystem.get_default();
             this._favorites = AppFavorites.getAppFavorites();
         this._settings = this.getSettings();
+        this._xdockSettings = this.getSettings('org.gnome.shell.extensions.xdock');
+        this._xdockRequested = false;
+        this._xdockManaged = false;
+        this._xdockStateInitialized = false;
+        this._xdockRequestGeneration = 0;
         this._startDebugRuntimeMonitor();
         this._cache = new GOSCache(256, 5 * 60 * 1000);
         this._statusNotifierHost = new StatusNotifierHost({Gio, GLib,
