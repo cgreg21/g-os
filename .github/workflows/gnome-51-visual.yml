@@ -85,6 +85,8 @@ jobs:
       - name: Audit GNOME logs and require every scenario report
         if: always()
         shell: bash
+        env:
+          G_OS_GNOME_LOG_REPORT: ${{ github.workspace }}/.cache/ci-diagnostics/gnome-log-audit.json
         run: |
           set -euo pipefail
           mkdir -p .cache/ci-diagnostics

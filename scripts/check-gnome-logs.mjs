@@ -11,20 +11,20 @@ const expectedScenarios = [
 ];
 
 const fatalPatterns = [
-    {name: 'GJS JavaScript error', pattern: /\\bJS ERROR:/},
-    {name: 'Unhandled promise rejection', pattern: /\\b(?:UnhandledPromiseRejection|Unhandled promise rejection)\\b/i},
-    {name: 'GJS critical', pattern: /\\bGjs-CRITICAL\\b/},
+    {name: 'GJS JavaScript error', pattern: /\bJS ERROR:/},
+    {name: 'Unhandled promise rejection', pattern: /\b(?:UnhandledPromiseRejection|Unhandled promise rejection)\b/i},
+    {name: 'GJS critical', pattern: /\bGjs-CRITICAL\b/},
     {name: 'GLib/GObject/GTK/Clutter/St/Mutter critical',
-        pattern: /\\b(?:GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter)-CRITICAL\\b/},
-    {name: 'Native crash', pattern: /\\b(?:Segmentation fault|Aborted \\(core dumped\\)|core dumped)\\b/i},
+        pattern: /\b(?:GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter)-CRITICAL\b/},
+    {name: 'Native crash', pattern: /\b(?:Segmentation fault|Aborted \(core dumped\)|core dumped)\b/i},
 ];
 
-const warningPattern = /\\b(?:Gjs|GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter)-WARNING\\b|\\bJS WARNING:/;
+const warningPattern = /\b(?:Gjs|GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter)-WARNING\b|\bJS WARNING:/;
 
 export function scanGnomeLogText(content, file = '<memory>') {
     const findings = [];
     const warnings = [];
-    for (const [index, line] of content.split(/\\r?\\n/).entries()) {
+    for (const [index, line] of content.split(/\r?\n/).entries()) {
         for (const rule of fatalPatterns) {
             if (rule.pattern.test(line)) {
                 findings.push({file, line: index + 1, rule: rule.name, text: line.trim()});
@@ -123,7 +123,7 @@ async function main() {
     };
     const reportPath = process.env.G_OS_GNOME_LOG_REPORT;
     if (reportPath)
-        await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\\n`);
+        await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
     console.log(`GNOME log audit: ${logs.length} logs, ${warnings.length} warnings recorded, ${findings.length} fatal findings`);
     for (const warning of warnings.slice(0, 20))
         console.warn(`WARNING ${warning.file}:${warning.line}: ${warning.text}`);

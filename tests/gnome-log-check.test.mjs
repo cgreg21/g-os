@@ -14,7 +14,7 @@ test('GNOME log audit detects JavaScript errors and native criticals', () => {
         'JS ERROR: TypeError: broken callback',
         'St-CRITICAL **: widget is detached',
         'Gtk-WARNING **: benign layout warning',
-    ].join('\\n'), 'gnome.log');
+    ].join('\n'), 'gnome.log');
     assert.equal(result.findings.length, 2);
     assert.deepEqual(result.findings.map(item => item.rule), [
         'GJS JavaScript error',
@@ -29,7 +29,7 @@ test('GNOME log audit detects promise rejections and native crashes', () => {
     const result = scanGnomeLogText([
         'UnhandledPromiseRejection: rejected',
         'Process terminated with Segmentation fault (core dumped)',
-    ].join('\\n'));
+    ].join('\n'));
     assert.equal(result.findings.length, 2);
 });
 
