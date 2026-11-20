@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 EXTENSION_ID="g-os@greg.local"
 XDOCK_ID="xdock@github.com"
 EXTENSIONS_DIR="$HOME/.local/share/gnome-shell/extensions"
