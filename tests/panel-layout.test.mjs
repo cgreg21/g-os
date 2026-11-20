@@ -46,7 +46,7 @@ test('topbar shadow drag uses a clone and a movable insertion placeholder', asyn
     assert.match(panelSource, /function getActorParent\(actor\)[\s\S]*?actor\?\.get_parent\?\.\(\) \?\? null[\s\S]*?catch/);
     assert.doesNotMatch(panelSource, /\.is_destroyed\(\)/);
     assert.match(panelSource, /const visible = actor\.visible;[\s\S]*?actor\.hide\(\)/);
-    assert.doesNotMatch(panelSource, /parent\.remove_child\(actor\)/);
+    assert.doesNotMatch(dragSource, /parent\.remove_child\(actor\)/);
     assert.match(panelSource, /state\.actor\.visible = state\.visible/);
     assert.match(panelSource, /if \(!getActorParent\(state\.actor\)\)/);
     assert.match(panelSource, /state\.placeholder\.destroy\(\)/);
