@@ -15,21 +15,21 @@ export XDG_STATE_HOME="$DEV_HOME/state"
 export GSETTINGS_BACKEND=dconf
 
 # Install both extension directories before Shell scans its extension paths.
-# The XDock companion must be registered before G-Os requests its activation.
-echo "Building and staging G-Os plus its XDock companion..."
+# The Dash to Dock companion must be registered before G-Os requests its activation.
+echo "Building and staging G-Os plus its Dash to Dock companion..."
 npm run build
 EXTENSIONS_DIR="$XDG_DATA_HOME/gnome-shell/extensions"
 GOS_STAGE="$EXTENSIONS_DIR/.g-os@greg.local.staging"
-XDOCK_STAGE="$EXTENSIONS_DIR/.xdock@github.com.staging"
+DASH_TO_DOCK_STAGE="$EXTENSIONS_DIR/.dash-to-dock@micxgx.gmail.com.staging"
 mkdir -p "$EXTENSIONS_DIR"
-rm -rf "$GOS_STAGE" "$XDOCK_STAGE"
-mkdir -p "$GOS_STAGE" "$XDOCK_STAGE"
+rm -rf "$GOS_STAGE" "$DASH_TO_DOCK_STAGE"
+mkdir -p "$GOS_STAGE" "$DASH_TO_DOCK_STAGE"
 cp -a "$ROOT/dist/." "$GOS_STAGE/"
-rm -rf "${GOS_STAGE:?}/xdock@github.com"
-cp -a "$ROOT/dist/xdock@github.com/." "$XDOCK_STAGE/"
-rm -rf "${EXTENSIONS_DIR:?}/g-os@greg.local" "${EXTENSIONS_DIR:?}/xdock@github.com"
+rm -rf "${GOS_STAGE:?}/dash-to-dock@micxgx.gmail.com"
+cp -a "$ROOT/dist/dash-to-dock@micxgx.gmail.com/." "$DASH_TO_DOCK_STAGE/"
+rm -rf "${EXTENSIONS_DIR:?}/g-os@greg.local" "${EXTENSIONS_DIR:?}/dash-to-dock@micxgx.gmail.com"
 mv "$GOS_STAGE" "$EXTENSIONS_DIR/g-os@greg.local"
-mv "$XDOCK_STAGE" "$EXTENSIONS_DIR/xdock@github.com"
+mv "$DASH_TO_DOCK_STAGE" "$EXTENSIONS_DIR/dash-to-dock@micxgx.gmail.com"
 
 echo "Starting an isolated GNOME Shell 51 DevKit session."
 echo "Private GNOME profile: $DEV_HOME"
