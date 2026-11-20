@@ -231,7 +231,9 @@ export function withDockAppearance(Base) {
                 visible: screen.dockContainer.visible !== false,
             });
             screen.lifecycle.chrome?.add(screen.magnificationBackground, {trackFullscreen: true});
-            Main.uiGroup.set_child_below_sibling(screen.magnificationBackground, screen.dockContainer);
+            const dockParent = screen.dockContainer.get_parent();
+            if (dockParent && screen.magnificationBackground.get_parent() === dockParent)
+                dockParent.set_child_below_sibling(screen.magnificationBackground, screen.dockContainer);
             const update = () => {
                 if (screen.disposed || screen.magnificationBackgroundSource)
                     return;
