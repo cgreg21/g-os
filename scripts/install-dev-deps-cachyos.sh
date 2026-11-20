@@ -16,6 +16,7 @@ PACKAGES=(
     inotify-tools
     nodejs
     npm
+    sassc
 )
 
 echo "Installing G-Os development dependencies for CachyOS..."

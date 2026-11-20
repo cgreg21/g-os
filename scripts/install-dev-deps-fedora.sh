@@ -29,6 +29,7 @@ PACKAGES=(
     mutter-devkit
     nodejs
     npm
+    sassc
 )
 
 echo "Installing G-Os development dependencies for Fedora 45..."

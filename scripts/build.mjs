@@ -1,4 +1,4 @@
-import {cpSync, mkdirSync, rmSync} from 'node:fs';
+import {cpSync, existsSync, mkdirSync, rmSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {buildSync} from 'esbuild';
 import {generateConfiguration} from './generate-config.mjs';
@@ -13,6 +13,8 @@ const dashToDockSource = 'src/dock/dashToDock';
 const dashToDockTarget = 'dist/dash-to-dock@micxgx.gmail.com';
 rmSync(dashToDockTarget, {recursive: true, force: true});
 cpSync(dashToDockSource, dashToDockTarget, {recursive: true});
+if (!process.env.PATH.split(':').some(path => existsSync(`${path}/sassc`)))
+    throw new Error('sassc is required to compile Dash to Dock styles. Install it with: sudo pacman -S sassc (CachyOS) or sudo dnf install sassc (Fedora).');
 const dashToDockStylesheet = spawnSync('sassc', ['--omit-map-comment',
     `${dashToDockSource}/_stylesheet.scss`, `${dashToDockTarget}/stylesheet.css`], {stdio: 'inherit'});
 if (dashToDockStylesheet.error)
