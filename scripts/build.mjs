@@ -1,4 +1,4 @@
-import {appendFileSync, cpSync, mkdirSync, readFileSync, rmSync} from 'node:fs';
+import {cpSync, mkdirSync, rmSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {buildSync} from 'esbuild';
 import {generateConfiguration} from './generate-config.mjs';
@@ -11,6 +11,7 @@ for (const file of ['metadata.json', 'stylesheet.css', 'config.json'])
 cpSync('icons', 'dist/icons', {recursive: true});
 const xdockSource = 'vendor/xdock';
 const xdockTarget = 'dist/xdock@github.com';
+rmSync(xdockTarget, {recursive: true, force: true});
 cpSync(xdockSource, xdockTarget, {
     recursive: true,
     filter: path => !/(^|\\/)(\\.git|\\.github|docs|test|po|lint|node_modules)(\\/|$)/.test(path) &&
