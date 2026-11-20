@@ -541,7 +541,7 @@ async function runNative(test, context) {
             'continue',
             'thread apply all bt 32',
             'quit 1',
-        ].join('\\n'));
+        ].join('\n'));
     }
     const shellCommand = debugShell ? 'gdb' : 'gnome-shell';
     const shellArguments = debugShell
