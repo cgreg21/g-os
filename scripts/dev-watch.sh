@@ -31,6 +31,7 @@ install_extension() {
     rm -rf "$STAGING_DIR"
     mkdir -p "$STAGING_DIR"
     cp -a "$ROOT/dist/." "$STAGING_DIR/"
+    rm -rf "$STAGING_DIR/$XDOCK_UUID"
     rm -rf "$XDOCK_STAGING_DIR"
     mkdir -p "$XDOCK_STAGING_DIR"
     cp -a "$ROOT/dist/$XDOCK_UUID/." "$XDOCK_STAGING_DIR/"
