@@ -293,7 +293,6 @@ export function withDockOrder(Base) {
                             finish(true);
                     },
                 },
-                lifecycle: screen.lifecycle,
             });
             screen.lifecycle.add(() => {
                 if (screen.reorder?.button === button)
