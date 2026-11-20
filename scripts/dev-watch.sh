@@ -21,27 +21,28 @@ install_extension() {
         return 1
     fi
 
-    if [[ ! -f "$ROOT/dist/extension.js" || ! -f "$ROOT/dist/metadata.json" || ! -d "$ROOT/dist/schemas" || ! -f "$ROOT/dist/$XDOCK_UUID/metadata.json" || ! -f "$ROOT/dist/$XDOCK_UUID/schemas/gschemas.compiled" ]]; then
-        echo "Build output is incomplete; refusing to replace the installed extension." >&2
+    if [[ ! -f "$ROOT/dist/extension.js" ||
+        ! -f "$ROOT/dist/metadata.json" ||
+        ! -d "$ROOT/dist/schemas" ||
+        ! -f "$ROOT/dist/$XDOCK_UUID/metadata.json" ||
+        ! -f "$ROOT/dist/$XDOCK_UUID/schemas/gschemas.compiled" ]]; then
+        echo "Build output is incomplete; refusing to replace the installed extensions." >&2
         return 1
     fi
 
     echo "==> Staging compiled files in $EXTENSION_DIR..."
     mkdir -p "$EXTENSIONS_DIR"
-    rm -rf "$STAGING_DIR"
-    mkdir -p "$STAGING_DIR"
+    rm -rf "$STAGING_DIR" "$XDOCK_STAGING_DIR"
+    mkdir -p "$STAGING_DIR" "$XDOCK_STAGING_DIR"
     cp -a "$ROOT/dist/." "$STAGING_DIR/"
     rm -rf "$STAGING_DIR/$XDOCK_UUID"
-    rm -rf "$XDOCK_STAGING_DIR"
-    mkdir -p "$XDOCK_STAGING_DIR"
     cp -a "$ROOT/dist/$XDOCK_UUID/." "$XDOCK_STAGING_DIR/"
 
     echo "==> Activating G-Os in the isolated Shell..."
     gnome-extensions disable "$UUID" >/dev/null 2>&1 || true
     gnome-extensions disable "$XDOCK_UUID" >/dev/null 2>&1 || true
-    rm -rf "$EXTENSION_DIR"
+    rm -rf "$EXTENSION_DIR" "$XDOCK_DIR"
     mv "$STAGING_DIR" "$EXTENSION_DIR"
-    rm -rf "$XDOCK_DIR"
     mv "$XDOCK_STAGING_DIR" "$XDOCK_DIR"
 
     if ! gnome-extensions enable "$UUID"; then
@@ -68,39 +69,18 @@ echo "Changes are debounced, rebuilt and deployed into the isolated profile."
 echo "GNOME Shell restarts after a successful deployment to reload ES modules."
 echo "Press Ctrl+C to stop."
 
-WATCH_INCLUDE='(^|/)(src/.*|schemas/[^/]*\.gschema\.xml|config\.json|metadata\.json|stylesheet\.css|icons/.*|widgets/.*|vendor/xdock/.*)
+WATCH_INCLUDE='(^|/)(src/.*|schemas/[^/]*\\.gschema\\.xml|config\\.json|metadata\\.json|stylesheet\\.css|icons/.*|widgets/.*|vendor/xdock/.*)$'
 
 while true; do
-    inotifywait -q -r \
-        --include "$WATCH_INCLUDE" \
-        -e close_write,create,delete,move \
+    inotifywait -q -r \\
+        --include "$WATCH_INCLUDE" \\
+        -e close_write,create,delete,move \\
         "$ROOT" >/dev/null
 
     sleep 0.5
-    while inotifywait -q -t 0.2 -r \
-        --include "$WATCH_INCLUDE" \
-        -e close_write,create,delete,move \
-        "$ROOT" >/dev/null 2>&1; do
-        sleep 0.2
-    done
-
-    if install_extension; then
-        # GJS caches imported ES modules for the Shell process lifetime.
-        exit 75
-    fi
-done
-
-
-while true; do
-    inotifywait -q -r \
-        --include "$WATCH_INCLUDE" \
-        -e close_write,create,delete,move \
-        "$ROOT" >/dev/null
-
-    sleep 0.5
-    while inotifywait -q -t 0.2 -r \
-        --include "$WATCH_INCLUDE" \
-        -e close_write,create,delete,move \
+    while inotifywait -q -t 0.2 -r \\
+        --include "$WATCH_INCLUDE" \\
+        -e close_write,create,delete,move \\
         "$ROOT" >/dev/null 2>&1; do
         sleep 0.2
     done
