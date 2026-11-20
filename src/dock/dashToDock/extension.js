@@ -1,7 +1,7 @@
 // -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
 
 import {DockManager} from './docking.js';
-import {Clutter, Meta} from './dependencies/gi.js';
+import {Clutter, Gio, Meta} from './dependencies/gi.js';
 import {Main} from './dependencies/shell/ui.js';
 import {Extension} from './dependencies/shell/extensions/extension.js';
 import {Preset, getBuiltInRecipe} from './flourish/lib/motion/catalog.js';
@@ -11,6 +11,24 @@ import {DockIntegration as FlourishDockIntegration} from './flourish/lib/runtime
 export let dockManager;
 
 export default class DashToDockExtension extends Extension.Extension {
+
+    _applyFlourishSettings() {
+        if (!this._flourishSettings || !this._flourishDockIntegration)
+            return;
+
+        const recipe = getBuiltInRecipe(Preset.BALANCED);
+        recipe.hover.enabled = this._flourishSettings.get_boolean('magnification-enabled');
+        recipe.hover.scale = this._flourishSettings.get_double('magnification-scale');
+        recipe.hover.lift = this._flourishSettings.get_double('magnification-lift');
+        recipe.hover.duration = this._flourishSettings.get_int('magnification-duration');
+        recipe.hover.reach = this._flourishSettings.get_int('magnification-reach');
+        recipe.hover.dynamicSpacing =
+            this._flourishSettings.get_boolean('magnification-dynamic-spacing');
+        recipe.press.enabled = false;
+        recipe.launch.enabled = false;
+        recipe.attention.enabled = false;
+        this._flourishDockIntegration.setRecipe(recipe);
+    }
 
     _enableFlourishMagnification() {
         const laters = global.compositor.get_laters();
@@ -22,19 +40,21 @@ export default class DashToDockExtension extends Extension.Extension {
             cancel: id => laters.remove(id),
         };
 
-        const recipe = getBuiltInRecipe(Preset.EXPRESSIVE);
-        recipe.hover.scale = 1.35;
-        recipe.hover.lift = 6;
-        recipe.hover.reach = 2;
-        recipe.hover.dynamicSpacing = true;
-        recipe.attention.enabled = false;
-        recipe.press.enabled = false;
-        recipe.launch.enabled = false;
-
+        this._flourishSettings = new Gio.Settings({
+            schema_id: 'org.gnome.shell.extensions.dash-to-dock',
+        });
         this._flourishDockIntegration = new FlourishDockIntegration({
             scheduler: this._flourishScheduler,
         });
-        this._flourishDockIntegration.enable(recipe);
+        this._applyFlourishSettings();
+        this._flourishSettings.connectObject(
+            'changed::magnification-enabled', () => this._applyFlourishSettings(),
+            'changed::magnification-scale', () => this._applyFlourishSettings(),
+            'changed::magnification-lift', () => this._applyFlourishSettings(),
+            'changed::magnification-duration', () => this._applyFlourishSettings(),
+            'changed::magnification-reach', () => this._applyFlourishSettings(),
+            'changed::magnification-dynamic-spacing', () => this._applyFlourishSettings(),
+            this);
 
         global.stage.connectObject(
             'motion-event', (_stage, event) => {
@@ -59,6 +79,8 @@ export default class DashToDockExtension extends Extension.Extension {
     _disableFlourishMagnification() {
         global.stage.disconnectObject(this);
         Main.overview.disconnectObject(this);
+        this._flourishSettings?.disconnectObject(this);
+        this._flourishSettings = null;
         this._flourishDockIntegration?.disable();
         this._flourishDockIntegration = null;
         this._flourishScheduler = null;
