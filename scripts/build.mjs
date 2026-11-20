@@ -1,4 +1,4 @@
-import {cpSync, mkdirSync, rmSync} from 'node:fs';
+import {appendFileSync, cpSync, mkdirSync, readFileSync, rmSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {buildSync} from 'esbuild';
 import {generateConfiguration} from './generate-config.mjs';
@@ -9,6 +9,20 @@ mkdirSync('dist/schemas', {recursive: true});
 for (const file of ['metadata.json', 'stylesheet.css', 'config.json'])
     cpSync(file, `dist/${file}`);
 cpSync('icons', 'dist/icons', {recursive: true});
+const xdockSource = 'vendor/xdock';
+const xdockTarget = 'dist/xdock@github.com';
+cpSync(xdockSource, xdockTarget, {
+    recursive: true,
+    filter: path => !/(^|\\/)(\\.git|\\.github|docs|test|po|lint|node_modules)(\\/|$)/.test(path) &&
+        !path.endsWith('.map'),
+});
+cpSync('vendor/xdock/schemas/org.gnome.shell.extensions.xdock.gschema.xml',
+    `${xdockTarget}/schemas/org.gnome.shell.extensions.xdock.gschema.xml`);
+const xdockSchema = spawnSync('glib-compile-schemas', [`${xdockTarget}/schemas`], {stdio: 'inherit'});
+if (xdockSchema.error)
+    throw xdockSchema.error;
+if (xdockSchema.status !== 0)
+    process.exit(xdockSchema.status ?? 1);
 cpSync('schemas', 'dist/schemas', {
     recursive: true,
     filter: path => !path.endsWith('gschemas.compiled'),
