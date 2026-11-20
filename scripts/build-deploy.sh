@@ -22,6 +22,12 @@ fi
 
 echo "[build-deploy] Déploiement vers $TARGET_DIR"
 mkdir -p "$EXTENSIONS_DIR"
+if command -v gnome-extensions >/dev/null 2>&1; then
+  echo "[build-deploy] Désactivation des extensions avant remplacement…"
+  gnome-extensions disable "$EXTENSION_ID" >/dev/null 2>&1 || true
+  gnome-extensions disable "$XDOCK_ID" >/dev/null 2>&1 || true
+fi
+
 rm -rf "${TARGET_DIR:?}"
 mkdir -p "$TARGET_DIR"
 cp -a "$ROOT_DIR/dist/." "$TARGET_DIR/"
@@ -31,10 +37,9 @@ mkdir -p "$XDOCK_TARGET_DIR"
 cp -a "$ROOT_DIR/dist/$XDOCK_ID/." "$XDOCK_TARGET_DIR/"
 
 if command -v gnome-extensions >/dev/null 2>&1; then
-  echo "[build-deploy] Recharge des extensions GNOME…"
-  gnome-extensions disable "$EXTENSION_ID" >/dev/null 2>&1 || true
-  gnome-extensions disable "$XDOCK_ID" >/dev/null 2>&1 || true
-  gnome-extensions enable "$EXTENSION_ID" >/dev/null 2>&1 || true
+  if ! gnome-extensions enable "$EXTENSION_ID" >/dev/null 2>&1; then
+    echo "[build-deploy] Extension copiée. Reconnecte-toi, puis active G-Os dans Extensions." >&2
+  fi
 fi
 
 echo "[build-deploy] G-Os déployé dans $TARGET_DIR"
