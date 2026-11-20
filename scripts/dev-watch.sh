@@ -3,15 +3,15 @@ set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UUID="g-os@greg.local"
-XDOCK_UUID="xdock@github.com"
+DASH_TO_DOCK_UUID="dash-to-dock@micxgx.gmail.com"
 cd "$ROOT"
 
 : "${XDG_DATA_HOME:?XDG_DATA_HOME must point to the isolated G-Os profile}"
 EXTENSIONS_DIR="$XDG_DATA_HOME/gnome-shell/extensions"
 EXTENSION_DIR="$EXTENSIONS_DIR/$UUID"
 STAGING_DIR="$EXTENSIONS_DIR/.$UUID.staging"
-XDOCK_DIR="$EXTENSIONS_DIR/$XDOCK_UUID"
-XDOCK_STAGING_DIR="$EXTENSIONS_DIR/.$XDOCK_UUID.staging"
+DASH_TO_DOCK_DIR="$EXTENSIONS_DIR/$DASH_TO_DOCK_UUID"
+DASH_TO_DOCK_STAGING_DIR="$EXTENSIONS_DIR/.$DASH_TO_DOCK_UUID.staging"
 
 install_extension() {
     echo
@@ -24,26 +24,26 @@ install_extension() {
     if [[ ! -f "$ROOT/dist/extension.js" ||
         ! -f "$ROOT/dist/metadata.json" ||
         ! -d "$ROOT/dist/schemas" ||
-        ! -f "$ROOT/dist/$XDOCK_UUID/metadata.json" ||
-        ! -f "$ROOT/dist/$XDOCK_UUID/schemas/gschemas.compiled" ]]; then
+        ! -f "$ROOT/dist/$DASH_TO_DOCK_UUID/metadata.json" ||
+        ! -f "$ROOT/dist/$DASH_TO_DOCK_UUID/schemas/gschemas.compiled" ]]; then
         echo "Build output is incomplete; refusing to replace the installed extensions." >&2
         return 1
     fi
 
     echo "==> Staging compiled files in $EXTENSION_DIR..."
     mkdir -p "$EXTENSIONS_DIR"
-    rm -rf "${STAGING_DIR:?}" "${XDOCK_STAGING_DIR:?}"
-    mkdir -p "$STAGING_DIR" "$XDOCK_STAGING_DIR"
+    rm -rf "${STAGING_DIR:?}" "${DASH_TO_DOCK_STAGING_DIR:?}"
+    mkdir -p "$STAGING_DIR" "$DASH_TO_DOCK_STAGING_DIR"
     cp -a "$ROOT/dist/." "$STAGING_DIR/"
-    rm -rf "${STAGING_DIR:?}/$XDOCK_UUID"
-    cp -a "$ROOT/dist/$XDOCK_UUID/." "$XDOCK_STAGING_DIR/"
+    rm -rf "${STAGING_DIR:?}/$DASH_TO_DOCK_UUID"
+    cp -a "$ROOT/dist/$DASH_TO_DOCK_UUID/." "$DASH_TO_DOCK_STAGING_DIR/"
 
     echo "==> Activating G-Os in the isolated Shell..."
     gnome-extensions disable "$UUID" >/dev/null 2>&1 || true
-    gnome-extensions disable "$XDOCK_UUID" >/dev/null 2>&1 || true
-    rm -rf "${EXTENSION_DIR:?}" "${XDOCK_DIR:?}"
+    gnome-extensions disable "$DASH_TO_DOCK_UUID" >/dev/null 2>&1 || true
+    rm -rf "${EXTENSION_DIR:?}" "${DASH_TO_DOCK_DIR:?}"
     mv "$STAGING_DIR" "$EXTENSION_DIR"
-    mv "$XDOCK_STAGING_DIR" "$XDOCK_DIR"
+    mv "$DASH_TO_DOCK_STAGING_DIR" "$DASH_TO_DOCK_DIR"
 
     if ! gnome-extensions enable "$UUID"; then
         echo "Could not enable G-Os in the isolated GNOME Shell." >&2
@@ -51,7 +51,7 @@ install_extension() {
     fi
 
     echo "==> G-Os deployed to: $EXTENSION_DIR"
-    echo "==> XDock deployed to: $XDOCK_DIR"
+    echo "==> Dash to Dock deployed to: $DASH_TO_DOCK_DIR"
     echo "==> Development deployment successful."
 }
 
@@ -64,12 +64,12 @@ install_extension || exit 1
 
 echo
 echo "Watching src/, schemas/*.gschema.xml, config.json, metadata.json,"
-echo "stylesheet.css, icons/, widgets/ and vendor/xdock/ for changes."
+echo "stylesheet.css, icons/, widgets/ and src/dock/dashToDock/ for changes."
 echo "Changes are debounced, rebuilt and deployed into the isolated profile."
 echo "GNOME Shell restarts after a successful deployment to reload ES modules."
 echo "Press Ctrl+C to stop."
 
-WATCH_INCLUDE='(^|/)(src/.*|schemas/[^/]*\.gschema\.xml|config\.json|metadata\.json|stylesheet\.css|icons/.*|widgets/.*|vendor/xdock/.*)$'
+WATCH_INCLUDE='(^|/)(src/.*|schemas/[^/]*\.gschema\.xml|config\.json|metadata\.json|stylesheet\.css|icons/.*|widgets/.*|src/dock/dashToDock/.*)$'
 
 while true; do
     inotifywait -q -r \
