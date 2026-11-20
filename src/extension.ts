@@ -653,6 +653,7 @@ export default class GOsExtension extends ExtensionComponents {
         }
 
         _queueSettingsApply(key = null) {
+            print(`G-Os queue settings apply: ${key ?? 'all'}`);
             if (!this._settings)
                 return;
             (this._settingsApplyKeys ??= new Set()).add(key);
@@ -783,6 +784,7 @@ export default class GOsExtension extends ExtensionComponents {
         }
 
         _applySettings(keys = null) {
+            print(`G-Os apply settings: ${keys ? [...keys].join(',') : 'all'}`);
             if (this._settingsApplySource)
                 GLib.source_remove(this._settingsApplySource);
             this._settingsApplySource = 0;
