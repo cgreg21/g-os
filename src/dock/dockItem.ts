@@ -43,9 +43,11 @@ export class DockItem {
         return this;
     }
 
-    setContextMenu(menu: any): this {
+    setContextMenu(menu: any, property = 'shortcutMenu'): this {
         this.contextMenu = menu;
-        this.actor.shortcutMenu = menu;
+        this.actor.dockContextMenu = menu;
+        if (property)
+            this.actor[property] = menu;
         return this;
     }
 
