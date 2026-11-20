@@ -521,9 +521,21 @@ async function runNative(test, context) {
     Object.assign(env, scriptEnv);
     const scriptArguments = ['--headless', '--force-animations', '--virtual-monitor', '1280x720',
         '--wayland-display', `g-os-test-${process.pid}`, '--automation-script', visualScript];
+    const debugShell = process.env.G_OS_GNOME_SHELL_GDB === '1';
+    const shellCommand = debugShell ? 'gdb' : 'gnome-shell';
+    const shellArguments = debugShell ? [
+        '--batch', '--quiet',
+        '-ex', 'set pagination off',
+        '-ex', 'handle SIGTRAP stop print nopass',
+        '-ex', 'handle SIGABRT stop print nopass',
+        '-ex', 'run',
+        '-ex', 'thread apply all bt 32',
+        '-ex', 'quit 1',
+        '--args', 'gnome-shell', ...scriptArguments,
+    ] : ['gnome-shell', ...scriptArguments];
     const commandArguments = ['--', 'bash', '-c',
         `gsettings set org.gnome.shell enabled-extensions "[\\"${extensionId}\\"]" && exec "$@"`,
-        '--', 'gnome-shell', ...scriptArguments];
+        '--', shellCommand, ...shellArguments];
     const started = Date.now();
     let result;
     try {
