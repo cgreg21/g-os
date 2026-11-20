@@ -13,11 +13,13 @@ test('GNOME log audit detects JavaScript errors and native criticals', () => {
         'Gjs-Message: JS LOG: normal startup',
         'JS ERROR: TypeError: broken callback',
         'St-CRITICAL **: widget is detached',
+        'GNOME Shell-CRITICAL **: feature assertion failed',
         'Gtk-WARNING **: benign layout warning',
     ].join('\n'), 'gnome.log');
-    assert.equal(result.findings.length, 2);
+    assert.equal(result.findings.length, 3);
     assert.deepEqual(result.findings.map(item => item.rule), [
         'GJS JavaScript error',
+        'GLib/GObject/GTK/Clutter/St/Mutter critical',
         'GLib/GObject/GTK/Clutter/St/Mutter critical',
     ]);
     assert.equal(result.warnings.length, 1);

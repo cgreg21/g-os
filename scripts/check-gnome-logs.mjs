@@ -15,11 +15,11 @@ const fatalPatterns = [
     {name: 'Unhandled promise rejection', pattern: /\b(?:UnhandledPromiseRejection|Unhandled promise rejection)\b/i},
     {name: 'GJS critical', pattern: /\bGjs-CRITICAL\b/},
     {name: 'GLib/GObject/GTK/Clutter/St/Mutter critical',
-        pattern: /\b(?:GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter)-CRITICAL\b/},
+        pattern: /\b(?:GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter|GNOME Shell)-CRITICAL\b/},
     {name: 'Native crash', pattern: /\b(?:Segmentation fault|Aborted \(core dumped\)|core dumped)\b/i},
 ];
 
-const warningPattern = /\b(?:Gjs|GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter)-WARNING\b|\bJS WARNING:/;
+const warningPattern = /\b(?:Gjs|GLib|GObject|Gtk|Gdk|Clutter|St|Meta|Mutter|GNOME Shell)-WARNING\b|\bJS WARNING:/;
 
 export function scanGnomeLogText(content, file = '<memory>') {
     const findings = [];
