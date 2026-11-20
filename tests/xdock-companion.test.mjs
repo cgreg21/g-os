@@ -10,6 +10,7 @@ test('XDock is packaged as an independent GNOME Shell companion extension', asyn
     assert.ok(metadata['shell-version'].includes('51'));
     await readFile(new URL('extension.js', root), 'utf8');
     await readFile(new URL('COPYING', root), 'utf8');
+    await readFile(new URL('../dist/licenses/xdock-COPYING', import.meta.url), 'utf8');
     await readFile(new URL('schemas/gschemas.compiled', root));
     await readFile(new URL('../dist/schemas/gschemas.compiled', import.meta.url));
     await readFile(new URL('../dist/schemas/org.gnome.shell.extensions.xdock.gschema.xml', import.meta.url));
