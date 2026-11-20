@@ -12,6 +12,7 @@ export class DockItem {
     private readonly cleanup = new CleanupManager();
     private tooltipUpdater: ((coordinates?: [number, number] | null) => void) | null = null;
     private contextMenu: any = null;
+    private disposed = false;
 
     private constructor(actor: any, screen: any) {
         this.actor = actor;
@@ -71,8 +72,9 @@ export class DockItem {
     }
 
     dispose(): void {
-        if (!this.tooltipUpdater && !this.contextMenu)
+        if (this.disposed)
             return;
+        this.disposed = true;
         this.tooltipUpdater = null;
         this.contextMenu = null;
         this.cleanup.clear();
