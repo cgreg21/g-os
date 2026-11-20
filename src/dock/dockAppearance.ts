@@ -351,6 +351,13 @@ export function withDockAppearance(Base) {
                 button.set_pivot_point(screen.position === 0 ? 0.5 : screen.position === 1 ? 0 : 1,
                     screen.position === 0 ? 1 : 0.5);
                 button.connect('notify::hover', () => {
+                    // Some child hover transitions do not bubble a motion-event through
+                    // StScrollView. Recover the pointer position from the backend so
+                    // magnification still follows the actual hovered application button.
+                    if (button.hover && screen.magnificationPoint === null) {
+                        const [x, y] = global.get_pointer();
+                        screen.magnificationPoint = [x, y];
+                    }
                     this._queueDockMagnification(screen, screen.magnificationPoint, false,
                         screen.magnificationPoint !== null);
                 });

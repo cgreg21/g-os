@@ -81,6 +81,11 @@ test('dock appearance screen signals are owned by the screen lifecycle', () => {
     assert.match(dockAppearanceSource, /screen\.lifecycle\.addSignal\(screen\.tooltip, screen\.tooltipMeasureSignal\)/);
 });
 
+test('dock button hover recovers pointer coordinates when scroll-view motion does not bubble', () => {
+    assert.match(dockAppearanceSource, /if \(button\.hover && screen\.magnificationPoint === null\)/);
+    assert.match(dockAppearanceSource, /const \[x, y\] = global\.get_pointer\(\)/);
+});
+
 test('dock reparenting resynchronizes hover animations after restoring the actor to the stage', () => {
     assert.match(extensionSource, /screen\.dockContainer\.set_child\(screen\.dockViewport \?\? screen\.dock\);[\s\S]*?for \(const update of screen\.hoverAnimationUpdates\)[\s\S]*?update\(true\)/);
     assert.match(dockAppearanceSource, /if \(!button\.get_stage\(\)\)\s*return/);
