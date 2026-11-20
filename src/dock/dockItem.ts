@@ -1,25 +1,36 @@
+import {CleanupManager} from '../core/cleanupManager.js';
+
 /**
- * Shared behavioral base for every dock actor.
- *
- * GNOME Shell's AppIcon and St.Button cannot share a native superclass, so
- * DockItem provides one composition-based contract while preserving each
- * actor's native rendering and activation implementation.
+ * Shared behavior for dock actors without replacing GNOME's native actor
+ * classes. Rendering and activation remain owned by AppIcon or St.Button.
  */
 export class DockItem {
     private static readonly instances = new WeakMap<object, DockItem>();
 
     readonly actor: any;
     readonly screen: any;
-    private disposed = false;
-    private destroySignal = 0;
+    private readonly cleanup = new CleanupManager();
     private tooltipUpdater: ((coordinates?: [number, number] | null) => void) | null = null;
     private contextMenu: any = null;
-    private dragDelegate: any = null;
 
     private constructor(actor: any, screen: any) {
         this.actor = actor;
         this.screen = screen;
-        this.destroySignal = actor.connect('destroy', () => this.dispose());
+
+        // Use GNOME Shell's own dash item styling instead of recreating its
+        // button appearance in the extension stylesheet.
+        if (!actor.has_style_class_name?.('app-well-app'))
+            actor.add_style_class_name?.('app-well-app');
+
+        const destroySignal = actor.connect('destroy', () => this.dispose());
+        this.cleanup.add(() => {
+            try {
+                actor.disconnect(destroySignal);
+            } catch {
+                // The actor may already be finalizing.
+            }
+        });
+        screen.lifecycle?.add(() => this.dispose());
     }
 
     static for(actor: any, screen: any): DockItem {
@@ -51,18 +62,8 @@ export class DockItem {
         return this;
     }
 
-    setDragSource(delegate: any): this {
-        this.dragDelegate = delegate;
-        this.actor._delegate = delegate;
-        return this;
-    }
-
     get menu(): any {
         return this.contextMenu;
-    }
-
-    get dragSource(): any {
-        return this.dragDelegate;
     }
 
     updateTooltip(coordinates: [number, number] | null = null): void {
@@ -70,20 +71,11 @@ export class DockItem {
     }
 
     dispose(): void {
-        if (this.disposed)
+        if (!this.tooltipUpdater && !this.contextMenu)
             return;
-        this.disposed = true;
         this.tooltipUpdater = null;
         this.contextMenu = null;
-        this.dragDelegate = null;
-        if (this.destroySignal) {
-            try {
-                this.actor.disconnect(this.destroySignal);
-            } catch {
-                // The actor may already be finalizing.
-            }
-            this.destroySignal = 0;
-        }
+        this.cleanup.clear();
         DockItem.instances.delete(this.actor);
     }
 }
