@@ -1060,8 +1060,8 @@ export default class GOsExtension extends ExtensionComponents {
         _destroyScreens() {
             this._restorePanelCalendar();
             for (const screen of this._screens) {
-                screen.lifecycle.destroy();
                 screen.disposed = true;
+                screen.lifecycle.destroy({preserveChromeActor: screen.panel});
                 this._destroyStatusNotifierMenus(screen);
                 for (const id of screen.dropSources ?? [])
                     GLib.source_remove(id);
@@ -1139,6 +1139,11 @@ export default class GOsExtension extends ExtensionComponents {
                     screen.tooltip.destroy();
                 }
                 this._restoreNativePanelItems?.(screen);
+                // Destroy panel controls while their parent is still on stage. A pending
+                // Mutter relayout must never ask a detached StButton for its theme node.
+                for (const child of screen.panel?.get_children() ?? [])
+                    child.destroy();
+                screen.lifecycle.chrome?.destroy();
                 if (screen.panel)
                     screen.panel.destroy();
             }

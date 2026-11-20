@@ -32,7 +32,7 @@ export class LifecycleScope<T extends object = object> {
             callback();
     }
 
-    destroy(): void {
+    destroy({preserveChromeActor}: {preserveChromeActor?: T} = {}): void {
         if (this.destroyed)
             return;
         this.destroyed = true;
@@ -40,7 +40,10 @@ export class LifecycleScope<T extends object = object> {
         this.tasks?.destroy();
         this.animations.destroy();
         this.cleanup.clear();
-        this.chrome?.destroy();
+        if (preserveChromeActor)
+            this.chrome?.destroyExcept(preserveChromeActor);
+        else
+            this.chrome?.destroy();
     }
 
     get isDestroyed(): boolean {

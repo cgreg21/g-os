@@ -36,7 +36,13 @@ test('dock chrome actors are no longer removed manually during screen teardown',
     const teardown = extensionSource.slice(teardownStart, teardownEnd);
 
     assert.doesNotMatch(teardown, /Main\.layoutManager\.removeChrome\?\.\(screen\.(?:edge|dockContainer|tooltip|dockReservation|magnificationBackground)\)/);
-    assert.match(teardown, /screen\.lifecycle\.destroy\(\)/);
+    assert.match(teardown, /screen\.lifecycle\.destroy\(\{preserveChromeActor: screen\.panel\}\)/);
+    const restoreNative = teardown.indexOf('this._restoreNativePanelItems?.(screen)');
+    const destroyControls = teardown.indexOf('for (const child of screen.panel?.get_children() ?? [])');
+    const releaseChrome = teardown.indexOf('screen.lifecycle.chrome?.destroy()');
+    const destroyPanel = teardown.indexOf('screen.panel.destroy()', releaseChrome);
+    assert.ok(restoreNative >= 0 && destroyControls > restoreNative);
+    assert.ok(releaseChrome > destroyControls && destroyPanel > releaseChrome);
 });
 
 const dockVisibilitySource = await readFile(new URL('../src/dock/dockVisibility.ts', import.meta.url), 'utf8');

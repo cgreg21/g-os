@@ -222,3 +222,22 @@ test('continues destroying every resource when disposers and the host logger fai
         globalThis.logError = previousLogError;
     }
 });
+
+
+test('can preserve the panel chrome actor until its child controls are disposed', () => {
+    const released = [];
+    const panel = {};
+    const dock = {};
+    const chrome = new ChromeActorManager(() => {}, actor => released.push(actor));
+    chrome.add(dock);
+    chrome.add(panel);
+    const scope = new LifecycleScope(undefined, chrome);
+
+    scope.destroy({preserveChromeActor: panel});
+
+    assert.deepEqual(released, [dock]);
+    assert.equal(chrome.size, 1);
+    assert.equal(chrome.isDestroyed, false);
+    chrome.destroy();
+    assert.deepEqual(released, [dock, panel]);
+});

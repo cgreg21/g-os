@@ -39,6 +39,18 @@ export class ChromeActorManager<T extends object> {
         this.release(actor);
     }
 
+    destroyExcept(actor: T): void {
+        if (this.destroyed)
+            return;
+        const actors = [...this.actors.keys()];
+        for (let index = actors.length - 1; index >= 0; index--) {
+            const current = actors[index]!;
+            if (current === actor || !this.actors.delete(current))
+                continue;
+            this.release(current);
+        }
+    }
+
     destroy(): void {
         if (this.destroyed)
             return;
