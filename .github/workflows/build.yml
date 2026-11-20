@@ -39,6 +39,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2016 # Quoted find patterns are intentional.
           mapfile -t shell_scripts < <(find scripts -type f -name '*.sh' -print | sort)
           if (('${#shell_scripts[@]}' > 0)); then
             bash -n "${shell_scripts[@]}"

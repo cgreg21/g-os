@@ -429,13 +429,26 @@ async function prepareNativeEnvironment(outputDirectory) {
     const cacheHome = join(tempRoot, 'cache');
     const runtimeHome = join(tempRoot, 'runtime');
     const extensionDirectory = join(dataHome, 'gnome-shell', 'extensions', extensionId);
+    const applicationsDirectory = join(dataHome, 'applications');
     await Promise.all([
         mkdir(configHome, {recursive: true}),
+        mkdir(applicationsDirectory, {recursive: true}),
         mkdir(cacheHome, {recursive: true}),
         mkdir(runtimeHome, {recursive: true, mode: 0o700}),
         mkdir(dirname(extensionDirectory), {recursive: true}),
         mkdir(outputDirectory, {recursive: true}),
         writeFile(join(tempRoot, 'dconf-profile'), 'user-db:user\n'),
+        writeFile(join(applicationsDirectory, 'g-os-ci-test.desktop'), [
+            '[Desktop Entry]',
+            'Type=Application',
+            'Name=G-Os CI Test Application',
+            'Exec=/usr/bin/true',
+            'Icon=utilities-terminal',
+            'Terminal=false',
+            'NoDisplay=false',
+            'Categories=Utility;',
+            '',
+        ].join('\n')),
     ]);
     await symlink(join(root, 'dist'), extensionDirectory, 'dir');
 
@@ -522,6 +535,7 @@ async function runNative(test, context) {
     const scriptArguments = ['--headless', '--force-animations', '--virtual-monitor', '1280x720',
         '--wayland-display', `g-os-test-${process.pid}`, '--automation-script', visualScript];
     const commandArguments = ['--', 'bash', '-c',
+        `gsettings set org.gnome.shell favorite-apps "[\\"g-os-ci-test.desktop\\"]" && ` +
         `gsettings set org.gnome.shell enabled-extensions "[\\"${extensionId}\\"]" && exec "$@"`,
         '--', 'gnome-shell', ...scriptArguments];
     const started = Date.now();
