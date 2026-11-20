@@ -6,6 +6,16 @@ const extensionSource = await readFile(new URL('../src/extension.ts', import.met
 const dockOrderSource = await readFile(new URL('../src/dock/dockOrder.ts', import.meta.url), 'utf8');
 const dockFoldersSource = await readFile(new URL('../src/dock/dockFolders.ts', import.meta.url), 'utf8');
 
+const dockItemSource = await readFile(new URL('../src/dock/dockItem.ts', import.meta.url), 'utf8');
+
+test('dock items own shared menu, tooltip and DND integration', () => {
+    assert.match(dockItemSource, /bindContextMenu\\(menu, Clutter\\)/);
+    assert.match(dockItemSource, /registerDragSource\\(/);
+    assert.match(dockItemSource, /registerDropTarget\\(/);
+    assert.match(dockItemSource, /registerShadowDragSource\\(/);
+    assert.match(dockItemSource, /screen\\.lifecycle\\?\\.add\\(\\(\\) => this\\.dispose\\(\\)\\)/);
+});
+
 test('each screen owns and destroys one shared interaction controller', () => {
     assert.match(extensionSource, /interactionDnd: new DragAndDropController\(\)/);
     assert.match(extensionSource, /screen\.lifecycle\.add\(\(\) => screen\.interactionDnd\.destroy\(\)\)/);
