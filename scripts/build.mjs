@@ -28,8 +28,6 @@ cpSync('schemas', 'dist/schemas', {
     recursive: true,
     filter: path => !path.endsWith('gschemas.compiled'),
 });
-cpSync('vendor/xdock/schemas/org.gnome.shell.extensions.xdock.gschema.xml',
-    'dist/schemas/org.gnome.shell.extensions.xdock.gschema.xml');
 cpSync('widgets', 'dist/widgets', {
     recursive: true,
     filter: path => !path.endsWith('/widget.js'),
@@ -41,7 +39,6 @@ rmSync('dist/widgets/fluxPython.js.map', {force: true});
 mkdirSync('dist/debug', {recursive: true});
 cpSync('src/debug/debugRuntime.js', 'dist/debug/debugRuntime.js');
 mkdirSync('dist/licenses', {recursive: true});
-cpSync('vendor/xdock/COPYING', 'dist/licenses/xdock-COPYING');
 cpSync('node_modules/yaml/LICENSE', 'dist/licenses/yaml-LICENSE');
 cpSync('node_modules/mustache/LICENSE', 'dist/licenses/mustache-LICENSE');
 for (const name of ['python', 'common', 'highlight', 'lr'])
