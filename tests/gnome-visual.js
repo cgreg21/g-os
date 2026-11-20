@@ -1398,7 +1398,9 @@ async function checkFeatureScenario() {
     // otherwise be measured during the no-op hide transition.
     if (Main.overview.visible) {
         Main.overview.hide();
-        await waitUntil(() => !Main.overview.visible, 'closed Overview state');
+        await Scripting.sleep(350);
+        if (Main.overview.visible)
+            throw new Error('Overview did not close before the panel visual test');
     }
     loadShellTheme();
     await Scripting.sleep(400);
