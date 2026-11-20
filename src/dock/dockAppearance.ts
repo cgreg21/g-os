@@ -466,7 +466,6 @@ export function withDockAppearance(Base) {
             const engaged = animated && coordinate !== null && !screen.reorder && screen.dockContainer.visible !== false &&
                 !screen.monitor.inFullscreen && !(screen.shortcutMenus ?? []).some(menu => menu.isOpen) &&
                 !(screen.appButtons ?? []).some(button => button._menu?.isOpen);
-            const engagementChanged = (screen.magnificationEngaged ?? false) !== engaged;
             screen.magnificationEngaged = engaged;
             const size = this._settings.get_int('icon-size');
             const maximumScale = Math.max(1, this._settings.get_int('dock-magnify-max') / 100);
@@ -488,43 +487,71 @@ export function withDockAppearance(Base) {
             });
             if (!geometry)
                 return;
-            const {scales, shifts} = geometry;
-            screen.magnificationGrowth = geometry.growth;
-            screen.magnificationStart = geometry.start;
+
+            // Interpolate rendered values once per compositor redraw. Do not
+            // restart Clutter ease transitions for every pointer motion event:
+            // doing so repeatedly resets their velocity and causes judder.
+            const now = GLib.get_monotonic_time();
+            const previous = screen.magnificationLastFrameTime ?? now - 16667;
+            const deltaMs = Math.max(1, Math.min(50, (now - previous) / 1000));
+            screen.magnificationLastFrameTime = now;
+            const smoothingMs = following ? 28 : 42;
+            const progress = animated ? 1 - Math.exp(-deltaMs / smoothingMs) : 1;
+            let unsettled = false;
+
+            const targetGrowth = geometry.growth;
+            const targetStart = geometry.start;
+            const currentGrowth = screen.magnificationGrowth ?? targetGrowth;
+            const currentStart = screen.magnificationStart ?? targetStart;
+            screen.magnificationGrowth = currentGrowth + (targetGrowth - currentGrowth) * progress;
+            screen.magnificationStart = currentStart + (targetStart - currentStart) * progress;
+            if (Math.abs(targetGrowth - screen.magnificationGrowth) > 0.02 ||
+                Math.abs(targetStart - screen.magnificationStart) > 0.02)
+                unsettled = true;
+
             const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-            // Retarget from the currently rendered value on every pointer
-            // update. A short ease keeps motion continuous without adding the
-            // lag introduced by filtering pointer coordinates.
-            const duration = animated
-                ? following ? 90 : Math.max(70, Math.min(110, Math.round(
-                    this._settings.get_int('dock-hover-duration') * 0.9)))
-                : 0;
-            this._updateMagnificationBackground(screen, duration);
             buttons.forEach((button, index) => {
-                const shift = shifts[index];
-                const icon = button.icon?.icon ?? button.get_child();
-                const targetChanged = button.magnificationShift === undefined ||
-                    Math.abs(button.magnificationScale - scales[index]) > 0.0001 ||
-                    Math.abs(button.magnificationShift - shift) > 0.01 ||
-                    (!button.get_transition('scale-x') &&
-                        (Math.abs(button.scale_x - scales[index]) > 0.0001 ||
-                            Math.abs(button.scale_y - scales[index]) > 0.0001));
-                button.magnificationScale = scales[index];
-                button.magnificationShift = shift;
-                if (!button.dockLaunchAnimating)
-                    icon.ease({scale_x: 1, scale_y: 1,
-                        duration, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
-                if (targetChanged || engagementChanged || reset || !animated) {
-                    const scale = clamp(scales[index], 1, maximumScale);
-                    const translationX = axis === 0 ? clamp(shift, -Math.max(32, size * 4), Math.max(32, size * 4)) : 0;
-                    const translationY = axis === 1 ? clamp(shift, -Math.max(32, size * 4), Math.max(32, size * 4)) : 0;
-                    button.ease({scale_x: scale, scale_y: scale,
-                        translation_x: translationX, translation_y: translationY,
-                        duration, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+                const targetScale = clamp(geometry.scales[index], 1, maximumScale);
+                const targetShift = geometry.shifts[index];
+                const currentScale = Number.isFinite(button.magnificationCurrentScale)
+                    ? button.magnificationCurrentScale : button.scale_x;
+                const currentShift = Number.isFinite(button.magnificationCurrentShift)
+                    ? button.magnificationCurrentShift
+                    : axis === 0 ? button.translation_x ?? 0 : button.translation_y ?? 0;
+                const scale = currentScale + (targetScale - currentScale) * progress;
+                const shift = currentShift + (targetShift - currentShift) * progress;
+                button.magnificationScale = targetScale;
+                button.magnificationShift = targetShift;
+                button.magnificationCurrentScale = scale;
+                button.magnificationCurrentShift = shift;
+
+                if (Math.abs(targetScale - scale) > 0.0005 ||
+                    Math.abs(targetShift - shift) > 0.01)
+                    unsettled = true;
+
+                if (!button.dockLaunchAnimating) {
+                    const icon = button.icon?.icon ?? button.get_child();
+                    if (Math.abs(icon.scale_x - 1) > 0.0001 || Math.abs(icon.scale_y - 1) > 0.0001)
+                        icon.set_scale(1, 1);
                 }
+
+                const translationX = axis === 0
+                    ? clamp(shift, -Math.max(32, size * 4), Math.max(32, size * 4)) : 0;
+                const translationY = axis === 1
+                    ? clamp(shift, -Math.max(32, size * 4), Math.max(32, size * 4)) : 0;
+                button.set_scale(scale, scale);
+                button.translation_x = translationX;
+                button.translation_y = translationY;
+
                 if (button.hover || button.has_key_focus())
                     button.updateDockTooltip?.();
             });
+
+            this._updateMagnificationBackground(screen, 0);
+            if (unsettled && animated && screen.magnificationPoint !== null)
+                this._queueDockMagnification(screen, screen.magnificationPoint, false, true);
+            else if (!unsettled)
+                screen.magnificationLastFrameTime = 0;
         }
 
         _updateMagnificationBackground(screen, duration = 0) {
