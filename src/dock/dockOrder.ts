@@ -54,7 +54,7 @@ export function withDockOrder(Base) {
                     (!screen.reorder || (screen.reorder.groupTarget === button && screen.reorder.groupPreviewActive)) &&
                     x >= width * 0.25 && x <= width * 0.75 && y >= height * 0.2 && y <= height * 0.8;
             };
-            screen.interactionDnd.registerTarget(button, {
+            DockItem.for(button, screen).registerDropTarget({
                 handleDragOver: (source, actor, x, y) => {
                     const accepted = accepts(source, x, y);
                     if (accepted) {
