@@ -26,7 +26,7 @@ jobs:
       - name: Validate development scripts
         run: |
           bash -n scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/build-deploy.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
-          shellcheck scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
+          shellcheck scripts/dev-check.sh scripts/dev-session.sh scripts/dev-watch.sh scripts/build-deploy.sh scripts/install-dev-deps-fedora.sh scripts/install-dev-deps-cachyos.sh
       - run: npm ci
       - run: npm run build
       - name: Validate debugger source maps
