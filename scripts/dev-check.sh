@@ -4,10 +4,6 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-if [[ ! -f "$ROOT/vendor/xdock/metadata.json" ]]; then
-    git submodule update --init --recursive
-fi
-
 missing=()
 for tool in git node npm dbus-run-session gnome-shell gnome-extensions gdbus gsettings timeout inotifywait glib-compile-schemas; do
     if ! command -v "$tool" >/dev/null 2>&1; then
@@ -19,6 +15,10 @@ if (("${#missing[@]}" > 0)); then
     printf 'Missing development dependencies: %s\n' "${missing[*]}" >&2
     echo "Install them with scripts/install-dev-deps-fedora.sh or scripts/install-dev-deps-cachyos.sh." >&2
     exit 1
+fi
+
+if [[ ! -f "$ROOT/vendor/xdock/metadata.json" ]]; then
+    git submodule update --init --recursive
 fi
 
 NODE_MAJOR="$(node -p 'Number(process.versions.node.split(".")[0])')"
