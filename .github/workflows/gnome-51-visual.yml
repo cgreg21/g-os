@@ -18,6 +18,7 @@ jobs:
     env:
       XDG_CACHE_HOME: ${{ github.workspace }}/.cache
       CI: "true"
+      G_DEBUG: fatal-criticals
     steps:
       - name: Install GNOME Shell 51 runtime
         run: |
