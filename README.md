@@ -405,3 +405,21 @@ pas la session DevKit interactive. La CI valide la syntaxe et ShellCheck des
 scripts de développement, puis exécute le build et les tests unitaires. Le lancement du DevKit lui-même nécessite une session graphique
 GNOME 51 locale.
 
+
+
+## Dock Wayland : compagnon XDock
+
+Sur Wayland, G-Os utilise temporairement **XDock**, un fork communautaire de Dash to Dock compatible GNOME Shell 49 à 51. Le code source est suivi dans `vendor/xdock` comme sous-module Git, séparé du code de G-Os et conservé sous sa licence GPL-2.0-or-later.
+
+Le Dock G-Os historique reste dans le dépôt, mais il est masqué et libère sa réservation d’espace lorsque XDock est activé. Si le compagnon XDock est absent ou ne démarre pas, G-Os réactive automatiquement son Dock historique. Sous X11, le Dock historique reste utilisé, XDock annonçant une prise en charge Wayland uniquement.
+
+Après un clone ou une mise à jour :
+
+```sh
+git submodule update --init --recursive
+npm ci
+npm run build
+npm run build:deploy
+```
+
+Le déploiement installe G-Os et le compagnon XDock dans deux répertoires d’extensions GNOME distincts. G-Os demande ensuite au gestionnaire d’extensions GNOME d’activer XDock lorsque le Dock est activé dans ses préférences.
