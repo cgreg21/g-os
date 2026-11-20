@@ -10,7 +10,7 @@ DASH_TO_DOCK_TARGET_DIR="$EXTENSIONS_DIR/$DASH_TO_DOCK_ID"
 
 cd "$ROOT_DIR"
 
-if [[ ! -f "$ROOT_DIR/vendor/dash-to-dock/metadata.json" ]]; then
+if [[ ! -f "$ROOT_DIR/src/dock/dashToDock/metadata.json" ]]; then
   echo "[build-deploy] Sources Dash to Dock absentes du dépôt." >&2
   exit 1
 fi
