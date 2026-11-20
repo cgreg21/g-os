@@ -12,10 +12,7 @@ export let dockManager;
 
 export default class DashToDockExtension extends Extension.Extension {
 
-    _applyFlourishSettings() {
-        if (!this._flourishSettings || !this._flourishDockIntegration)
-            return;
-
+    _createFlourishRecipe() {
         const recipe = getBuiltInRecipe(Preset.BALANCED);
         recipe.hover.enabled = this._flourishSettings.get_boolean('magnification-enabled');
         recipe.hover.scale = this._flourishSettings.get_double('magnification-scale');
@@ -27,7 +24,12 @@ export default class DashToDockExtension extends Extension.Extension {
         recipe.press.enabled = false;
         recipe.launch.enabled = false;
         recipe.attention.enabled = false;
-        this._flourishDockIntegration.setRecipe(recipe);
+        return recipe;
+    }
+
+    _applyFlourishSettings() {
+        if (this._flourishSettings && this._flourishDockIntegration)
+            this._flourishDockIntegration.setRecipe(this._createFlourishRecipe());
     }
 
     _enableFlourishMagnification() {
@@ -46,7 +48,7 @@ export default class DashToDockExtension extends Extension.Extension {
         this._flourishDockIntegration = new FlourishDockIntegration({
             scheduler: this._flourishScheduler,
         });
-        this._applyFlourishSettings();
+        this._flourishDockIntegration.enable(this._createFlourishRecipe());
         this._flourishSettings.connectObject(
             'changed::magnification-enabled', () => this._applyFlourishSettings(),
             'changed::magnification-scale', () => this._applyFlourishSettings(),
