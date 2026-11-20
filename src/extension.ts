@@ -1349,13 +1349,16 @@ export default class GOsExtension extends ExtensionComponents {
             if (shortcuts.size > 0) {
                 if (shortcuts.has('overview'))
                     this._addDockShortcut(screen, 'Fenêtres et espaces de travail',
-                        'view-paged-symbolic', iconSize, () => Main.overview.show());
+                        'view-grid', iconSize, () => Main.overview.show());
                 if (shortcuts.has('desktop'))
                     screen.desktopButton = this._addDockShortcut(screen, () => this._desktopActionName(),
                         'user-desktop', iconSize, () => this._toggleDesktop());
                 if (shortcuts.has('files')) {
-                    const button = this._addDockShortcut(screen, 'Fichiers', 'system-file-manager', iconSize,
-                        () => this._openLocation(Gio.File.new_for_path(GLib.get_home_dir()).get_uri()));
+                    const filesApp = this._appSystem.lookup_app('org.gnome.Nautilus.desktop');
+                    const filesIcon = filesApp?.create_icon_texture(iconSize) ??
+                        new St.Icon({icon_name: 'folder', icon_size: iconSize});
+                    const button = this._addDockShortcut(screen, 'Fichiers', filesIcon, iconSize,
+                        () => this._openLocation(Gio.File.new_for_path(GLib.get_home_dir()).get_uri()), 'files');
                     this._attachPlacesMenu(screen, button);
                 }
                 if (shortcuts.has('downloads')) {
@@ -1862,17 +1865,20 @@ export default class GOsExtension extends ExtensionComponents {
             }
         }
 
-        _addDockShortcut(screen, name, iconName, iconSize, callback) {
+        _addDockShortcut(screen, name, icon, iconSize, callback, focusKey = null) {
+            const iconActor = typeof icon === 'string'
+                ? new St.Icon({icon_name: icon, icon_size: iconSize})
+                : icon;
             const button = new St.Button({
                 style_class: 'g-os-dock-item',
                 accessible_name: typeof name === 'function' ? name() : name,
                 can_focus: true,
                 reactive: true,
                 track_hover: true,
-                child: new St.Icon({icon_name: iconName, icon_size: iconSize}),
+                child: iconActor,
             }) as St.Button & DockButtonMetadata;
             button.set_style(`padding: ${this._settings.get_int('dock-icon-padding')}px;`);
-            button.dockFocusKey = `shortcut:${iconName}`;
+            button.dockFocusKey = `shortcut:${focusKey ?? (typeof icon === 'string' ? icon : name)}`;
             this._attachTooltip(screen, button, name);
             button.connect('clicked', callback);
             screen.dock.add_child(button);
