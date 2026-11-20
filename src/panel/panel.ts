@@ -937,7 +937,8 @@ export function withPanel(Base) {
             });
             placeholder.set_size(width, height);
             placeholder.y_expand = true;
-            screen.panelDragState = {id, actor, parent, index, placeholder, visible: actor.visible};
+            const visible = actor.visible;
+            screen.panelDragState = {id, actor, parent, index, placeholder, visible};
             try {
                 parent.insert_child_at_index(placeholder, index);
                 // Keep the source in the stage while dragging. A detached StButton
@@ -949,7 +950,7 @@ export function withPanel(Base) {
                 if (currentParent)
                     currentParent.remove_child(placeholder);
                 placeholder.destroy();
-                actor.visible = screen.panelDragState?.visible ?? true;
+                actor.visible = visible;
                 throw error;
             }
         }
