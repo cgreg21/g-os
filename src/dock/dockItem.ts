@@ -116,6 +116,13 @@ export class DockItem {
         });
     }
 
+    registerDropTarget(delegate: any): () => void {
+        if (this.disposed || !this.screen.interactionDnd)
+            return () => {};
+        return this.screen.interactionDnd.registerTarget(
+            this.actor, delegate, this.screen.lifecycle);
+    }
+
     get menu(): any {
         return this.contextMenu;
     }
