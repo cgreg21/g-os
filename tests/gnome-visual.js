@@ -523,10 +523,11 @@ async function checkLargeMagnification() {
             return x >= viewportX && y >= viewportY &&
                 x + width <= viewportX + viewportWidth && y + height <= viewportY + viewportHeight;
         });
-        screen.dockContainer.hover = true;
-        screen.magnificationPoint = edgePoint;
-        extension._updateDockMagnification(screen, edgePoint, false, true);
-        await waitUntil(() => edgeButton.scale_x > 1.01, () =>
+        screen.dockContainer.track_hover = true;
+        move(edgePoint[0], edgePoint[1]);
+        await waitUntil(() => screen.magnificationPoint !== null &&
+            Math.abs(screen.magnificationPoint[edgeAxis] - edgePoint[edgeAxis]) <= 1 &&
+            edgeButton.scale_x > 1.01, () =>
             `edge magnification at dock position ${position}: scale=${edgeButton.scale_x}, ` +
             `target=${edgeButton.magnificationScale}, engaged=${screen.magnificationEngaged}, ` +
             `point=${screen.magnificationPoint}, edgePoint=${edgePoint}, ` +
