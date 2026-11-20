@@ -558,23 +558,23 @@ export default class GOsExtension extends ExtensionComponents {
                 this._xdockManaged = false;
 
             Gio.DBus.session.call(
-                'org.gnome.Shell',
+                'org.gnome.Shell.Extensions',
                 '/org/gnome/Shell/Extensions',
                 'org.gnome.Shell.Extensions',
                 enabled ? 'EnableExtension' : 'DisableExtension',
                 new GLib.Variant('(s)', [XDOCK_UUID]),
-                new GLib.VariantType('(s)'),
+                new GLib.VariantType('(b)'),
                 Gio.DBusCallFlags.NONE,
                 10000,
                 null,
                 (connection, result) => {
                     try {
-                        const [status] = connection.call_finish(result).deep_unpack();
+                        const [success] = connection.call_finish(result).deep_unpack();
                         if (generation !== this._xdockRequestGeneration)
                             return;
                         if (enabled) {
-                            if (status !== 'enabled' && status !== 'already-enabled')
-                                throw new Error(`Extension Manager returned: ${status}`);
+                            if (!success)
+                                throw new Error('GNOME Shell Extension Manager rejected XDock activation');
                             this._xdockManaged = true;
                             this._setLegacyDockEnabled(false);
                         }
