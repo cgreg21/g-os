@@ -411,7 +411,7 @@ GNOME 51 locale.
 
 Sur Wayland, G-Os utilise temporairement **XDock**, un fork communautaire de Dash to Dock compatible GNOME Shell 49 à 51. Le code source est suivi dans `vendor/xdock` comme sous-module Git, séparé du code de G-Os et conservé sous sa licence GPL-2.0.
 
-Le Dock G-Os historique reste dans le dépôt, mais il est masqué et libère sa réservation d’espace lorsque XDock est activé. Si le compagnon XDock est absent ou ne démarre pas, G-Os réactive automatiquement son Dock historique. Sous X11, le Dock historique reste utilisé, XDock annonçant une prise en charge Wayland uniquement.
+Le Dock G-Os historique reste dans le dépôt mais est désactivé temporairement pendant cette intégration. Sous Wayland, XDock prend sa place. Sous X11, aucun dock de remplacement n'est activé, car le fork ne prend en charge que Wayland. Si XDock est absent ou ne démarre pas, le Dock G-Os ne se réactive pas automatiquement.
 
 Après un clone ou une mise à jour :
 
@@ -422,4 +422,4 @@ npm run build
 npm run build:deploy
 ```
 
-Le déploiement installe G-Os et le compagnon XDock dans deux répertoires d’extensions GNOME distincts. G-Os demande ensuite au gestionnaire d’extensions GNOME d’activer XDock lorsque le Dock est activé dans ses préférences. Les réglages G-Os de position, taille des icônes, marges, masquage automatique et applications ouvertes sont synchronisés vers XDock ; les réglages avancés propres au fork restent accessibles dans ses préférences. Après une première installation dans une session déjà ouverte, une reconnexion GNOME est nécessaire pour que Shell découvre le nouvel UUID du compagnon.
+Le déploiement installe G-Os et XDock dans deux répertoires d’extensions GNOME distincts. G-Os demande au gestionnaire d’extensions GNOME d’activer XDock lorsque l’option d’affichage du Dock est activée. XDock conserve ses propres préférences et son propre schéma GSettings. Après une première installation dans une session déjà ouverte, une reconnexion GNOME est nécessaire pour que Shell découvre le nouvel UUID du compagnon.
