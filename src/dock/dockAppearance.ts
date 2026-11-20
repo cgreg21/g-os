@@ -450,9 +450,20 @@ export function withDockAppearance(Base) {
             const onBackground = point && screen.dockContainer.hover && background?.visible !== false &&
                 point[0] >= backgroundX && point[0] < backgroundX + backgroundWidth &&
                 point[1] >= backgroundY && point[1] < backgroundY + backgroundHeight;
-            const coordinate = onBackground ? point[axis] :
+            let coordinate = onBackground ? point[axis] :
                 !screen.dockContainer.hover && hoveredButton
                 ? centers[buttons.indexOf(hoveredButton)] : null;
+            // Filter pointer movement before deriving icon scales. This avoids
+            // restarting actor transitions for every raw motion event, which
+            // causes visible judder when crossing icon boundaries.
+            if (following && coordinate !== null) {
+                const previous = screen.magnificationFilteredCoordinate;
+                screen.magnificationFilteredCoordinate = previous === undefined
+                    ? coordinate : previous + (coordinate - previous) * 0.32;
+                coordinate = screen.magnificationFilteredCoordinate;
+            } else {
+                screen.magnificationFilteredCoordinate = coordinate;
+            }
             const motion = St.Settings.get();
             const reduced = 'ReducedMotion' in St &&
                 (motion.reduced_motion ?? motion.reducedMotion) === St.ReducedMotion.REDUCE;
@@ -486,12 +497,12 @@ export function withDockAppearance(Base) {
             screen.magnificationGrowth = geometry.growth;
             screen.magnificationStart = geometry.start;
             const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-            // Keep a short transition while the pointer moves between icons.
-            // A zero-duration update on every motion event makes the magnification
-            // wave snap from one icon to the next instead of following the pointer.
-            const hoverDuration = this._settings.get_int('dock-hover-duration');
-            const duration = animated
-                ? Math.max(70, Math.min(110, Math.round(hoverDuration * (following ? 0.55 : 0.9))))
+            // While the pointer is moving, update once per redraw from the
+            // filtered coordinate above. Do not restart a timed ease on every
+            // motion event; reserve easing for entering and leaving the dock.
+            const duration = animated && !following
+                ? Math.max(70, Math.min(110, Math.round(
+                    this._settings.get_int('dock-hover-duration') * 0.9)))
                 : 0;
             this._updateMagnificationBackground(screen, duration);
             buttons.forEach((button, index) => {
