@@ -1,5 +1,3 @@
-import type St from 'gi://St';
-
 /**
  * Shared behavioral base for every dock actor.
  *
