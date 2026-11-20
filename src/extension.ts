@@ -714,6 +714,8 @@ export default class GOsExtension extends ExtensionComponents {
                         screen.dockViewport.add_child(screen.dock);
                     }
                     screen.dockContainer.set_child(screen.dockViewport ?? screen.dock);
+                    for (const update of screen.hoverAnimationUpdates)
+                        update(true);
                     for (const adjustment of [screen.dockContainer.hadjustment, screen.dockContainer.vadjustment]) {
                         if (adjustment)
                             screen.dockAdjustmentCleanup.addSignal(adjustment,

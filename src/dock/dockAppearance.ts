@@ -122,6 +122,10 @@ export function withDockAppearance(Base) {
             const motion = St.Settings.get();
             icon.set_pivot_point(0.5, 0.5);
             const update = (soft = false) => {
+                // Hover notifications can fire while the Dock is temporarily reparented.
+                // Never ask St to animate an icon until its button is back on the stage.
+                if (!button.get_stage())
+                    return;
                 const animation = this._settings.get_int('dock-hover-animation');
                 const hoverDuration = this._settings.get_int('dock-hover-duration');
                 const strength = this._settings.get_int('dock-hover-strength') / 100;
