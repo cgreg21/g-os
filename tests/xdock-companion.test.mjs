@@ -11,6 +11,8 @@ test('XDock is packaged as an independent GNOME Shell companion extension', asyn
     await readFile(new URL('extension.js', root), 'utf8');
     await readFile(new URL('COPYING', root), 'utf8');
     await readFile(new URL('schemas/gschemas.compiled', root));
+    await readFile(new URL('../dist/schemas/gschemas.compiled', import.meta.url));
+    await readFile(new URL('../dist/schemas/org.gnome.shell.extensions.xdock.gschema.xml', import.meta.url));
 });
 
 test('G-Os only hides its legacy dock while the XDock handover is pending or active', async () => {
@@ -18,6 +20,8 @@ test('G-Os only hides its legacy dock while the XDock handover is pending or act
     const visibility = await readFile(new URL('../src/dock/dockVisibility.ts', import.meta.url), 'utf8');
 
     assert.match(extension, /org\.gnome\.Shell\.Extensions/);
+    assert.match(extension, /getSettings\('org.gnome.shell.extensions.xdock'\)/);
+    assert.match(extension, /_syncXDockSettings\(\)/);
     assert.match(extension, /EnableExtension/);
     assert.match(extension, /new GLib\.VariantType\\('\(b\)'\)/);
     assert.match(extension, /_setLegacyDockEnabled\(false\)/);
