@@ -35,7 +35,7 @@ install_extension() {
     rm -rf "$STAGING_DIR" "$XDOCK_STAGING_DIR"
     mkdir -p "$STAGING_DIR" "$XDOCK_STAGING_DIR"
     cp -a "$ROOT/dist/." "$STAGING_DIR/"
-    rm -rf "$STAGING_DIR/$XDOCK_UUID"
+    rm -rf "${STAGING_DIR:?}/$XDOCK_UUID"
     cp -a "$ROOT/dist/$XDOCK_UUID/." "$XDOCK_STAGING_DIR/"
 
     echo "==> Activating G-Os in the isolated Shell..."
