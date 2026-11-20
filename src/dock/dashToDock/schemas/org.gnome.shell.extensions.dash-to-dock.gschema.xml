@@ -640,8 +640,6 @@
       <summary>Wether the application-provioded counter via Unity API should override the notifications or be summed to it</summary>
       <description>If an application provides a counter through the Unity API, then such value will be used. Otherwise the counter will be summed with the unread notification numbers (if enabled)</description>
     </key>
-  </schema>
-
     <key type="b" name="magnification-enabled">
       <default>true</default>
       <summary>Enable icon magnification</summary>
@@ -676,5 +674,8 @@
       <summary>Dynamic icon spacing</summary>
       <description>Move neighboring icons apart as the hovered icon grows</description>
     </key>
+  </schema>
+
+
 
 </schemalist>
