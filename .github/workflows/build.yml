@@ -39,13 +39,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # shellcheck disable=SC2016 # Quoted find patterns are intentional.
-          mapfile -t shell_scripts < <(find scripts -type f -name '*.sh' -print | sort)
-          if (('${#shell_scripts[@]}' > 0)); then
+          mapfile -t shell_scripts < <(find scripts -type f -name "*.sh" -print | sort)
+          if (( ${#shell_scripts[@]} > 0 )); then
             bash -n "${shell_scripts[@]}"
             shellcheck "${shell_scripts[@]}"
           fi
-          find scripts tests -type f \( -name '*.mjs' -o -name '*.js' \) -print0 |
+          find scripts tests -type f \( -name "*.mjs" -o -name "*.js" \) -print0 |
             xargs -0 -r -n1 node --check
       - name: Install locked dependencies
         run: npm ci
