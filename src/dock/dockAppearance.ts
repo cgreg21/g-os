@@ -175,10 +175,6 @@ export function withDockAppearance(Base) {
             });
         }
 
-        _dockRadiusClass() {
-            return `g-os-dock-radius-${this._settings.get_int('dock-border-radius')}`;
-        }
-
         _setDockInteraction(screen, enabled) {
             const transparent = this._settings.get_int('dock-background-style') === 3;
             const magnifying = this._settings.get_int('dock-hover-animation') === 4;
@@ -228,17 +224,12 @@ export function withDockAppearance(Base) {
         }
 
         _configureDockBackground(screen) {
-            screen.dock.add_style_class_name('g-os-dock-magnification-content');
-            screen.dockRadiusClass = this._dockRadiusClass();
-            screen.dockBackgroundStyleClass = '';
-            screen.dockBorderHidden = null;
-            screen.dockShadowHidden = null;
+            screen.dock.add_style_class_name('dash-background');
             screen.magnificationBackground = new St.Widget({
-                style_class: `g-os-dock ${screen.dockRadiusClass}`,
+                style_class: 'dash-background',
                 reactive: false,
                 visible: screen.dockContainer.visible !== false,
             });
-            this._syncDockAppearance(screen);
             screen.lifecycle.chrome?.add(screen.magnificationBackground, {trackFullscreen: true});
             Main.uiGroup.set_child_below_sibling(screen.magnificationBackground, screen.dockContainer);
             const update = () => {
@@ -262,56 +253,8 @@ export function withDockAppearance(Base) {
         }
 
         _syncDockAppearance(screen) {
-            const radiusClass = this._dockRadiusClass();
-            if (screen.dockRadiusClass !== radiusClass) {
-                screen.dock.remove_style_class_name(screen.dockRadiusClass);
-                screen.magnificationBackground.remove_style_class_name(screen.dockRadiusClass);
-                screen.dock.add_style_class_name(radiusClass);
-                screen.magnificationBackground.add_style_class_name(radiusClass);
-                screen.dockRadiusClass = radiusClass;
-            }
-            const backgroundStyleClass = ['', 'g-os-dock-background-subtle', 'g-os-dock-background-opaque',
-                'g-os-dock-background-transparent'][this._settings.get_int('dock-background-style')];
-            if (screen.dockBackgroundStyleClass !== backgroundStyleClass) {
-                if (screen.dockBackgroundStyleClass)
-                    screen.magnificationBackground.remove_style_class_name(screen.dockBackgroundStyleClass);
-                if (backgroundStyleClass)
-                    screen.magnificationBackground.add_style_class_name(backgroundStyleClass);
-                screen.dockBackgroundStyleClass = backgroundStyleClass;
-            }
-            const transparent = backgroundStyleClass === 'g-os-dock-background-transparent';
-            screen.magnificationBackground.reactive = false;
-            screen.magnificationBackground.track_hover = false;
-            if (screen.dockContainer) {
-                screen.dockContainer.reactive = false;
-                screen.dockContainer.track_hover = !transparent;
-            }
-            if (screen.dockViewport) {
-                screen.dockViewport.reactive = false;
-                screen.dockViewport.track_hover = !transparent;
-            }
-            if (screen.dock) {
-                screen.dock.reactive = false;
-                screen.dock.track_hover = !transparent;
-            }
             this._setDockInteraction(screen, screen.dockContainer.visible !== false &&
                 screen.dockContainer.opacity > 0);
-            const borderHidden = !this._settings.get_boolean('dock-show-border');
-            if (screen.dockBorderHidden !== borderHidden) {
-                if (borderHidden)
-                    screen.magnificationBackground.add_style_class_name('g-os-dock-no-border');
-                else
-                    screen.magnificationBackground.remove_style_class_name('g-os-dock-no-border');
-                screen.dockBorderHidden = borderHidden;
-            }
-            const shadowHidden = !this._settings.get_boolean('dock-show-shadow');
-            if (screen.dockShadowHidden !== shadowHidden) {
-                if (shadowHidden)
-                    screen.magnificationBackground.add_style_class_name('g-os-dock-no-shadow');
-                else
-                    screen.magnificationBackground.remove_style_class_name('g-os-dock-no-shadow');
-                screen.dockShadowHidden = shadowHidden;
-            }
         }
 
         _applyDockMetrics(screen) {
